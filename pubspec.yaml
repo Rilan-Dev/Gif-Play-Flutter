@@ -1,0 +1,51 @@
+name: gif_play
+description: "For My Love"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# versions available, run `flutter pub outdated`
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.3.6
+  http: ^1.1.0
+  html: ^0.15.4
+  dartz: ^0.10.1
+  cached_network_image: ^3.2.3
+  share_plus: ^7.0.2
+  lottie: ^2.6.0
+  flutter_staggered_animations: ^1.1.1
+
+  cupertino_icons: ^1.0.8
+  url_launcher: ^6.3.1
+  provider: ^6.1.4
+  shared_preferences: ^2.5.3
+  animated_splash_screen: ^1.3.0
+  page_transition: ^2.2.1
+  intl: ^0.20.2
+  flutter_launcher_icons: ^0.14.3
+  rename_app: ^1.6.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_icon.png"
+
+
+flutter:
+
+  uses-material-design: true
+  assets:
+    - assets/images/
