@@ -1,5 +1,11 @@
 # Worklog
 
+## 2026-10-08 — Phase 3 cold-start restoration hardening
+- SessionNavigationController now creates a durable Home Space when the database has no browsing spaces.
+- Invalid or missing active-space references fall back to the first persisted Space and rewrite the SessionSnapshot.
+- Added regression coverage for default Home restoration.
+
+
 ## 2026-10-08 — Phase 3 persistent navigation infrastructure started
 - Added schema v2 persistence for Spaces, Detail Tabs, and a single SessionSnapshot.
 - Added a forward-safe v1 → v2 navigation migration path.
