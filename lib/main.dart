@@ -12,6 +12,9 @@ import 'common/providers/viewed_gifs_provider.dart';
 import 'common/providers/view_mode_provider.dart';
 import 'common/providers/mood_vibe_view_mode_provider.dart';
 import 'common/utils/shared_preferences_util.dart';
+import 'data/local/legacy_preferences_migration.dart';
+import 'data/local/local_database.dart';
+import 'data/local/local_media_repository.dart';
 
 // Import screens
 import 'screens/login_screen.dart';
@@ -30,6 +33,15 @@ void main() async {
   // Initialize shared preferences
   final sharedPreferences = await SharedPreferences.getInstance();
   SharedPreferencesUtil.init(sharedPreferences);
+
+  // Initialize durable media/collection storage before UI state loads.
+  // SharedPreferences remains available for lightweight settings and is
+  // migrated into SQLite once without deleting the legacy source data.
+  final localDatabase = LocalDatabase.open();
+  await localDatabase.initialize();
+  final localMediaRepository = LocalMediaRepository(localDatabase);
+  await LegacyPreferencesMigration(localDatabase, localMediaRepository)
+      .run(sharedPreferences);
 
   // Initialize theme mode
   final themeProvider = ThemeProvider();
