@@ -1,5 +1,15 @@
 # Worklog
 
+## 2026-10-08 — Phase 3 persistent navigation infrastructure started
+- Added schema v2 persistence for Spaces, Detail Tabs, and a single SessionSnapshot.
+- Added a forward-safe v1 → v2 navigation migration path.
+- Added LocalMediaRepository APIs for creating/updating/listing Spaces and Detail Tabs, closing tabs, and saving/restoring the active session snapshot.
+- Added SessionNavigationController for startup restoration and persistent navigation mutations without coupling navigation state to widgets.
+- Registered the controller at application bootstrap.
+- Added source-level tests for navigation persistence, schema migration, and controller restoration.
+- Runtime verification remains unavailable; implementation continues without waiting for CI/Vercel/runtime gates.
+
+
 ## 2026-10-08 — Phase 2 retry-path hardening
 - Optimized failed/expired collection recovery so a collection-level retry downloads only retryable items, then performs one consolidated readiness/preparation refresh.
 - Individual item retry now exposes preparing state and refreshes the affected collection without repeatedly re-preparing each item.
