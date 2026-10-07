@@ -56,3 +56,5 @@ Status: **IN PROGRESS (development continues without waiting for Phase 1 CI/runt
 4. Add retry/backoff and explicit expired-entry handling.
 5. Add cache cleanup controls without deleting collection metadata.
 6. Continue toward collection UI/data-layer implementation.
+
+- Collection readiness aggregation is implemented for the upcoming share-list workflow.
