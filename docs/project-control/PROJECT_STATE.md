@@ -10,7 +10,8 @@
 ## Current status
 - Phase 0: COMPLETE
 - Phase 1: IN PROGRESS (implementation complete; runtime/dependency verification pending)
-- Phase 2: IN PROGRESS
+- Phase 2: IN PROGRESS (core implementation slice complete; runtime verification pending)
+- Phase 3: IN PROGRESS (persistent navigation infrastructure slice)
 - Product feature implementation: local persistence and cache/share infrastructure are under active development; major UI redesign remains pending.
 
 ## Current implementation
@@ -24,7 +25,7 @@
 - CollectionShareService provides reusable single/multi-collection preparation and successful-share state transitions.
 - DownloadAndShare now uses the canonical cache path for remote media and direct sharing only for already-local files.
 - CollectionShareController exposes reusable multi-select collection state, readiness, preparation progress, and errors to UI consumers.
-- Regression test sources cover cache retry, cleanup preserving collection metadata, and collection-selection deduplication.
+- Regression test sources cover cache retry, cleanup preserving collection metadata, collection selection/retry, empty-share safety, and persistent navigation restoration.
 
 ## Non-negotiable product invariants
 - Collection/list definitions survive app restart.
@@ -41,4 +42,4 @@
 - UI must avoid loading hundreds of full GIF binaries into memory simultaneously.
 
 ## Next
-Hardened collection/share item recovery and added focused regression coverage for retry and successful-share-only transitions. Next: partial/empty collection handling, then the next authorized Phase 2 infrastructure slice. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
+Phase 3 persistence infrastructure is active: harden startup restoration and add migration/reopen coverage before visual Space/Detail Tab UI. Do not wait for CI/Vercel/runtime gates; record verification status honestly. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
