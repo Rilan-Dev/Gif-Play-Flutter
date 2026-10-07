@@ -41,4 +41,4 @@
 - UI must avoid loading hundreds of full GIF binaries into memory simultaneously.
 
 ## Next
-Harden collection/share item recovery and add focused regression coverage for retry and successful-share-only transitions. Then continue into the next authorized Phase 2 infrastructure slice. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
+Hardened collection/share item recovery and added focused regression coverage for retry and successful-share-only transitions. Next: partial/empty collection handling, then the next authorized Phase 2 infrastructure slice. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
