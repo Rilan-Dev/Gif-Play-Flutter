@@ -27,12 +27,7 @@ Status: **IN PROGRESS**
 - `CollectionShareController` for reusable selection, readiness, progress, and error state.
 - Regression test source for retry, cleanup, collection preservation, and collection selection.
 
-### Next implementation slice
-1. Connect collection/share controller state to existing collection-capable UI entry points.
-2. Present per-item/per-collection ready/downloading/not-cached/expired/failed status.
-3. Add explicit retry for failed/expired preparation.
-4. Ensure share-state mutation happens only after successful share return.
-5. Continue Phase 2 cache/share work before larger product UI redesign.
+undefined
 
 ## Phase boundary
 Do not start the large home redesign, full Search 2.0 UI, or persistent Spaces/Detail Tabs UI until the collection/share infrastructure is sufficiently implemented and the authorized phase boundary is explicitly advanced.
