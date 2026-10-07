@@ -223,7 +223,7 @@ A list selected for sharing should report readiness and share from local files w
 
 # Phase 3 — Persistent Browsing Spaces & Detail Tabs
 
-**Status:** PENDING
+**Status:** IN PROGRESS — persistence infrastructure slice
 
 ### User model
 
