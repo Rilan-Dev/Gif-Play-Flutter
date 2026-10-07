@@ -9,19 +9,20 @@ Phase 2 — Temporary Download / Ready-to-Share Engine is **IN PROGRESS**. Phase
 - File-backed persistence/reopen test source.
 - Repository cache-state primitives.
 - Shared `MediaCacheManager` with cache reuse, bounded collection preparation, TTL, checksum, and byte-budget LRU eviction.
-- Collection-level cache readiness aggregation.
-- Retry/backoff recovery for cache downloads with configurable retry count and base delay.
-- Explicit expired/missing-file recovery.
-- Cache maintenance cleanup for expired/failed entries without deleting collection metadata.
+- Retry/backoff recovery with explicit expired/missing-file recovery.
+- Cache maintenance cleanup without deleting collection metadata.
 - Reusable `CollectionShareService` for single/multiple collection preparation and successful-share state transition.
+- Existing `DownloadAndShare` normalized so remote downloads use `MediaCacheManager`; local files are shared directly without duplicate downloads.
+- `CollectionShareService` registered at app bootstrap and exposed to the share utility.
+- Reusable `CollectionShareController` added for collection loading, multi-select, readiness, preparation progress, and failure state.
+- Focused regression source added for cache retry, cache cleanup, collection preservation, and collection-selection deduplication.
 
 ## Immediate next implementation sequence
-1. Normalize the existing duplicate `DownloadAndShareGif` implementation onto the shared cache path.
-2. Wire `CollectionShareService` into the existing share flow without redesigning the home screen.
-3. Add a user-facing collection/share-list data layer for reusable collections and multi-select sharing.
-4. Add progress/status propagation for ready/downloading/failed/not-cached states.
-5. Add focused source-level regression coverage for retry/expiry/maintenance and collection-share orchestration.
-6. Continue project-control/index updates after each coherent slice.
+1. Extend the collection/share workflow from data-layer readiness into the existing collection-capable UI entry points, without redesigning the home screen.
+2. Add explicit per-item progress/status presentation where collection items are prepared: ready, downloading, not cached, expired, failed.
+3. Make retry of failed/expired collection items a first-class action using the same cache manager.
+4. Add share-result handling so collection items transition to shared only after the share operation returns successfully.
+5. Continue project-control/index updates and then advance to the next authorized Phase 2 slice.
 
 ## Execution rule
 Do not wait for GitHub Actions, Vercel deployments, or continuous verification to continue implementation. Runtime verification must be recorded honestly when unavailable, but it is not a development blocker.
@@ -33,6 +34,8 @@ Do not wait for GitHub Actions, Vercel deployments, or continuous verification t
 - Failed downloads remain retryable and do not silently become shared.
 - Cache cleanup removes cache artifacts/manifest entries only; collection metadata survives.
 - Multi-collection preparation deduplicates selected collection IDs.
+- Remote sharing has one canonical download path; no legacy direct HTTP fallback remains in the share utility.
+- Collection items become shared only after a successful share operation.
 
 ## Do not do yet
 - Do not redesign the entire home screen.
