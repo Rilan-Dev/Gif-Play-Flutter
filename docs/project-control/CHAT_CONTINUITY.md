@@ -33,11 +33,9 @@ Never infer completed work from a previous chat. GitHub files, Git history, and 
 - Update CURRENT_PHASE.md when a phase starts/completes.
 - Do not close a phase without evidence recorded in the worklog and appropriate verification.
 
-## Latest continuation point — Phase 2 item-level collection recovery
-- CollectionShareController now tracks collection items and their cache/share states.
-- Collection UI now exposes per-item Ready/Downloading/Not cached/Failed/Expired status.
-- Failed/expired individual items can be retried through MediaCacheManager; a collection-level retry action is also available.
-- Prepared collection sharing still marks items shared only after the platform share operation returns.
-- Retry recovery has been batched so collection-level retry prepares only failed/expired items before one consolidated refresh.
-- Focused regression coverage now checks failed-item recovery and that an unready preparation cannot mutate share state.
-- The next implementation action is partial/empty collection handling, then the next authorized Phase 2 infrastructure slice.
+## Latest continuation point — Phase 3 persistent navigation infrastructure
+- Phase 2 collection/share recovery now includes per-item status, retry, empty-collection handling, and successful-share-only state transitions.
+- Phase 3 persistence has started without changing the large home UI: schema v2 adds Spaces, Detail Tabs, and SessionSnapshot; LocalMediaRepository exposes CRUD/session APIs; SessionNavigationController restores and persists active navigation state.
+- Main bootstrap registers SessionNavigationController.
+- Focused persistence tests cover navigation state, schema-v1 forward migration, and controller restoration.
+- The next implementation action is controller/startup restoration hardening and additional migration/reopen coverage before the visual Space/Detail Tab redesign.
