@@ -22,16 +22,18 @@ class CollectionShareController extends ChangeNotifier {
     this.repository, {
     CollectionShareService? shareService,
     MediaCacheManager? cacheManager,
-  })  : cacheManager = cacheManager ?? MediaCacheManager(repository),
-        shareService = shareService ??
-            CollectionShareService(
-              repository,
-              cacheManager: cacheManager ?? MediaCacheManager(repository),
-            );
+  }) {
+    this.cacheManager = cacheManager ?? MediaCacheManager(repository);
+    this.shareService = shareService ??
+        CollectionShareService(
+          repository,
+          cacheManager: this.cacheManager,
+        );
+  }
 
   final LocalMediaRepository repository;
-  final MediaCacheManager cacheManager;
-  final CollectionShareService shareService;
+  late final MediaCacheManager cacheManager;
+  late final CollectionShareService shareService;
 
   List<GifCollection> _collections = const [];
   final Set<String> _selectedCollectionIds = <String>{};
