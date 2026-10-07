@@ -35,3 +35,24 @@ Status: **IN PROGRESS**
 
 ## Gate
 Do not start the large home redesign, full Search 2.0 UI, or persistent Spaces/Detail Tabs UI until Phase 1 is complete.
+## Phase 2 — Temporary Download / Ready-to-Share Engine
+
+Status: **IN PROGRESS (development continues without waiting for Phase 1 CI/runtime gate)**
+
+### Implemented slice
+- Shared `MediaCacheManager` added under `lib/data/cache/`.
+- Cache manifest remains in SQLite; GIF bytes remain filesystem files.
+- Cache filenames use canonical media IDs, preventing duplicate binaries across collections.
+- Existing GIF download/share flow now reuses the shared cache when available.
+- Cached files are retained after sharing; non-share downloads still create the existing `saved_` copy.
+- Bounded concurrent collection preparation is implemented with a configurable worker limit.
+- Cache TTL, ready-file validation, checksum recording, and byte-budget LRU eviction are implemented.
+- Cache state is reflected on collection items during preparation.
+
+### Next implementation slice
+1. Connect collection-specific preparation to the future collection/share-list workflow.
+2. Add share readiness/status aggregation (ready/downloading/failed/not-cached).
+3. Normalize the duplicate `DownloadAndShareGif` implementation onto the cache service.
+4. Add retry/backoff and explicit expired-entry handling.
+5. Add cache cleanup controls without deleting collection metadata.
+6. Continue toward collection UI/data-layer implementation.
