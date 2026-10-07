@@ -15,6 +15,7 @@ import 'common/utils/shared_preferences_util.dart';
 import 'data/local/legacy_preferences_migration.dart';
 import 'data/local/local_database.dart';
 import 'data/local/local_media_repository.dart';
+import 'data/cache/media_cache_manager.dart';
 
 // Import screens
 import 'screens/login_screen.dart';
@@ -68,6 +69,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => viewedGifsProvider),
         ChangeNotifierProvider(create: (_) => viewModeProvider),
         ChangeNotifierProvider(create: (_) => moodVibeViewModeProvider),
+        Provider<LocalMediaRepository>.value(value: localMediaRepository),
+        Provider<MediaCacheManager>.value(value: MediaCacheManager(localMediaRepository)),
       ],
       child: const MyApp(),
     ),
