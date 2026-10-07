@@ -8,6 +8,7 @@ import 'package:gif_play/data/local/local_database.dart';
 import 'package:gif_play/data/local/legacy_preferences_migration.dart';
 import 'package:gif_play/data/local/local_media_repository.dart';
 import 'package:gif_play/data/local/media_identity.dart';
+import 'package:gif_play/data/local/models/collection_item.dart';
 import 'package:gif_play/data/local/models/media_record.dart';
 
 void main() {
