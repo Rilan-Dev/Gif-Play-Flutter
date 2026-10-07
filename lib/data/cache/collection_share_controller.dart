@@ -104,6 +104,8 @@ class CollectionShareController extends ChangeNotifier {
   void clearSelection() {
     _selectedCollectionIds.clear();
     _preparations.clear();
+    _itemsByCollection.clear();
+    _mediaById.clear();
     _readiness.clear();
     _completedCollections = 0;
     _status = CollectionShareStatus.idle;
@@ -137,6 +139,7 @@ class CollectionShareController extends ChangeNotifier {
         final preparation = await shareService.prepareCollection(id);
         _preparations[id] = preparation;
         _readiness[id] = preparation.readiness;
+        await loadCollectionItems(id);
         _completedCollections++;
         notifyListeners();
       }
