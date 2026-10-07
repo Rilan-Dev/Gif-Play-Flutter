@@ -17,7 +17,7 @@ Status: **IN PROGRESS**
 ## Remaining Phase 1 work
 1. Verify dependency resolution/build on the project-supported Flutter SDK and update the lockfile through the normal package manager.
 2. Review the migration against real legacy data shapes and edge cases.
-3. Connect existing LikedGifsProvider/ViewedGifsProvider to repository-backed state while retaining their public UI contract.
+3. Connect existing LikedGifsProvider/ViewedGifsProvider to repository-backed state while retaining their public UI contract. **DONE (startup now injects LocalMediaRepository; legacy constructor fallback remains for compatibility).**
 4. Add cache-state update helpers needed by Phase 2.
 5. Add repository/provider integration tests and migration idempotency coverage.
 6. Replace or supplement the generated counter test with real application persistence coverage.
