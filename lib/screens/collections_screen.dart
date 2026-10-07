@@ -35,7 +35,10 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       return const Text('Not prepared');
     }
 
+    if (readiness.pending == 0) return const Text('Empty · 0 pending');
+
     final parts = <String>[
+      'pending ${readiness.pending}',
       'ready ${readiness.ready}',
       'downloading ${readiness.downloading}',
       'not cached ${readiness.notCached}',
@@ -174,6 +177,9 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
           final progress = controller.progress;
           final preparing =
               controller.status == CollectionShareStatus.preparing;
+          final hasPending = controller.readiness.values.any(
+            (item) => item.pending > 0,
+          );
 
           return Material(
             elevation: 8,
@@ -195,7 +201,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                           ),
                         ),
                         FilledButton.icon(
-                          onPressed: preparing ? null : _prepareAndShare,
+                          onPressed: preparing || !hasPending ? null : _prepareAndShare,
                           icon: Icon(
                             controller.status == CollectionShareStatus.failed
                                 ? Icons.refresh
@@ -204,7 +210,9 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                           label: Text(
                             controller.status == CollectionShareStatus.failed
                                 ? 'Retry'
-                                : 'Prepare & Share',
+                                : hasPending
+                                    ? 'Prepare & Share'
+                                    : 'No pending items',
                           ),
                         ),
                       ],
