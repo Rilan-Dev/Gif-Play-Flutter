@@ -1,5 +1,13 @@
 # Worklog
 
+## 2026-10-08 — Phase 2 item-level collection recovery
+- Added controller-level item tracking for reusable collections.
+- Added per-item cache/share state presentation to the Collections screen.
+- Added individual retry for failed/expired cache entries and collection-level retry for all failed/expired items.
+- Kept the canonical MediaCacheManager path and post-success share-state transition invariant.
+- Runtime verification remains unavailable because Flutter/Dart is not present in the execution environment; development was not blocked by this.
+
+
 ## 2026-10-08 — Phase 2 share orchestration continuation
 - Re-read repository-authored continuation state and proceeded from the first pending Phase 2 action without waiting for CI, Vercel, or runtime gates.
 - Normalized `DownloadAndShare` so remote media uses `MediaCacheManager` exclusively; removed the legacy direct HTTP download fallback.
