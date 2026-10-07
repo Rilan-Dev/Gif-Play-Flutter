@@ -50,3 +50,11 @@ Do not introduce a state-management rewrite as part of this program. New reposit
 Status: **LOCKED**
 
 HTML parsing/networking stays outside widgets and behind a replaceable source adapter.
+
+
+## D-010 — Phase 1 database implementation seam
+Status: **LOCKED FOR CURRENT IMPLEMENTATION SLICE**
+
+The first persistence implementation uses Drift's DatabaseConnectionUser with prepared custom SQL APIs and an explicit versioned SQLite schema. This avoids committing generated Drift artifacts while the repository remains on Dart SDK ^3.6. The domain and repository boundaries remain independent of this implementation detail.
+
+The dependency versions are constrained by the existing Dart SDK. Drift 2.32.1 and drift_dev 2.32.1 support Dart 3.5+, while newer Drift releases require newer Dart SDKs.
