@@ -27,19 +27,6 @@ Status: **IN PROGRESS (core implementation slice complete; runtime verification 
 - `CollectionShareController` for reusable selection, readiness, progress, and error state.
 - Regression test source for retry, cleanup, collection preservation, and collection selection.
 
-undefined
-
-## Phase boundary
-Do not start the large home redesign, full Search 2.0 UI, or persistent Spaces/Detail Tabs UI until the collection/share infrastructure is sufficiently implemented and the authorized phase boundary is explicitly advanced.### Next implementation slice
-1. Harden item-level retry and partial-failure behavior.
-2. Add focused tests for item retry and successful-share-only state mutation.
-3. Add empty/partial collection handling without deleting reusable collection definitions.
-4. Continue Phase 2 toward the next authorized persistence/session infrastructure slice.
-
-## Phase boundary
-Do not start the large home redesign, full Search 2.0 UI, or persistent Spaces/Detail Tabs UI until the collection/share infrastructure is sufficiently implemented and the authorized phase boundary is explicitly advanced.
-
-
 ## Phase 3 — Persistent Browsing Spaces & Detail Tabs
 Status: **IN PROGRESS — persistence infrastructure slice**
 
