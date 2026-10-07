@@ -144,6 +144,9 @@ void main() {
     final controller = SessionNavigationController(repository);
     await controller.load();
 
+    expect(controller.spaces, hasLength(1));
+    expect(controller.spaces.single.name, 'Home');
+
     final space = await controller.createSpace(name: 'Browse');
     await repository.upsertMedia(media(31));
     final tab = await controller.openDetailTab(
