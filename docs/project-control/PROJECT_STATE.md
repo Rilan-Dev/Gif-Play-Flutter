@@ -9,8 +9,9 @@
 
 ## Current status
 - Phase 0: COMPLETE
-- Phase 1: IN PROGRESS
-- Product feature implementation: persistence foundation started; major UI features remain pending.
+- Phase 1: IN PROGRESS (implementation complete; runtime/dependency verification pending)
+- Phase 2: IN PROGRESS
+- Product feature implementation: local persistence and cache/share infrastructure are under active development; major UI redesign remains pending.
 
 ## Current implementation
 - Drift + SQLite local database initialized during app bootstrap.
@@ -18,7 +19,9 @@
 - Canonical media identity uses normalized URL material hashed with SHA-256.
 - LocalMediaRepository provides media persistence/search, reusable collections, membership, share-state lifecycle, and cache metadata operations.
 - Legacy liked/viewed JSON is imported once into durable collections; legacy SharedPreferences data is not deleted.
-- Provider public APIs remain unchanged so existing screens can continue during the migration.
+- Provider public APIs remain compatible while app bootstrap uses repository-backed state.
+- MediaCacheManager provides durable filesystem caching with SQLite manifest, bounded collection preparation, TTL, checksum, retry/backoff, expired-file recovery, and byte-budget LRU maintenance.
+- CollectionShareService provides reusable single/multi-collection preparation and successful-share state transitions.
 
 ## Non-negotiable product invariants
 - Collection/list definitions survive app restart.
@@ -35,20 +38,4 @@
 - UI must avoid loading hundreds of full GIF binaries into memory simultaneously.
 
 ## Next
-Finish Phase 1 provider migration, persistence/reopen tests, dependency verification, cache metadata helpers, and repository indexing. Then proceed to Phase 2 only after Phase 1 acceptance evidence is recorded.
-
-
-## Phase 1 implementation update
-- Phase 1: IN PROGRESS
-- Durable local persistence foundation is implemented.
-- Liked/viewed providers are now repository-backed when created by app bootstrap.
-- Legacy SharedPreferences migration is hardened and idempotent.
-- Cache-state metadata helpers are ready for Phase 2.
-
-## Current implementation continuation — Phase 2 cache
-- Phase 2 cache engine development has started without waiting for CI/Vercel gates.
-- `MediaCacheManager` provides demand-driven local file caching with bounded concurrency and LRU byte eviction.
-- Existing share/download flow now checks the durable cache first and does not delete cache files after sharing.
-- Collection-specific readiness/share orchestration is the next implementation slice.
-
-- Collection-level cache readiness is now available for future share-list UX.
+Normalize the existing DownloadAndShareGif implementation onto MediaCacheManager, wire CollectionShareService into the existing share flow, then continue the reusable collection/share-list data layer. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
