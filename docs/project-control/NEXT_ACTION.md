@@ -18,7 +18,7 @@ Phase 1 — Local Media Library & Collection Engine is **IN PROGRESS**.
 3. Migrate `LikedGifsProvider` and `ViewedGifsProvider` behind repository-backed persistence while preserving their current public API for existing screens. **DONE: main.dart injects LocalMediaRepository; existing getter/toggle/add/clear/check APIs remain.**
 4. Add explicit repository reopen/persistence tests using a temporary file-backed SQLite database. **DONE in test source; execution pending Flutter/Dart environment.**
 5. Add collection deletion/archive semantics only where required by the existing UI; never delete a collection as a side effect of sharing.
-6. Add cache-state mutation/query helpers needed by Phase 2 without implementing downloads yet.
+6. Add cache-state mutation/query helpers needed by Phase 2 without implementing downloads yet. **DONE: collection cache-state update and ready-item query added; no binary download behavior introduced.**
 7. Re-index the repository and record verification evidence.
 
 ## Acceptance examples
