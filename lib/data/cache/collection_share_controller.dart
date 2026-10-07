@@ -186,22 +186,11 @@ class CollectionShareController extends ChangeNotifier {
     }
 
     _error = null;
-    await cacheManager.prepareMedia(media, collectionId: collectionId);
-    await loadCollectionItems(collectionId);
-    _readiness[collectionId] =
-        await cacheManager.getCollectionReadiness(collectionId);
-
-    if (_selectedCollectionIds.contains(collectionId)) {
-      _preparations[collectionId] =
-          await shareService.prepareCollection(collectionId);
-      _readiness[collectionId] = _preparations[collectionId]!.readiness;
-      _status = _preparations.values.isNotEmpty &&
-              _preparations.length == _selectedCollectionIds.length &&
-              _preparations.values.every((item) => item.isReadyToShare)
-          ? CollectionShareStatus.ready
-          : CollectionShareStatus.failed;
-    }
+    _status = CollectionShareStatus.preparing;
     notifyListeners();
+
+    await cacheManager.prepareMedia(media, collectionId: collectionId);
+    await _refreshCollectionAfterRecovery(collectionId);
   }
 
   Future<void> retryFailedOrExpired(String collectionId) async {
@@ -210,12 +199,46 @@ class CollectionShareController extends ChangeNotifier {
       pendingOnly: true,
       limit: 500,
     );
+
+    _error = null;
+    _status = CollectionShareStatus.preparing;
+    notifyListeners();
+
     for (final item in items) {
       if (item.cacheState != CollectionCacheState.failed &&
           item.cacheState != CollectionCacheState.expired) {
         continue;
       }
-      await retryItem(collectionId, item.mediaId);
+      final media = await repository.getMedia(item.mediaId);
+      if (media == null) continue;
+      await cacheManager.prepareMedia(
+        media,
+        collectionId: collectionId,
+      );
     }
+
+    await _refreshCollectionAfterRecovery(collectionId);
   }
+
+  Future<void> _refreshCollectionAfterRecovery(String collectionId) async {
+    await loadCollectionItems(collectionId);
+    _readiness[collectionId] =
+        await cacheManager.getCollectionReadiness(collectionId);
+
+    if (_selectedCollectionIds.contains(collectionId)) {
+      final preparation = await shareService.prepareCollection(collectionId);
+      _preparations[collectionId] = preparation;
+      _readiness[collectionId] = preparation.readiness;
+
+      _status = _preparations.length == _selectedCollectionIds.length &&
+              _preparations.values.every((item) => item.isReadyToShare)
+          ? CollectionShareStatus.ready
+          : CollectionShareStatus.failed;
+    } else {
+      _status = CollectionShareStatus.idle;
+    }
+
+    notifyListeners();
+  }
+
 }
