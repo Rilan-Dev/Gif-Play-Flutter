@@ -47,3 +47,5 @@
 - Preserved cached files after sharing; non-share cached downloads still produce the existing saved copy.
 - Added a source-level eviction regression test.
 - Verification remains pending because Flutter/Dart is unavailable in the current execution environment; development intentionally continues without waiting for that verification.
+
+- Added `CollectionCacheReadiness` aggregation so share-list UI can consume cache state without owning persistence logic; added focused readiness test.
