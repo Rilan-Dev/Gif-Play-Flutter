@@ -55,11 +55,25 @@ class SessionNavigationController extends ChangeNotifier {
       _activeSpaceId,
     );
 
-    if (_activeSpaceId == null && _spaces.isNotEmpty) {
+    if (_spaces.isEmpty) {
+      final home = await repository.createSpace(
+        name: 'Home',
+        feedType: 'home',
+        sortOrder: 0,
+      );
+      _spaces = [home];
+      _tabsBySpace[home.id] = const [];
+    }
+
+    if (_activeSpaceId == null) {
       _activeSpaceId = _spaces.first.id;
       _activeDetailTabId = _tabsBySpace[_activeSpaceId]?.isNotEmpty == true
           ? _tabsBySpace[_activeSpaceId]!.last.id
           : null;
+      await repository.updateSpace(
+        id: _activeSpaceId!,
+        activeDetailTabId: _activeDetailTabId,
+      );
       await _persistSession();
     }
 
