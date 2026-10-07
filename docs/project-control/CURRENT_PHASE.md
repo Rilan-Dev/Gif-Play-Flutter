@@ -39,4 +39,4 @@ Status: **IN PROGRESS — persistence infrastructure slice**
 - Source-level migration, persistence, and restoration tests.
 
 ### Next
-Continue restoration hardening and migration/reopen coverage before building the visual Space/Detail Tab strips.
+Continue invalid/closed-tab restoration hardening and migration/reopen coverage before building the visual Space/Detail Tab strips.
