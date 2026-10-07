@@ -63,7 +63,8 @@ class MediaCacheManager {
     this.entryTtl = const Duration(days: 30),
     this.maxRetries = 2,
     this.retryBaseDelay = const Duration(milliseconds: 500),
-  });
+    http.Client? client,
+  }) : client = client ?? http.Client();
 
   final LocalMediaRepository repository;
   final int maxBytes;
@@ -71,6 +72,7 @@ class MediaCacheManager {
   final Duration entryTtl;
   final int maxRetries;
   final Duration retryBaseDelay;
+  final http.Client client;
 
   Future<CachePreparationResult?> prepareMedia(
     MediaRecord media, {
@@ -171,7 +173,7 @@ class MediaCacheManager {
       throw const FormatException('Media URL is not an HTTP(S) URL');
     }
 
-    final response = await http.get(uri);
+    final response = await client.get(uri);
     if (response.statusCode != 200) {
       throw HttpException('HTTP ${response.statusCode}', uri: uri);
     }
