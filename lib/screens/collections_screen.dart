@@ -177,9 +177,8 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
           final progress = controller.progress;
           final preparing =
               controller.status == CollectionShareStatus.preparing;
-          final hasPending = controller.readiness.values.any(
-            (item) => item.pending > 0,
-          );
+          final hasPending = controller.readiness.isEmpty ||
+              controller.readiness.values.any((item) => item.pending > 0);
 
           return Material(
             elevation: 8,
