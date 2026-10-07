@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:gif_play/data/local/local_database.dart';
 import 'package:gif_play/data/cache/media_cache_manager.dart';
@@ -229,4 +230,113 @@ void main() {
     expect(readiness.isReadyToShare, isFalse);
   });
 
+
+  test('cache manager retries a failed download and records the ready result',
+      () async {
+    var attempts = 0;
+    final client = _RetryClient(() {
+      attempts++;
+      if (attempts == 1) {
+        return http.Response('temporary failure', 503);
+      }
+      return http.Response.bytes([1, 2, 3, 4], 200);
+    });
+
+    final manager = MediaCacheManager(
+      repository,
+      client: client,
+      maxRetries: 1,
+      retryBaseDelay: Duration.zero,
+    );
+
+    final result = await manager.prepareMedia(media(1));
+
+    expect(result, isNotNull);
+    expect(attempts, 2);
+    expect(await result!.file.exists(), isTrue);
+    expect((await repository.getCacheEntry(result.mediaId))!.status,
+        MediaCacheStatus.ready);
+  });
+
+  test('cache cleanup removes expired and failed artifacts but preserves collections',
+      () async {
+    final collection = await repository.createCollection('Reusable');
+    await repository.addToCollection(
+      collectionId: collection.id,
+      media: media(2),
+    );
+
+    final expiredPath =
+        '${Directory.systemTemp.path}/gif-play-expired-${DateTime.now().microsecondsSinceEpoch}';
+    final failedPath =
+        '${Directory.systemTemp.path}/gif-play-failed-${DateTime.now().microsecondsSinceEpoch}';
+    final expiredFile = File(expiredPath);
+    final failedFile = File(failedPath);
+    await expiredFile.writeAsBytes([1, 2, 3]);
+    await failedFile.writeAsBytes([4, 5]);
+
+    final now = DateTime.now();
+    await repository.upsertCacheEntry(
+      MediaCacheEntry(
+        mediaId: media(2).id,
+        localPath: expiredPath,
+        byteSize: 3,
+        downloadedAt: now.subtract(const Duration(days: 2)),
+        lastAccessedAt: now.subtract(const Duration(days: 2)),
+        expiresAt: now.subtract(const Duration(minutes: 1)),
+        status: MediaCacheStatus.ready,
+      ),
+    );
+    await repository.upsertCacheEntry(
+      MediaCacheEntry(
+        mediaId: media(3).id,
+        localPath: failedPath,
+        byteSize: 2,
+        downloadedAt: now,
+        lastAccessedAt: now,
+        status: MediaCacheStatus.failed,
+        failureCount: 2,
+        lastError: 'network',
+      ),
+    );
+
+    final result = await MediaCacheManager(repository).cleanup();
+
+    expect(result.removedEntries, 2);
+    expect(await expiredFile.exists(), isFalse);
+    expect(await failedFile.exists(), isFalse);
+    expect(await repository.getCacheEntry(media(2).id), isNull);
+    expect(await repository.getCollection(collection.id), isNotNull);
+    expect(await repository.countCollectionItems(collection.id), 1);
+  });
+
+  test('collection share service deduplicates selected collection ids', () async {
+    final first = await repository.createCollection('First');
+    final second = await repository.createCollection('Second');
+    final service = CollectionShareService(repository);
+
+    final preparations = await service.prepareCollections(
+      [first.id, second.id, first.id],
+    );
+
+    expect(preparations.map((item) => item.collectionId).toSet(),
+        {first.id, second.id});
+  });
+}
+
+class _RetryClient extends http.BaseClient {
+  _RetryClient(this._responseFactory);
+
+  final http.Response Function() _responseFactory;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final response = _responseFactory();
+    return http.StreamedResponse(
+      Stream<List<int>>.value(response.bodyBytes),
+      response.statusCode,
+      headers: response.headers,
+      request: request,
+    );
+  }
 }
