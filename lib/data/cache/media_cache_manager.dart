@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
@@ -16,6 +15,7 @@ class CachePreparationResult {
     required this.file,
     required this.fromCache,
   });
+
   final String mediaId;
   final File file;
   final bool fromCache;
@@ -43,18 +43,34 @@ class CollectionCacheReadiness {
   bool get isReadyToShare => pending > 0 && ready >= pending;
 }
 
+class CacheMaintenanceResult {
+  const CacheMaintenanceResult({
+    required this.removedEntries,
+    required this.removedBytes,
+    required this.remainingBytes,
+  });
+
+  final int removedEntries;
+  final int removedBytes;
+  final int remainingBytes;
+}
+
 class MediaCacheManager {
   MediaCacheManager(
     this.repository, {
     this.maxBytes = 200 * 1024 * 1024,
     this.maxConcurrentDownloads = 3,
     this.entryTtl = const Duration(days: 30),
+    this.maxRetries = 2,
+    this.retryBaseDelay = const Duration(milliseconds: 500),
   });
 
   final LocalMediaRepository repository;
   final int maxBytes;
   final int maxConcurrentDownloads;
   final Duration entryTtl;
+  final int maxRetries;
+  final Duration retryBaseDelay;
 
   Future<CachePreparationResult?> prepareMedia(
     MediaRecord media, {
@@ -62,9 +78,12 @@ class MediaCacheManager {
   }) async {
     final now = DateTime.now();
     final existing = await repository.getCacheEntry(media.id);
+
     if (existing != null && existing.status == MediaCacheStatus.ready) {
       final file = File(existing.localPath);
-      final expired = existing.expiresAt != null && existing.expiresAt!.isBefore(now);
+      final expired =
+          existing.expiresAt != null && existing.expiresAt!.isBefore(now);
+
       if (!expired && await file.exists()) {
         await repository.touchCacheEntry(media.id, accessedAt: now);
         if (collectionId != null) {
@@ -74,7 +93,20 @@ class MediaCacheManager {
             cacheState: CollectionCacheState.ready,
           );
         }
-        return CachePreparationResult(mediaId: media.id, file: file, fromCache: true);
+        return CachePreparationResult(
+          mediaId: media.id,
+          file: file,
+          fromCache: true,
+        );
+      }
+
+      if (collectionId != null) {
+        await repository.updateCollectionItemCacheState(
+          collectionId: collectionId,
+          mediaId: media.id,
+          cacheState: CollectionCacheState.expired,
+          error: 'Cached file is missing or expired',
+        );
       }
       await _removeEntryAndFile(existing);
     }
@@ -87,68 +119,99 @@ class MediaCacheManager {
       );
     }
 
-    try {
-      final url = media.mediaUrl.trim();
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        throw const FormatException('Media URL is not an HTTP(S) URL');
-      }
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode != 200) {
-        throw HttpException('HTTP ${response.statusCode}', uri: Uri.parse(url));
-      }
-      final bytes = response.bodyBytes;
-      if (bytes.isEmpty) throw const FormatException('Downloaded media is empty');
+    Object? lastError;
+    for (var attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        if (attempt > 0) {
+          final multiplier = 1 << (attempt - 1);
+          await Future<void>.delayed(retryBaseDelay * multiplier);
+        }
 
-      final folder = await FileUtils.getHiddenFolder();
-      final cacheFolder = Directory('${folder.path}/gif_cache');
-      if (!await cacheFolder.exists()) await cacheFolder.create(recursive: true);
-      final finalFile = File('${cacheFolder.path}/${media.id}.bin');
-      final tempFile = File('${finalFile.path}.part');
-      await tempFile.writeAsBytes(bytes, flush: true);
-      if (await finalFile.exists()) await finalFile.delete();
-      await tempFile.rename(finalFile.path);
-
-      final timestamp = DateTime.now();
-      await repository.upsertCacheEntry(MediaCacheEntry(
-        mediaId: media.id,
-        localPath: finalFile.path,
-        byteSize: bytes.length,
-        downloadedAt: timestamp,
-        lastAccessedAt: timestamp,
-        expiresAt: timestamp.add(entryTtl),
-        checksum: sha256.convert(bytes).toString(),
-        status: MediaCacheStatus.ready,
-      ));
-      if (collectionId != null) {
-        await repository.updateCollectionItemCacheState(
-          collectionId: collectionId,
-          mediaId: media.id,
-          cacheState: CollectionCacheState.ready,
-        );
+        final result = await _downloadOnce(media);
+        if (collectionId != null) {
+          await repository.updateCollectionItemCacheState(
+            collectionId: collectionId,
+            mediaId: media.id,
+            cacheState: CollectionCacheState.ready,
+          );
+        }
+        await evictIfNeeded(preserveMediaIds: {media.id});
+        return result;
+      } catch (error) {
+        lastError = error;
       }
-      await evictIfNeeded(preserveMediaIds: {media.id});
-      return CachePreparationResult(mediaId: media.id, file: finalFile, fromCache: false);
-    } catch (error) {
-      await repository.upsertCacheEntry(MediaCacheEntry(
-        mediaId: media.id,
-        localPath: '',
-        byteSize: 0,
-        downloadedAt: now,
-        lastAccessedAt: now,
-        status: MediaCacheStatus.failed,
-        failureCount: (existing?.failureCount ?? 0) + 1,
-        lastError: error.toString(),
-      ));
-      if (collectionId != null) {
-        await repository.updateCollectionItemCacheState(
-          collectionId: collectionId,
-          mediaId: media.id,
-          cacheState: CollectionCacheState.failed,
-          error: error.toString(),
-        );
-      }
-      return null;
     }
+
+    final failure = lastError?.toString() ?? 'Unknown cache preparation error';
+    await repository.upsertCacheEntry(MediaCacheEntry(
+      mediaId: media.id,
+      localPath: '',
+      byteSize: 0,
+      downloadedAt: now,
+      lastAccessedAt: now,
+      status: MediaCacheStatus.failed,
+      failureCount: (existing?.failureCount ?? 0) + maxRetries + 1,
+      lastError: failure,
+    ));
+    if (collectionId != null) {
+      await repository.updateCollectionItemCacheState(
+        collectionId: collectionId,
+        mediaId: media.id,
+        cacheState: CollectionCacheState.failed,
+        error: failure,
+      );
+    }
+    return null;
+  }
+
+  Future<CachePreparationResult> _downloadOnce(MediaRecord media) async {
+    final url = media.mediaUrl.trim();
+    final uri = Uri.tryParse(url);
+    if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) {
+      throw const FormatException('Media URL is not an HTTP(S) URL');
+    }
+
+    final response = await http.get(uri);
+    if (response.statusCode != 200) {
+      throw HttpException('HTTP ${response.statusCode}', uri: uri);
+    }
+
+    final bytes = response.bodyBytes;
+    if (bytes.isEmpty) {
+      throw const FormatException('Downloaded media is empty');
+    }
+
+    final folder = await FileUtils.getHiddenFolder();
+    final cacheFolder = Directory('${folder.path}/gif_cache');
+    if (!await cacheFolder.exists()) {
+      await cacheFolder.create(recursive: true);
+    }
+
+    final finalFile = File('${cacheFolder.path}/${media.id}.bin');
+    final tempFile = File('${finalFile.path}.part');
+    await tempFile.writeAsBytes(bytes, flush: true);
+    if (await finalFile.exists()) {
+      await finalFile.delete();
+    }
+    await tempFile.rename(finalFile.path);
+
+    final timestamp = DateTime.now();
+    await repository.upsertCacheEntry(MediaCacheEntry(
+      mediaId: media.id,
+      localPath: finalFile.path,
+      byteSize: bytes.length,
+      downloadedAt: timestamp,
+      lastAccessedAt: timestamp,
+      expiresAt: timestamp.add(entryTtl),
+      checksum: sha256.convert(bytes).toString(),
+      status: MediaCacheStatus.ready,
+    ));
+
+    return CachePreparationResult(
+      mediaId: media.id,
+      file: finalFile,
+      fromCache: false,
+    );
   }
 
   Future<CollectionCacheReadiness> getCollectionReadiness(
@@ -160,6 +223,7 @@ class MediaCacheManager {
       pendingOnly: pendingOnly,
       limit: 5000,
     );
+
     var ready = 0;
     var downloading = 0;
     var notCached = 0;
@@ -183,7 +247,9 @@ class MediaCacheManager {
 
     return CollectionCacheReadiness(
       total: items.length,
-      pending: items.where((item) => item.shareState == CollectionShareState.pending).length,
+      pending: items
+          .where((item) => item.shareState == CollectionShareState.pending)
+          .length,
       ready: ready,
       downloading: downloading,
       notCached: notCached,
@@ -196,10 +262,19 @@ class MediaCacheManager {
     String collectionId, {
     int limit = 500,
   }) async {
-    final items = await repository.listCollectionItems(collectionId, pendingOnly: true, limit: limit);
+    final items = await repository.listCollectionItems(
+      collectionId,
+      pendingOnly: true,
+      limit: limit,
+    );
     final results = <CachePreparationResult>[];
     var cursor = 0;
-    final workerCount = items.isEmpty ? 0 : (maxConcurrentDownloads < items.length ? maxConcurrentDownloads : items.length);
+    final workerCount = items.isEmpty
+        ? 0
+        : (maxConcurrentDownloads < items.length
+            ? maxConcurrentDownloads
+            : items.length);
+
     Future<void> worker() async {
       while (true) {
         final index = cursor++;
@@ -207,35 +282,66 @@ class MediaCacheManager {
         final item = items[index];
         final media = await repository.getMedia(item.mediaId);
         if (media == null) continue;
-        final result = await prepareMedia(media, collectionId: collectionId);
+        final result =
+            await prepareMedia(media, collectionId: collectionId);
         if (result != null) results.add(result);
       }
     }
+
     await Future.wait(List.generate(workerCount, (_) => worker()));
     return results;
   }
 
-  Future<void> evictIfNeeded({Set<String> preserveMediaIds = const {}}) async {
+  Future<void> evictIfNeeded({
+    Set<String> preserveMediaIds = const {},
+  }) async {
     var total = await repository.countCacheBytes();
     if (total <= maxBytes) return;
+
     final entries = await repository.listCacheEntries();
     for (final entry in entries) {
       if (total <= maxBytes) break;
       if (preserveMediaIds.contains(entry.mediaId)) continue;
-      if (entry.status != MediaCacheStatus.ready) {
-        await _removeEntryAndFile(entry);
-        continue;
-      }
+
       final size = entry.byteSize;
       await _removeEntryAndFile(entry);
       total -= size;
     }
   }
 
+  Future<CacheMaintenanceResult> cleanup({
+    bool removeExpired = true,
+    bool removeFailed = true,
+  }) async {
+    var removedEntries = 0;
+    var removedBytes = 0;
+    final now = DateTime.now();
+
+    for (final entry in await repository.listCacheEntries()) {
+      final expired = entry.expiresAt != null && entry.expiresAt!.isBefore(now);
+      final shouldRemove = (removeExpired && expired) ||
+          (removeFailed && entry.status == MediaCacheStatus.failed);
+      if (!shouldRemove) continue;
+
+      removedBytes += entry.byteSize;
+      removedEntries++;
+      await _removeEntryAndFile(entry);
+    }
+
+    await evictIfNeeded();
+    return CacheMaintenanceResult(
+      removedEntries: removedEntries,
+      removedBytes: removedBytes,
+      remainingBytes: await repository.countCacheBytes(),
+    );
+  }
+
   Future<void> _removeEntryAndFile(MediaCacheEntry entry) async {
     if (entry.localPath.isNotEmpty) {
       final file = File(entry.localPath);
-      if (await file.exists()) await file.delete();
+      if (await file.exists()) {
+        await file.delete();
+      }
     }
     await repository.deleteCacheEntry(entry.mediaId);
   }
