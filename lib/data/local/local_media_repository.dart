@@ -424,6 +424,39 @@ class LocalMediaRepository {
     );
   }
 
+  Future<List<MediaCacheEntry>> listCacheEntries() async {
+    final rows = await database.customSelect(
+      'SELECT * FROM media_cache_entries ORDER BY last_accessed_at ASC',
+    ).get();
+    return rows.map(_cacheFromRow).toList(growable: false);
+  }
+
+  Future<int> countCacheBytes() async {
+    final row = await database.customSelect(
+      'SELECT COALESCE(SUM(byte_size), 0) AS bytes FROM media_cache_entries WHERE status = \'ready\'',
+    ).getSingle();
+    return row.read<int>('bytes');
+  }
+
+  Future<void> touchCacheEntry(String mediaId, {DateTime? accessedAt}) async {
+    await database.customUpdate(
+      'UPDATE media_cache_entries SET last_accessed_at = ? WHERE media_id = ?',
+      variables: [
+        Variable.withInt((accessedAt ?? DateTime.now()).millisecondsSinceEpoch),
+        Variable.withString(mediaId),
+      ],
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Future<void> deleteCacheEntry(String mediaId) async {
+    await database.customUpdate(
+      'DELETE FROM media_cache_entries WHERE media_id = ?',
+      variables: [Variable.withString(mediaId)],
+      updateKind: UpdateKind.delete,
+    );
+  }
+
   Future<MediaCacheEntry?> getCacheEntry(String mediaId) async {
     final rows = await database.customSelect(
       'SELECT * FROM media_cache_entries WHERE media_id = ? LIMIT 1',
