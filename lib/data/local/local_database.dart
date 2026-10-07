@@ -18,7 +18,7 @@ class LocalDatabase extends DatabaseConnectionUser {
     );
   }
 
-  static const int currentSchemaVersion = 1;
+  static const int currentSchemaVersion = 2;
 
   Future<void> initialize() async {
     await customStatement('PRAGMA foreign_keys = ON');
@@ -141,9 +141,121 @@ class LocalDatabase extends DatabaseConnectionUser {
     ''');
 
     await customStatement('''
+      CREATE TABLE IF NOT EXISTS spaces (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        feed_type TEXT NOT NULL DEFAULT 'home',
+        feed_page INTEGER,
+        feed_state_json TEXT,
+        search_query TEXT,
+        filter_state_json TEXT,
+        scroll_offset REAL,
+        active_detail_tab_id TEXT,
+        sort_order INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_spaces_order
+      ON spaces(sort_order, updated_at DESC)
+    ''');
+
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS detail_tabs (
+        id TEXT PRIMARY KEY,
+        space_id TEXT NOT NULL,
+        media_id TEXT,
+        canonical_url TEXT,
+        title TEXT,
+        thumbnail_url TEXT,
+        opened_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        last_accessed_at INTEGER NOT NULL,
+        scroll_offset REAL,
+        state_json TEXT,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        is_closed INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+        FOREIGN KEY (media_id) REFERENCES media_records(id) ON DELETE SET NULL
+      )
+    ''');
+
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_detail_tabs_space
+      ON detail_tabs(space_id, is_closed, sort_order, updated_at DESC)
+    ''');
+
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS session_snapshot (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        active_space_id TEXT,
+        active_detail_tab_id TEXT,
+        updated_at INTEGER NOT NULL,
+        schema_version INTEGER NOT NULL DEFAULT 1
+      )
+    ''');
+
+    await customStatement('''
       CREATE TABLE IF NOT EXISTS migration_state (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
+      )
+    ''');
+  }
+
+  Future<void> _createNavigationSchema() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS spaces (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        feed_type TEXT NOT NULL DEFAULT 'home',
+        feed_page INTEGER,
+        feed_state_json TEXT,
+        search_query TEXT,
+        filter_state_json TEXT,
+        scroll_offset REAL,
+        active_detail_tab_id TEXT,
+        sort_order INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_spaces_order
+      ON spaces(sort_order, updated_at DESC)
+    ''');
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS detail_tabs (
+        id TEXT PRIMARY KEY,
+        space_id TEXT NOT NULL,
+        media_id TEXT,
+        canonical_url TEXT,
+        title TEXT,
+        thumbnail_url TEXT,
+        opened_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        last_accessed_at INTEGER NOT NULL,
+        scroll_offset REAL,
+        state_json TEXT,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        is_closed INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE,
+        FOREIGN KEY (media_id) REFERENCES media_records(id) ON DELETE SET NULL
+      )
+    ''');
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_detail_tabs_space
+      ON detail_tabs(space_id, is_closed, sort_order, updated_at DESC)
+    ''');
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS session_snapshot (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        active_space_id TEXT,
+        active_detail_tab_id TEXT,
+        updated_at INTEGER NOT NULL,
+        schema_version INTEGER NOT NULL DEFAULT 1
       )
     ''');
   }
@@ -154,6 +266,10 @@ class LocalDatabase extends DatabaseConnectionUser {
       // Keep each future schema step explicit and transaction-safe.
       while (version < to) {
         switch (version) {
+          case 1:
+            await _createNavigationSchema();
+            version = 2;
+            break;
           default:
             throw StateError('No migration registered from schema $version.');
         }
