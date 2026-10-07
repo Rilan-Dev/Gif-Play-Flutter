@@ -2,7 +2,7 @@
 
 ## 2026-10-07 — Phase 1 local persistence slice implemented
 - Confirmed the repository remains on Dart SDK constraint ^3.6.0.
-- Checked current compatible package versions before selecting dependencies: Drift 2.32.1 supports Dart 3.5+, drift_flutter 0.2.3 supports Dart 3.6, and crypto 3.0.6 supports Dart 3.4+. citeturn5search1turn4search0turn6search1
+- Checked current compatible package versions before selecting dependencies: Drift 2.32.1 supports Dart 3.5+, drift_flutter 0.2.3 supports Dart 3.6, and crypto 3.0.6 supports Dart 3.4+.
 - Added Drift, drift_flutter, and crypto dependencies.
 - Added `LocalDatabase` with explicit SQLite schema version 1 and tables for media records, collections, collection items, cache metadata, and migration state.
 - Added deterministic URL canonicalization and SHA-256 media identity.
