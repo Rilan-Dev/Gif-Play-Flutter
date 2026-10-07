@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 
 import '../local/local_media_repository.dart';
 import '../local/models/collection.dart';
+import '../local/models/collection_item.dart';
+import '../local/models/media_record.dart';
 import 'collection_share_service.dart';
 import 'media_cache_manager.dart';
 
@@ -41,6 +43,9 @@ class CollectionShareController extends ChangeNotifier {
       <String, CollectionCacheReadiness>{};
   final Map<String, CollectionSharePreparation> _preparations =
       <String, CollectionSharePreparation>{};
+  final Map<String, List<CollectionItem>> _itemsByCollection =
+      <String, List<CollectionItem>>{};
+  final Map<String, MediaRecord> _mediaById = <String, MediaRecord>{};
 
   CollectionShareStatus _status = CollectionShareStatus.idle;
   Object? _error;
@@ -148,4 +153,66 @@ class CollectionShareController extends ChangeNotifier {
 
   List<CollectionSharePreparation> get preparations =>
       List.unmodifiable(_preparations.values);
+
+  List<CollectionItem> itemsForCollection(String collectionId) =>
+      List.unmodifiable(_itemsByCollection[collectionId] ?? const []);
+
+  MediaRecord? mediaForItem(String mediaId) => _mediaById[mediaId];
+
+  Future<void> loadCollectionItems(String collectionId) async {
+    final items = await repository.listCollectionItems(
+      collectionId,
+      pendingOnly: false,
+      limit: 500,
+    );
+    _itemsByCollection[collectionId] = items;
+    for (final item in items) {
+      final media = await repository.getMedia(item.mediaId);
+      if (media != null) _mediaById[item.mediaId] = media;
+    }
+    notifyListeners();
+  }
+
+  Future<void> retryItem(String collectionId, String mediaId) async {
+    final media = await repository.getMedia(mediaId);
+    if (media == null) {
+      _error = StateError('Media $mediaId no longer exists');
+      _status = CollectionShareStatus.failed;
+      notifyListeners();
+      return;
+    }
+
+    _error = null;
+    await cacheManager.prepareMedia(media, collectionId: collectionId);
+    await loadCollectionItems(collectionId);
+    _readiness[collectionId] =
+        await cacheManager.getCollectionReadiness(collectionId);
+
+    if (_selectedCollectionIds.contains(collectionId)) {
+      _preparations[collectionId] =
+          await shareService.prepareCollection(collectionId);
+      _readiness[collectionId] = _preparations[collectionId]!.readiness;
+      _status = _preparations.values.isNotEmpty &&
+              _preparations.length == _selectedCollectionIds.length &&
+              _preparations.values.every((item) => item.isReadyToShare)
+          ? CollectionShareStatus.ready
+          : CollectionShareStatus.failed;
+    }
+    notifyListeners();
+  }
+
+  Future<void> retryFailedOrExpired(String collectionId) async {
+    final items = await repository.listCollectionItems(
+      collectionId,
+      pendingOnly: true,
+      limit: 500,
+    );
+    for (final item in items) {
+      if (item.cacheState != CollectionCacheState.failed &&
+          item.cacheState != CollectionCacheState.expired) {
+        continue;
+      }
+      await retryItem(collectionId, item.mediaId);
+    }
+  }
 }
