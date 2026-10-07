@@ -19,7 +19,7 @@ Status: **IN PROGRESS**
 2. Review the migration against real legacy data shapes and edge cases.
 3. Connect existing LikedGifsProvider/ViewedGifsProvider to repository-backed state while retaining their public UI contract. **DONE (startup now injects LocalMediaRepository; legacy constructor fallback remains for compatibility).**
 4. Add cache-state update helpers needed by Phase 2.
-5. Add repository/provider integration tests and migration idempotency coverage.
+5. Add repository/provider integration tests and migration idempotency coverage. **PARTIAL: repository/reopen/cache/migration regression tests added; provider-specific runtime tests remain pending Flutter execution.**
 6. Replace or supplement the generated counter test with real application persistence coverage.
 7. Update the research index for the new data layer.
 
