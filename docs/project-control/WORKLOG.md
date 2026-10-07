@@ -25,3 +25,12 @@
 - Added docs/AI_RESEARCH_PROTOCOL.md.
 - Mapped requested product changes into a multi-phase implementation program.
 - Established persistent project-control documentation under docs/project-control/.
+
+
+## Phase 1 persistence/provider slice — 2026-10-07
+- Extended `LocalMediaRepository` with collection-to-media joins, collection clearing, cache-state mutation, and ready-item queries.
+- Reworked `LikedGifsProvider` and `ViewedGifsProvider` to use the local repository when injected, while retaining the existing public Provider API and a compatibility-only legacy fallback.
+- Wired both providers to the repository during application bootstrap.
+- Hardened legacy SharedPreferences migration: malformed top-level JSON no longer marks migration complete; malformed individual entries are skipped; repository collection IDs match the migration identities; reruns remain deduplicated.
+- Added tests for collection-media joins, cache-ready state, file-backed SQLite reopen, and migration idempotency.
+- Verification: Flutter/Dart executables are unavailable in the current execution environment, so dependency resolution, analyzer, and test execution remain pending. No CI/Vercel wait was introduced.
