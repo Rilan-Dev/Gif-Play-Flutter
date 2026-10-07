@@ -1,88 +1,52 @@
 # Decisions
 
 ## D-001 — Structured local database for persistent media metadata
-Status: PLANNED
+Status: **LOCKED**
 
-Do not use SharedPreferences as the primary store for 500+ GIF records or collection membership. Use a local database/storage abstraction with indexed metadata and efficient queries.
+Use **Drift + SQLite** for structured local persistence. SharedPreferences is limited to small settings.
 
-Reason:
-- collections can contain hundreds of items;
-- multiple lists require relational membership;
-- search requires indexed/queryable metadata;
-- session restoration needs durable structured state;
-- SharedPreferences is appropriate for small settings, not a media library.
+Reason: typed schema, transactions, migrations, indexed queries, relational collection membership, and durable session state are required for the target workload.
 
 ## D-002 — Binary GIFs are cache files, not the primary database payload
-Status: PLANNED
+Status: **LOCKED**
 
-Store media metadata and cache-file references in the database. Store temporary downloaded binaries in app-private cache/storage with a bounded quota and LRU/age-based eviction.
-
-Reason:
-- avoids oversized database rows;
-- avoids loading hundreds of GIF binaries into memory;
-- allows instant sharing when the selected list is cached;
-- permits automatic cleanup of stale temporary files.
+Store media metadata and cache-file references in SQLite. Store temporary downloaded binaries in app-private cache/storage with bounded quota and LRU/age-based eviction.
 
 ## D-003 — Collections are reusable containers
-Status: PLANNED
+Status: **LOCKED**
 
-A collection/list survives after its items are shared. Sharing drains its current pending items but never deletes the collection itself.
+A collection/list survives after its items are shared. Sharing drains its current pending queue but never deletes the collection itself.
 
-Example:
-- Work GIFs: 50 -> share -> 0 -> Work GIFs still exists.
-- Add 30 later -> Work GIFs: 30.
+Example: Work GIFs 50 → share → 0 → Work GIFs remains and can receive new GIFs.
 
 ## D-004 — Separate top-level browsing spaces from nested detail tabs
-Status: PLANNED
+Status: **LOCKED**
 
-Use user-facing terminology based on two levels:
-- Spaces = persistent top-level browsing contexts whose main content is the home/feed list.
-- Detail tabs = nested browser-like tabs opened inside a Space for GIF details, suggestions, related content, etc.
-
-The exact visual naming can be finalized during the home redesign, but the data model remains two-level.
+Use two architectural levels:
+- Spaces = persistent top-level browsing contexts whose main content is a home/feed/search list.
+- Detail Tabs = nested browser-like detail pages opened inside a Space.
 
 ## D-005 — Persist the complete restorable browsing snapshot
-Status: PLANNED
+Status: **LOCKED**
 
-Persist:
-- active Space
-- Space list
-- active Detail tab per Space
-- Detail tab URLs/identifiers
-- thumbnail/preview metadata
-- current scroll position where safely serializable
-- feed/search/filter state
-- relevant pagination state
-- timestamps
-
-On restore, cached/local metadata is shown immediately and remote content is revalidated asynchronously.
+Persist active Space, Spaces, active DetailTab, tab URLs/identifiers, thumbnails/preview metadata, safe scroll position, feed/search/filter state, pagination, and timestamps. Restore local state first and revalidate remote content asynchronously.
 
 ## D-006 — Search is indexed and debounced
-Status: PLANNED
+Status: **LOCKED**
 
-Search should query the local persisted metadata/index first, with remote/source search handled by a separate adapter when available.
-
-Target:
-- instant filtering for persisted records;
-- debounce typing;
-- title/source/URL metadata matching;
-- pagination;
-- filters and sort;
-- no rebuild of the entire 500-item widget tree per keystroke.
+Search persisted local metadata first through an indexed repository; remote discovery is a separate source adapter. Normalize/debounce queries and merge remote results by canonical media ID.
 
 ## D-007 — Pre-download is bounded and demand-driven
-Status: PLANNED
+Status: **LOCKED**
 
-When GIFs enter a share list, the app may download them in the background into temporary cache. It should show readiness per item and prioritize the currently selected list.
-
-Do not blindly pre-download unlimited content.
+Selected share-list items receive highest cache priority. Ready files are reused across collections. No unlimited pre-download.
 
 ## D-008 — Existing Provider architecture is retained initially
-Status: PLANNED
+Status: **LOCKED**
 
-Do not introduce a state-management rewrite as part of this feature program. New repositories/services can feed the existing Provider layer.
+Do not introduce a state-management rewrite as part of this program. New repositories/services feed the existing Provider layer.
 
 ## D-009 — Existing feed parser becomes an isolated backend seam
-Status: PLANNED
+Status: **LOCKED**
 
-HTML parsing/networking must remain outside widgets and be replaceable independently from the home redesign.
+HTML parsing/networking stays outside widgets and behind a replaceable source adapter.
