@@ -1,5 +1,11 @@
 # Worklog
 
+## 2026-10-08 — Phase 2 retry-path hardening
+- Optimized failed/expired collection recovery so a collection-level retry downloads only retryable items, then performs one consolidated readiness/preparation refresh.
+- Individual item retry now exposes preparing state and refreshes the affected collection without repeatedly re-preparing each item.
+- Added regression coverage for failed-item recovery and protection against marking an unready preparation shared.
+
+
 ## 2026-10-08 — Phase 2 item-level collection recovery
 - Added controller-level item tracking for reusable collections.
 - Added per-item cache/share state presentation to the Collections screen.
