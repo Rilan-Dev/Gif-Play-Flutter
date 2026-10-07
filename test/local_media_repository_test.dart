@@ -389,6 +389,19 @@ void main() {
     );
   });
 
+  test('empty collection preparation is explicit and never share-ready',
+      () async {
+    final collection = await repository.createCollection('Empty');
+    final preparation =
+        await CollectionShareService(repository).prepareCollection(
+      collection.id,
+    );
+
+    expect(preparation.isEmpty, isTrue);
+    expect(preparation.hasPendingItems, isFalse);
+    expect(preparation.isReadyToShare, isFalse);
+  });
+
   test('collection share service deduplicates selected collection ids', () async {
     final first = await repository.createCollection('First');
     final second = await repository.createCollection('Second');
