@@ -16,6 +16,7 @@ import '../../common/widgets/media_view_switcher.dart';
 
 import '../viewed_gifs_screen.dart';
 import '../share_gif_screen.dart';
+import '../collections_screen.dart';
 import '../liked_gifs_screen.dart';
 
 import 'main_screen_data_service.dart';
@@ -287,6 +288,11 @@ class _MainScreenState extends State<MainScreen> {
                           context,
                           MaterialPageRoute(builder: (context) => const ViewedGifsScreen()),
                         );
+                      } else if (value == 'collections') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const CollectionsScreen()),
+                        );
                       } else if (value == 'saved_gifs') {
                         Navigator.push(
                           context,
@@ -316,6 +322,14 @@ class _MainScreenState extends State<MainScreen> {
                           child: ListTile(
                             leading: Icon(Icons.history),
                             title: Text('Viewed GIFs'),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'collections',
+                          child: ListTile(
+                            leading: Icon(Icons.collections_bookmark_outlined),
+                            title: Text('Collections'),
                             contentPadding: EdgeInsets.zero,
                           ),
                         ),
