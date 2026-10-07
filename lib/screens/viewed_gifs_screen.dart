@@ -5,7 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../common/models/media_item.dart';
 import '../common/models/gif_item.dart';
 import '../common/providers/liked_gifs_provider.dart';
-import '../common/utils/shared_preferences_util.dart';
+import '../common/providers/viewed_gifs_provider.dart';
 import '../common/utils/time_ago_util.dart';
 import '../common/utils/download_and_share.dart';
 import '../common/widgets/shimmer_loading.dart';
@@ -31,29 +31,24 @@ class _ViewedGifsScreenState extends State<ViewedGifsScreen> {
     _loadViewedGifs();
   }
 
-  void _loadViewedGifs() {
+  Future<void> _loadViewedGifs() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _hasError = false;
       _errorMessage = '';
     });
-    
+
     try {
-      // Convert MediaItems to GifItems for consistency
-      final mediaItems = SharedPreferencesUtil.getAllData();
-      _viewedGifs = mediaItems.map((item) => GifItem(
-        id: item.imageUrl.hashCode.toString(),
-        url: item.href ?? '',
-        title: item.title ?? 'No Title',
-        imageUrl: item.imageUrl,
-        // Use the actual timestamp from the MediaItem
-        timestamp: item.timestamp ?? DateTime.now(),
-      )).toList();
-      
+      final provider = Provider.of<ViewedGifsProvider>(context, listen: false);
+      await provider.loadViewedGifs();
+      if (!mounted) return;
       setState(() {
+        _viewedGifs = List<GifItem>.from(provider.viewedGifs);
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _hasError = true;
@@ -61,7 +56,6 @@ class _ViewedGifsScreenState extends State<ViewedGifsScreen> {
       });
     }
   }
-
   Future<void> _clearViewedGifs() async {
     showDialog(
       context: context,
@@ -79,8 +73,8 @@ class _ViewedGifsScreenState extends State<ViewedGifsScreen> {
               setState(() {
                 _isLoading = true;
               });
-              await SharedPreferencesUtil.clearAllData();
-              _loadViewedGifs();
+              await Provider.of<ViewedGifsProvider>(context, listen: false).clearViewedGifs();
+              await _loadViewedGifs();
             },
             child: const Text('Clear'),
           ),
