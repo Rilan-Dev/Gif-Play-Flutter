@@ -2,30 +2,26 @@
 
 ## Phase 1 — Local Media Library & Collection Engine
 
-Status: **READY / IMPLEMENTATION AUTHORIZED**
+Status: **IN PROGRESS**
 
-## Objective
-Build the durable local media/collection foundation defined by the completed Phase 0 contracts.
+## Completed in this phase
+- Drift + SQLite dependency direction added using versions compatible with the repository's Dart 3.6 SDK constraint.
+- Local database bootstrap and schema version 1 created.
+- MediaRecord domain model and deterministic SHA-256 identity created.
+- Collection and CollectionItem domain models created.
+- MediaCacheEntry metadata model created; binary cache remains Phase 2.
+- LocalMediaRepository created with media CRUD/search, collection CRUD/membership, share-state lifecycle, and cache metadata operations.
+- Legacy liked/viewed JSON migration created and wired into app bootstrap without deleting legacy SharedPreferences data.
+- Focused repository tests created for 500 records, 50/100/60 independent collections, reusable empty-after-share behavior, deterministic identity, and deduplicated membership.
 
-## Phase 0 completion record
-Phase 0 is complete. The locked contracts are:
-- docs/project-control/DATA_MODEL.md
-- docs/project-control/STORAGE_AND_CACHE.md
-- docs/project-control/SESSION_AND_NAVIGATION.md
-- docs/project-control/PHASE0_ACCEPTANCE.md
-
-## Phase 1 required outputs
-- Drift + SQLite persistence dependency and initialization
-- versioned schema and migrations
-- canonical MediaRecord model/identity service
-- Collection and CollectionItem models
-- MediaCacheEntry metadata foundation
-- repository interfaces/implementations
-- liked/viewed migration where applicable
-- indexes and efficient collection queries
-- reusable empty collection behavior
-- independent multi-list membership
-- focused database/repository/migration tests
+## Remaining Phase 1 work
+1. Verify dependency resolution/build on the project-supported Flutter SDK and update the lockfile through the normal package manager.
+2. Review the migration against real legacy data shapes and edge cases.
+3. Connect existing LikedGifsProvider/ViewedGifsProvider to repository-backed state while retaining their public UI contract.
+4. Add cache-state update helpers needed by Phase 2.
+5. Add repository/provider integration tests and migration idempotency coverage.
+6. Replace or supplement the generated counter test with real application persistence coverage.
+7. Update the research index for the new data layer.
 
 ## Phase 1 completion criteria
 - 500+ MediaRecords can persist/query without SharedPreferences.
@@ -38,4 +34,4 @@ Phase 0 is complete. The locked contracts are:
 - Tests cover create/add/remove/share-state/reset and persistence/reopen behavior.
 
 ## Gate
-Phase 1 may now be implemented. Do not begin the large home redesign, full search UI, or persistent tab UI until their storage dependencies are ready.
+Do not start the large home redesign, full Search 2.0 UI, or persistent Spaces/Detail Tabs UI until Phase 1 is complete.
