@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:drift/native.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:gif_play/data/local/local_database.dart';
+import 'package:gif_play/data/local/legacy_preferences_migration.dart';
 import 'package:gif_play/data/local/local_media_repository.dart';
 import 'package:gif_play/data/local/media_identity.dart';
 import 'package:gif_play/data/local/models/media_record.dart';
@@ -101,5 +105,70 @@ void main() {
     await repository.addToCollection(collectionId: collection.id, media: item);
 
     expect(await repository.countCollectionItems(collection.id), 1);
+  });
+  test('collection media join returns the durable media records', () async {
+    final collection = await repository.createCollection('Favorites');
+    await repository.addToCollection(collectionId: collection.id, media: media(1));
+    await repository.addToCollection(collectionId: collection.id, media: media(2));
+
+    final records = await repository.listCollectionMedia(collection.id);
+    expect(records.map((item) => item.title), ['GIF 1', 'GIF 2']);
+  });
+
+  test('cache state helpers track ready items without downloading binaries', () async {
+    final collection = await repository.createCollection('Ready');
+    await repository.addToCollection(collectionId: collection.id, media: media(1));
+
+    await repository.updateCollectionItemCacheState(
+      collectionId: collection.id,
+      mediaId: media(1).id,
+      cacheState: CollectionCacheState.ready,
+    );
+
+    final ready = await repository.listReadyCollectionItems(collection.id);
+    expect(ready, hasLength(1));
+    expect(ready.single.mediaId, media(1).id);
+  });
+
+  test('database survives close and reopen with collection state intact', () async {
+    final directory = await Directory.systemTemp.createTemp('gif_play_test_');
+    final path = File('${directory.path}/library.sqlite').path;
+    try {
+      final first = LocalDatabase.forTesting(NativeDatabase(File(path)));
+      await first.initialize();
+      final firstRepository = LocalMediaRepository(first);
+      final collection = await firstRepository.createCollection('Persistent');
+      await firstRepository.addToCollection(collectionId: collection.id, media: media(7));
+      await first.close();
+
+      final second = LocalDatabase.forTesting(NativeDatabase(File(path)));
+      await second.initialize();
+      final secondRepository = LocalMediaRepository(second);
+      expect(await secondRepository.countMedia(), 1);
+      expect(await secondRepository.countCollectionItems(collection.id), 1);
+      expect((await secondRepository.getCollection(collection.id))!.name, 'Persistent');
+      await second.close();
+    } finally {
+      await directory.delete(recursive: true);
+    }
+  });
+
+  test('legacy migration is idempotent and preserves reusable collections', () async {
+    SharedPreferences.setMockInitialValues({
+      'liked_gifs': '[{"id":"legacy-1","url":"https://example.com/post/1","title":"Legacy","imageUrl":"https://example.com/gifs/1.gif","timestamp":1767225600000}]',
+      'viewed_gifs': '[{"id":"legacy-2","url":"https://example.com/post/2","title":"Viewed","imageUrl":"https://example.com/gifs/2.gif","timestamp":1767225600000,"isViewed":true}]',
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final migration = LegacyPreferencesMigration(database, repository);
+
+    await migration.run(prefs);
+    await migration.run(prefs);
+
+    final collections = await repository.listCollections();
+    expect(collections.map((item) => item.name), containsAll(['Liked GIFs', 'Viewed GIFs']));
+    final liked = collections.singleWhere((item) => item.name == 'Liked GIFs');
+    final viewed = collections.singleWhere((item) => item.name == 'Viewed GIFs');
+    expect(await repository.countCollectionItems(liked.id), 1);
+    expect(await repository.countCollectionItems(viewed.id), 1);
   });
 }
