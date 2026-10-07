@@ -15,8 +15,12 @@ class CollectionSharePreparation {
   final List<CachePreparationResult> cachedFiles;
   final CollectionCacheReadiness readiness;
 
+  bool get hasPendingItems => readiness.pending > 0;
+  bool get isEmpty => readiness.pending == 0;
+  bool get hasPartialFailures => readiness.failed > 0 && cachedFiles.isNotEmpty;
+
   bool get isReadyToShare =>
-      readiness.pending > 0 &&
+      hasPendingItems &&
       cachedFiles.length >= readiness.pending &&
       readiness.failed == 0;
 }
