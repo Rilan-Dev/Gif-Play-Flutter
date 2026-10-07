@@ -18,10 +18,10 @@ Phase 2 — Temporary Download / Ready-to-Share Engine is **IN PROGRESS**. Phase
 - Focused regression source added for cache retry, cache cleanup, collection preservation, and collection-selection deduplication.
 
 ## Immediate next implementation sequence
-1. Continue collection/share hardening: preserve item-level state while retrying failed/expired items.
-2. Add explicit preparation/share summaries for partial failures and empty collections.
-3. Add focused tests for item retry and successful-share-only state mutation.
-4. Then advance Phase 2 toward persistent browsing/session infrastructure according to IMPLEMENTATION_PLAN.md.
+1. Continue Phase 3 persistence: add controller-level restoration/transition coverage and lightweight state mutation persistence.
+2. Add session-aware startup restoration behavior without blocking on remote data.
+3. Add focused migration/reopen tests for Spaces, Detail Tabs, and SessionSnapshot.
+4. Continue Phase 3 infrastructure before introducing the large Space/Detail UI redesign.
 5. Continue project-control/index updates.
 
 ## Execution rule
