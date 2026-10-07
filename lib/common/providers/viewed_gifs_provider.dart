@@ -14,7 +14,7 @@ class ViewedGifsProvider with ChangeNotifier {
   final List<GifItem> _viewedGifs = [];
   static const String _viewedGifsKey = 'viewed_gifs';
   static const int _maxViewedGifs = 100;
-  static const String _collectionId = 'b4e9a4a4a4a4';
+  static const String _collectionId = '740d3d9c3a1632d1c11826081faea5ec3446824ee4ad53dfb88d208970b579e1';
 
   List<GifItem> get viewedGifs => List.unmodifiable(_viewedGifs);
 
