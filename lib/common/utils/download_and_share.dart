@@ -6,6 +6,10 @@ import 'package:http/http.dart' as http;
 
 import 'file_utils.dart';
 import '../models/gif_item.dart';
+import 'package:provider/provider.dart';
+import '../../data/cache/media_cache_manager.dart';
+import '../../data/local/media_identity.dart';
+import '../../data/local/models/media_record.dart';
 
 /// Utility class for downloading and sharing media files.
 ///
@@ -53,68 +57,52 @@ class DownloadAndShare {
     );
     
     try {
+      final cacheManager = _cacheManagerOrNull(context);
       for (final gif in gifs) {
+        if (cacheManager != null) {
+          final media = _toMediaRecord(gif);
+          final cached = await cacheManager.prepareMedia(media);
+          if (cached != null) {
+            downloadedFiles.add(cached.file);
+            continue;
+          }
+          debugPrint('Cache preparation failed for GIF: ${gif.title}');
+          continue;
+        }
+
         File? file;
         String? sourceUrl;
-        
-        // Check if the file is already local
         if (gif.url != null && gif.url!.startsWith('/')) {
-          // File is already local
           file = File(gif.url!);
-          if (await file.exists()) {
-            downloadedFiles.add(file);
-            continue; // Skip to next gif
-          }
+          if (await file.exists()) { downloadedFiles.add(file); continue; }
         } else if (gif.imageUrl != null && gif.imageUrl!.startsWith('/')) {
-          // File is already local
           file = File(gif.imageUrl!);
-          if (await file.exists()) {
-            downloadedFiles.add(file);
-            continue; // Skip to next gif
-          }
+          if (await file.exists()) { downloadedFiles.add(file); continue; }
         }
-        
-        // Determine which URL to use for downloading
-        if (gif.url != null && gif.url!.startsWith('http')) {
-          sourceUrl = gif.url;
-        } else if (gif.imageUrl != null && gif.imageUrl!.startsWith('http')) {
+        if (gif.imageUrl != null && gif.imageUrl!.startsWith('http')) {
           sourceUrl = gif.imageUrl;
+        } else if (gif.url != null && gif.url!.startsWith('http')) {
+          sourceUrl = gif.url;
         } else {
-          // Skip this gif if no valid URL
           debugPrint('No valid URL found for GIF: ${gif.title}');
           continue;
         }
-        
-        // Download the file
         try {
-          debugPrint('Downloading GIF from: $sourceUrl');
-          final response = await http.get(Uri.parse(sourceUrl!));
-          
-          if (response.statusCode == 200) {
-            final fileName = '${DateTime.now().millisecondsSinceEpoch}_${path.basename(sourceUrl)}';
-            final hiddenFolder = await FileUtils.getHiddenFolder();
-            file = File('${hiddenFolder.path}/$fileName');
-            await file.writeAsBytes(response.bodyBytes);
-            
-            // Save the GIF to the hidden folder for later access
-            if (!share) {
-              // Create a copy for saving with a specific prefix
-              final savedFile = File('${hiddenFolder.path}/saved_$fileName');
-              await savedFile.writeAsBytes(response.bodyBytes);
-              debugPrint('Saved GIF to: ${savedFile.path}');
-            }
-            
-            downloadedFiles.add(file);
-            debugPrint('Downloaded GIF to: ${file.path}');
-          } else {
-            throw Exception('Failed to download: HTTP ${response.statusCode}');
+          final response = await http.get(Uri.parse(sourceUrl));
+          if (response.statusCode != 200) throw Exception('Failed to download: HTTP ${response.statusCode}');
+          final fileName = '${DateTime.now().millisecondsSinceEpoch}_${path.basename(sourceUrl)}';
+          final hiddenFolder = await FileUtils.getHiddenFolder();
+          file = File('${hiddenFolder.path}/$fileName');
+          await file.writeAsBytes(response.bodyBytes);
+          if (!share) {
+            final savedFile = File('${hiddenFolder.path}/saved_$fileName');
+            await savedFile.writeAsBytes(response.bodyBytes);
           }
+          downloadedFiles.add(file);
         } catch (e) {
           debugPrint('Error downloading GIF: $e');
-          // Continue with next gif instead of failing completely
         }
       }
-      
       // Hide loading indicator
       scaffoldMessenger.hideCurrentSnackBar();
       
@@ -160,6 +148,33 @@ class DownloadAndShare {
         ),
       );
     }
+  }
+
+  MediaCacheManager? _cacheManagerOrNull(BuildContext context) {
+    try {
+      return Provider.of<MediaCacheManager>(context, listen: false);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  MediaRecord _toMediaRecord(GifItem gif) {
+    final mediaUrl = (gif.imageUrl ?? gif.url ?? '').trim();
+    final sourceUrl = (gif.url ?? mediaUrl).trim();
+    final id = gif.id ?? MediaIdentity.fromUrls(mediaUrl: mediaUrl, sourceUrl: sourceUrl);
+    return MediaRecord(
+      id: id,
+      sourceUrl: sourceUrl,
+      mediaUrl: mediaUrl,
+      thumbnailUrl: gif.previewUrl,
+      title: gif.title,
+      width: gif.width,
+      height: gif.height,
+      searchText: '${gif.title} ${gif.altText ?? ''} $sourceUrl $mediaUrl'.toLowerCase(),
+      createdAt: gif.timestamp,
+      updatedAt: DateTime.now(),
+      lastSeenAt: gif.timestamp,
+    );
   }
 
   /// Downloads and shares a single GIF.
