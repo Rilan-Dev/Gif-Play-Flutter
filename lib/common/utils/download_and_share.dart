@@ -64,6 +64,9 @@ class DownloadAndShare {
           final cached = await cacheManager.prepareMedia(media);
           if (cached != null) {
             downloadedFiles.add(cached.file);
+            if (!share) {
+              await FileUtils.saveFile(cached.file);
+            }
             continue;
           }
           debugPrint('Cache preparation failed for GIF: ${gif.title}');
@@ -116,7 +119,7 @@ class DownloadAndShare {
         
         // Optionally delete the temporary files after sharing
         for (final file in downloadedFiles) {
-          if (!file.path.contains('saved_') && file.path.contains('.hidden_folder') && await file.exists()) {
+          if (!file.path.contains('gif_cache') && !file.path.contains('saved_') && file.path.contains('.hidden_folder') && await file.exists()) {
             await file.delete();
           }
         }
