@@ -21,6 +21,28 @@ class CachePreparationResult {
   final bool fromCache;
 }
 
+class CollectionCacheReadiness {
+  const CollectionCacheReadiness({
+    required this.total,
+    required this.pending,
+    required this.ready,
+    required this.downloading,
+    required this.notCached,
+    required this.failed,
+    required this.expired,
+  });
+
+  final int total;
+  final int pending;
+  final int ready;
+  final int downloading;
+  final int notCached;
+  final int failed;
+  final int expired;
+
+  bool get isReadyToShare => pending > 0 && ready >= pending;
+}
+
 class MediaCacheManager {
   MediaCacheManager(
     this.repository, {
@@ -127,6 +149,47 @@ class MediaCacheManager {
       }
       return null;
     }
+  }
+
+  Future<CollectionCacheReadiness> getCollectionReadiness(
+    String collectionId, {
+    bool pendingOnly = true,
+  }) async {
+    final items = await repository.listCollectionItems(
+      collectionId,
+      pendingOnly: pendingOnly,
+      limit: 5000,
+    );
+    var ready = 0;
+    var downloading = 0;
+    var notCached = 0;
+    var failed = 0;
+    var expired = 0;
+
+    for (final item in items) {
+      switch (item.cacheState) {
+        case CollectionCacheState.ready:
+          ready++;
+        case CollectionCacheState.downloading:
+          downloading++;
+        case CollectionCacheState.notCached:
+          notCached++;
+        case CollectionCacheState.failed:
+          failed++;
+        case CollectionCacheState.expired:
+          expired++;
+      }
+    }
+
+    return CollectionCacheReadiness(
+      total: items.length,
+      pending: items.where((item) => item.shareState == CollectionShareState.pending).length,
+      ready: ready,
+      downloading: downloading,
+      notCached: notCached,
+      failed: failed,
+      expired: expired,
+    );
   }
 
   Future<List<CachePreparationResult>> prepareCollection(
