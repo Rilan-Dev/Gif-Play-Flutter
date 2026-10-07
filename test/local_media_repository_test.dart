@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:gif_play/data/local/local_database.dart';
+import 'package:gif_play/data/cache/media_cache_manager.dart';
 import 'package:gif_play/data/local/legacy_preferences_migration.dart';
 import 'package:gif_play/data/local/local_media_repository.dart';
 import 'package:gif_play/data/local/media_identity.dart';
@@ -171,5 +172,31 @@ void main() {
     final viewed = collections.singleWhere((item) => item.name == 'Viewed GIFs');
     expect(await repository.countCollectionItems(liked.id), 1);
     expect(await repository.countCollectionItems(viewed.id), 1);
+  });
+  test('cache eviction removes oldest ready files until byte budget is met', () async {
+    final directory = await Directory.systemTemp.createTemp('gif_cache_test_');
+    try {
+      final oldFile = File('${directory.path}/old.bin');
+      final newFile = File('${directory.path}/new.bin');
+      await oldFile.writeAsBytes(List<int>.filled(80, 1));
+      await newFile.writeAsBytes(List<int>.filled(80, 2));
+      final old = DateTime.utc(2026, 1, 1);
+      await repository.upsertCacheEntry(MediaCacheEntry(
+        mediaId: media(1).id, localPath: oldFile.path, byteSize: 80,
+        downloadedAt: old, lastAccessedAt: old, status: MediaCacheStatus.ready,
+      ));
+      await repository.upsertCacheEntry(MediaCacheEntry(
+        mediaId: media(2).id, localPath: newFile.path, byteSize: 80,
+        downloadedAt: old.add(const Duration(days: 1)),
+        lastAccessedAt: old.add(const Duration(days: 1)),
+        status: MediaCacheStatus.ready,
+      ));
+      await MediaCacheManager(repository, maxBytes: 80).evictIfNeeded();
+      expect(await oldFile.exists(), isFalse);
+      expect(await newFile.exists(), isTrue);
+      expect(await repository.countCacheBytes(), 80);
+    } finally {
+      await directory.delete(recursive: true);
+    }
   });
 }
