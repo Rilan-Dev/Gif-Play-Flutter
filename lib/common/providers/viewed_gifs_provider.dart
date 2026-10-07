@@ -1,80 +1,90 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
+import '../../data/local/local_media_repository.dart';
+import '../../data/local/media_identity.dart';
+import '../../data/local/models/collection.dart';
+import '../../data/local/models/media_record.dart';
 import '../models/gif_item.dart';
 import '../utils/shared_preferences_util.dart';
 
-/// Provider for managing viewed GIFs.
-///
-/// This class provides methods for getting, adding, and removing viewed GIFs,
-/// with support for persistence using SharedPreferences.
 class ViewedGifsProvider with ChangeNotifier {
+  ViewedGifsProvider([this._repository]);
+  final LocalMediaRepository? _repository;
   final List<GifItem> _viewedGifs = [];
   static const String _viewedGifsKey = 'viewed_gifs';
   static const int _maxViewedGifs = 100;
+  static const String _collectionId = 'legacy-viewed-gifs';
 
-  ViewedGifsProvider();
-
-  /// Get the list of viewed GIFs.
   List<GifItem> get viewedGifs => List.unmodifiable(_viewedGifs);
 
-  /// Load viewed GIFs from SharedPreferences.
   Future<void> loadViewedGifs() async {
-    final jsonString = SharedPreferencesUtil.getString(_viewedGifsKey);
-    if (jsonString != null && jsonString.isNotEmpty) {
-      try {
-        final List<dynamic> jsonList = json.decode(jsonString);
-        _viewedGifs.clear();
-        _viewedGifs.addAll(
-          jsonList.map((item) => GifItem.fromMap(item)).toList(),
-        );
-        notifyListeners();
-      } catch (e) {
-        debugPrint('Error loading viewed gifs: $e');
-      }
-    }
+    if (_repository == null) { await _loadLegacy(); return; }
+    final collection = await _ensureCollection();
+    final records = await _repository!.listCollectionMedia(collection.id, limit: _maxViewedGifs);
+    _replace(records.map(_toGifItem).toList(growable: false));
   }
 
-  /// Add a GIF to the viewed GIFs list.
   Future<void> addViewedGif(GifItem gif) async {
-    // Check if gif is already in the list
-    final existingIndex = _viewedGifs.indexWhere((item) => item.id == gif.id);
-    
-    if (existingIndex >= 0) {
-      // Update existing gif
-      _viewedGifs[existingIndex] = gif.copyWith(isViewed: true);
-    } else {
-      // Add new gif
-      _viewedGifs.add(gif.copyWith(isViewed: true));
-      
-      // Limit the number of viewed gifs
-      if (_viewedGifs.length > _maxViewedGifs) {
-        _viewedGifs.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-        _viewedGifs.removeRange(_maxViewedGifs, _viewedGifs.length);
-      }
+    if (_repository == null) { await _addLegacy(gif); return; }
+    final collection = await _ensureCollection();
+    final stamped = gif.copyWith(isViewed: true, timestamp: DateTime.now());
+    await _repository!.addToCollection(collectionId: collection.id, media: _toMediaRecord(stamped));
+    final existing = _viewedGifs.indexWhere((item) => _mediaId(item) == _mediaId(stamped));
+    if (existing >= 0) _viewedGifs.removeAt(existing);
+    _viewedGifs.insert(0, stamped);
+    if (_viewedGifs.length > _maxViewedGifs) {
+      final evicted = _viewedGifs.removeLast();
+      await _repository!.removeFromCollection(collectionId: collection.id, mediaId: _mediaId(evicted));
     }
-    
     notifyListeners();
-    await _saveViewedGifs();
   }
 
-  /// Clear all viewed GIFs.
   Future<void> clearViewedGifs() async {
+    if (_repository != null) {
+      final collection = await _ensureCollection();
+      await _repository!.clearCollectionItems(collection.id);
+    } else { await SharedPreferencesUtil.setString(_viewedGifsKey, '[]'); }
     _viewedGifs.clear();
     notifyListeners();
-    await _saveViewedGifs();
   }
 
-  /// Check if a GIF has been viewed.
-  bool isGifViewed(String gifId) {
-    return _viewedGifs.any((gif) => gif.id == gifId);
+  bool isGifViewed(String gifId) => _viewedGifs.any((gif) => gif.id == gifId);
+
+  Future<void> _loadLegacy() async {
+    final value = SharedPreferencesUtil.getString(_viewedGifsKey);
+    if (value == null || value.isEmpty) return;
+    try {
+      final decoded = json.decode(value);
+      if (decoded is! List) return;
+      _replace(decoded.whereType<Map>().map((item) => GifItem.fromMap(Map<String, dynamic>.from(item))).toList());
+    } catch (e) { debugPrint('Error loading viewed gifs: $e'); }
   }
 
-  /// Save viewed GIFs to SharedPreferences.
-  Future<void> _saveViewedGifs() async {
-    final jsonList = _viewedGifs.map((gif) => gif.toMap()).toList();
-    final jsonString = json.encode(jsonList);
-    await SharedPreferencesUtil.setString(_viewedGifsKey, jsonString);
+  Future<void> _addLegacy(GifItem gif) async {
+    final stamped = gif.copyWith(isViewed: true, timestamp: DateTime.now());
+    final existing = _viewedGifs.indexWhere((item) => item.id == stamped.id);
+    if (existing >= 0) _viewedGifs.removeAt(existing);
+    _viewedGifs.insert(0, stamped);
+    if (_viewedGifs.length > _maxViewedGifs) _viewedGifs.removeLast();
+    notifyListeners();
+    await SharedPreferencesUtil.setString(_viewedGifsKey, json.encode(_viewedGifs.map((item) => item.toMap()).toList()));
   }
+
+  Future<GifCollection> _ensureCollection() async {
+    final existing = await _repository!.getCollection(_collectionId);
+    return existing ?? await _repository!.createCollection('Viewed GIFs', id: _collectionId);
+  }
+
+  String _mediaId(GifItem gif) => gif.id ?? MediaIdentity.fromUrls(mediaUrl: (gif.imageUrl ?? gif.url ?? '').trim(), sourceUrl: gif.url);
+
+  MediaRecord _toMediaRecord(GifItem gif) {
+    final mediaUrl = (gif.imageUrl ?? gif.url ?? '').trim();
+    final sourceUrl = (gif.url ?? mediaUrl).trim();
+    final id = gif.id ?? MediaIdentity.fromUrls(mediaUrl: mediaUrl, sourceUrl: sourceUrl);
+    return MediaRecord(id: id, sourceUrl: sourceUrl, mediaUrl: mediaUrl, thumbnailUrl: gif.previewUrl, title: gif.title, width: gif.width, height: gif.height, searchText: '${gif.title} ${gif.altText ?? ''} $sourceUrl $mediaUrl'.toLowerCase(), createdAt: gif.timestamp, updatedAt: DateTime.now(), lastViewedAt: gif.timestamp, lastSeenAt: gif.timestamp);
+  }
+
+  GifItem _toGifItem(MediaRecord media) => GifItem(id: media.id, url: media.sourceUrl, title: media.title ?? '', previewUrl: media.thumbnailUrl, timestamp: media.lastViewedAt ?? media.createdAt ?? media.updatedAt ?? DateTime.now(), isViewed: true, imageUrl: media.mediaUrl, width: media.width, height: media.height);
+  void _replace(List<GifItem> items) { _viewedGifs..clear()..addAll(items.take(_maxViewedGifs)); notifyListeners(); }
 }
-
