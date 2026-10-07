@@ -15,6 +15,8 @@ import 'package:gif_play/data/local/media_identity.dart';
 import 'package:gif_play/data/local/models/collection_item.dart';
 import 'package:gif_play/data/local/models/media_cache_entry.dart';
 import 'package:gif_play/data/local/models/media_record.dart';
+import 'package:gif_play/data/local/models/space.dart';
+import 'package:gif_play/data/local/models/detail_tab.dart';
 
 void main() {
   late LocalDatabase database;
@@ -134,6 +136,45 @@ void main() {
     final ready = await repository.listReadyCollectionItems(collection.id);
     expect(ready, hasLength(1));
     expect(ready.single.mediaId, media(1).id);
+  });
+
+  test('spaces, detail tabs, and session snapshot persist independently',
+      () async {
+    final space = await repository.createSpace(name: 'Home');
+    await repository.upsertMedia(media(21));
+    final tab = await repository.createDetailTab(
+      spaceId: space.id,
+      mediaId: media(21).id,
+      canonicalUrl: media(21).sourceUrl,
+      title: media(21).title,
+      thumbnailUrl: media(21).thumbnailUrl,
+    );
+    await repository.updateSpace(
+      id: space.id,
+      searchQuery: 'cats',
+      scrollOffset: 42.5,
+      activeDetailTabId: tab.id,
+    );
+    await repository.saveSessionSnapshot(
+      activeSpaceId: space.id,
+      activeDetailTabId: tab.id,
+    );
+
+    final restoredSpace = await repository.getSpace(space.id);
+    final restoredTabs = await repository.listDetailTabs(space.id);
+    final snapshot = await repository.getSessionSnapshot();
+
+    expect(restoredSpace!.searchQuery, 'cats');
+    expect(restoredSpace.scrollOffset, 42.5);
+    expect(restoredSpace.activeDetailTabId, tab.id);
+    expect(restoredTabs, hasLength(1));
+    expect(restoredTabs.single.mediaId, media(21).id);
+    expect(snapshot!.activeSpaceId, space.id);
+    expect(snapshot.activeDetailTabId, tab.id);
+
+    await repository.closeDetailTab(tab.id);
+    expect((await repository.listDetailTabs(space.id)), isEmpty);
+    expect(await repository.getSpace(space.id), isNotNull);
   });
 
   test('database survives close and reopen with collection state intact', () async {
