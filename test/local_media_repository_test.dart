@@ -17,6 +17,7 @@ import 'package:gif_play/data/local/models/media_cache_entry.dart';
 import 'package:gif_play/data/local/models/media_record.dart';
 import 'package:gif_play/data/local/models/space.dart';
 import 'package:gif_play/data/local/models/detail_tab.dart';
+import 'package:gif_play/data/local/session_navigation_controller.dart';
 
 void main() {
   late LocalDatabase database;
@@ -136,6 +137,31 @@ void main() {
     final ready = await repository.listReadyCollectionItems(collection.id);
     expect(ready, hasLength(1));
     expect(ready.single.mediaId, media(1).id);
+  });
+
+  test('session controller restores and persists active space and detail tab',
+      () async {
+    final controller = SessionNavigationController(repository);
+    await controller.load();
+
+    final space = await controller.createSpace(name: 'Browse');
+    await repository.upsertMedia(media(31));
+    final tab = await controller.openDetailTab(
+      spaceId: space.id,
+      mediaId: media(31).id,
+      canonicalUrl: media(31).sourceUrl,
+      title: media(31).title,
+    );
+
+    expect(controller.activeSpaceId, space.id);
+    expect(controller.activeDetailTabId, tab!.id);
+
+    final restored = SessionNavigationController(repository);
+    await restored.load();
+
+    expect(restored.activeSpaceId, space.id);
+    expect(restored.activeDetailTabId, tab.id);
+    expect(restored.activeDetailTab!.mediaId, media(31).id);
   });
 
   test('schema v1 migrates forward to persistent navigation tables', () async {
