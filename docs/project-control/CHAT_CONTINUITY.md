@@ -38,4 +38,5 @@ Never infer completed work from a previous chat. GitHub files, Git history, and 
 - Phase 3 persistence has started without changing the large home UI: schema v2 adds Spaces, Detail Tabs, and SessionSnapshot; LocalMediaRepository exposes CRUD/session APIs; SessionNavigationController restores and persists active navigation state.
 - Main bootstrap registers SessionNavigationController.
 - Focused persistence tests cover navigation state, schema-v1 forward migration, and controller restoration.
-- The next implementation action is controller/startup restoration hardening and additional migration/reopen coverage before the visual Space/Detail Tab redesign.
+- Startup now creates a durable Home Space when none exists and repairs invalid active-space references from stale snapshots.
+- The next implementation action is invalid/closed-tab restoration coverage and migration/reopen coverage before the visual Space/Detail Tab redesign.
