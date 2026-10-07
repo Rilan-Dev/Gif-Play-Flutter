@@ -33,11 +33,9 @@ Never infer completed work from a previous chat. GitHub files, Git history, and 
 - Update CURRENT_PHASE.md when a phase starts/completes.
 - Do not close a phase without evidence recorded in the worklog and appropriate verification.
 
-## Latest continuation point — Phase 2 share orchestration
-- Remote media in `DownloadAndShare` now has one canonical cache/download path through `MediaCacheManager`; the old direct HTTP fallback was removed.
-- Existing local files remain shareable without a redundant download.
-- `CollectionShareService` is registered with the app-level cache manager and is available to the share workflow.
-- `CollectionShareController` now provides reusable collection selection, readiness, progress, and error state for UI consumers.
-- Regression test sources cover retry recovery, cache cleanup preserving collection metadata, and collection-ID deduplication.
-- The next implementation action is to connect the controller/status model to existing collection-capable UI entry points, then add retry and post-share state handling.
-- Flutter/Dart runtime verification remains pending because the available execution environment has no Flutter/Dart executable. Do not claim runtime verification until executed in the project environment.
+## Latest continuation point — Phase 2 item-level collection recovery
+- CollectionShareController now tracks collection items and their cache/share states.
+- Collection UI now exposes per-item Ready/Downloading/Not cached/Failed/Expired status.
+- Failed/expired individual items can be retried through MediaCacheManager; a collection-level retry action is also available.
+- Prepared collection sharing still marks items shared only after the platform share operation returns.
+- The next implementation action is collection/share hardening and focused item-retry/share-state regression coverage, followed by the next authorized Phase 2 infrastructure slice.
