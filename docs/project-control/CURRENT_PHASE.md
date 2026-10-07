@@ -1,60 +1,34 @@
 # Current Phase
 
 ## Phase 1 — Local Media Library & Collection Engine
+Status: **IN PROGRESS (runtime/dependency verification pending; development continues)**
 
+The persistence foundation, provider migration, migration hardening, reopen-test source, and cache-state primitives are implemented. Runtime verification remains pending because the available execution environment does not provide Flutter/Dart.
+
+## Phase 2 — Temporary Download / Ready-to-Share Engine
 Status: **IN PROGRESS**
 
-## Completed in this phase
-- Drift + SQLite dependency direction added using versions compatible with the repository's Dart 3.6 SDK constraint.
-- Local database bootstrap and schema version 1 created.
-- MediaRecord domain model and deterministic SHA-256 identity created.
-- Collection and CollectionItem domain models created.
-- MediaCacheEntry metadata model created; binary cache remains Phase 2.
-- LocalMediaRepository created with media CRUD/search, collection CRUD/membership, share-state lifecycle, and cache metadata operations.
-- Legacy liked/viewed JSON migration created and wired into app bootstrap without deleting legacy SharedPreferences data.
-- Focused repository tests created for 500 records, 50/100/60 independent collections, reusable empty-after-share behavior, deterministic identity, and deduplicated membership.
-
-## Remaining Phase 1 work
-1. Verify dependency resolution/build on the project-supported Flutter SDK and update the lockfile through the normal package manager.
-2. Review the migration against real legacy data shapes and edge cases.
-3. Connect existing LikedGifsProvider/ViewedGifsProvider to repository-backed state while retaining their public UI contract. **DONE (startup now injects LocalMediaRepository; legacy constructor fallback remains for compatibility).**
-4. Add cache-state update helpers needed by Phase 2.
-5. Add repository/provider integration tests and migration idempotency coverage. **PARTIAL: repository/reopen/cache/migration regression tests added; provider-specific runtime tests remain pending Flutter execution.**
-6. Replace or supplement the generated counter test with real application persistence coverage.
-7. Update the research index for the new data layer.
-
-## Phase 1 completion criteria
-- 500+ MediaRecords can persist/query without SharedPreferences.
-- Collection definitions survive restart, including empty collections.
-- Multiple collections remain independent.
-- Collection membership is deduplicated by canonical media identity.
-- Database migrations are versioned and tested.
-- Repository APIs do not expose UI-specific state.
-- No GIF binary payload is stored in ordinary database rows.
-- Tests cover create/add/remove/share-state/reset and persistence/reopen behavior.
-
-## Gate
-Do not start the large home redesign, full Search 2.0 UI, or persistent Spaces/Detail Tabs UI until Phase 1 is complete.
-## Phase 2 — Temporary Download / Ready-to-Share Engine
-
-Status: **IN PROGRESS (development continues without waiting for Phase 1 CI/runtime gate)**
-
-### Implemented slice
-- Shared `MediaCacheManager` added under `lib/data/cache/`.
-- Cache manifest remains in SQLite; GIF bytes remain filesystem files.
-- Cache filenames use canonical media IDs, preventing duplicate binaries across collections.
-- Existing GIF download/share flow now reuses the shared cache when available.
-- Cached files are retained after sharing; non-share downloads still create the existing `saved_` copy.
-- Bounded concurrent collection preparation is implemented with a configurable worker limit.
-- Cache TTL, ready-file validation, checksum recording, and byte-budget LRU eviction are implemented.
-- Cache state is reflected on collection items during preparation.
+### Implemented
+- Shared `MediaCacheManager`.
+- SQLite cache manifest with filesystem GIF bytes.
+- Canonical media-ID cache filenames.
+- Ready-file reuse and access-time tracking.
+- Bounded concurrent collection preparation.
+- TTL and checksum metadata.
+- Byte-budget LRU eviction.
+- Collection cache-state propagation.
+- Collection readiness aggregation.
+- Retry/backoff with configurable retries.
+- Explicit expired/missing-file recovery.
+- Maintenance cleanup for expired/failed cache entries.
+- `CollectionShareService` for single/multiple collection preparation and post-success share-state transitions.
 
 ### Next implementation slice
-1. Connect collection-specific preparation to the future collection/share-list workflow.
-2. Add share readiness/status aggregation (ready/downloading/failed/not-cached).
-3. Normalize the duplicate `DownloadAndShareGif` implementation onto the cache service.
-4. Add retry/backoff and explicit expired-entry handling.
-5. Add cache cleanup controls without deleting collection metadata.
-6. Continue toward collection UI/data-layer implementation.
+1. Normalize the existing duplicate `DownloadAndShareGif` implementation onto `MediaCacheManager`.
+2. Wire `CollectionShareService` into the existing share flow.
+3. Build the reusable collection/share-list data layer and UI.
+4. Propagate readiness/progress/error state to that workflow.
+5. Add focused source-level regression coverage for retry, expiry, maintenance, and orchestration.
 
-- Collection readiness aggregation is implemented for the upcoming share-list workflow.
+## Phase boundary
+Do not start the large home redesign, full Search 2.0 UI, or persistent Spaces/Detail Tabs UI until the collection/share infrastructure is sufficiently implemented and the authorized phase boundary is explicitly advanced.
