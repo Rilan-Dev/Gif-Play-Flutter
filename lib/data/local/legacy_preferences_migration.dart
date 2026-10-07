@@ -27,18 +27,16 @@ class LegacyPreferencesMigration {
       return;
     }
 
-    await database.transaction(() async {
-      await _importList(
-        preferences.getString('liked_gifs'),
-        collectionName: 'Liked GIFs',
-        preferences: preferences,
-      );
-      await _importList(
-        preferences.getString('viewed_gifs'),
-        collectionName: 'Viewed GIFs',
-        preferences: preferences,
-      );
+    final likedOk = await _importList(
+      preferences.getString('liked_gifs'),
+      collectionName: 'Liked GIFs',
+    );
+    final viewedOk = await _importList(
+      preferences.getString('viewed_gifs'),
+      collectionName: 'Viewed GIFs',
+    );
 
+    if (likedOk && viewedOk) {
       await database.customInsert(
         '''
         INSERT INTO migration_state(key, value) VALUES (?, 'complete')
@@ -46,18 +44,18 @@ class LegacyPreferencesMigration {
         ''',
         variables: [Variable.withString(_migrationKey)],
       );
-    });
+    }
   }
 
-  Future<void> _importList(
+  Future<bool> _importList(
     String? jsonString, {
     required String collectionName,
-    required SharedPreferences preferences,
   }) async {
-    if (jsonString == null || jsonString.trim().isEmpty) return;
+    if (jsonString == null || jsonString.trim().isEmpty) return true;
 
-    final decoded = json.decode(jsonString);
-    if (decoded is! List) return;
+    late final dynamic decoded;
+    try { decoded = json.decode(jsonString); } catch (_) { return false; }
+    if (decoded is! List) return false;
 
     final collectionId = MediaIdentity.fromUrls(
       mediaUrl: 'legacy-collection:$collectionName',
@@ -73,7 +71,8 @@ class LegacyPreferencesMigration {
     for (final raw in decoded) {
       if (raw is! Map) continue;
 
-      final gif = GifItem.fromMap(Map<String, dynamic>.from(raw));
+      late final GifItem gif;
+      try { gif = GifItem.fromMap(Map<String, dynamic>.from(raw)); } catch (_) { continue; }
       final mediaUrl = (gif.imageUrl ?? gif.url ?? '').trim();
       if (mediaUrl.isEmpty) continue;
 
@@ -110,5 +109,6 @@ class LegacyPreferencesMigration {
         media: record,
       );
     }
+    return true;
   }
 }
