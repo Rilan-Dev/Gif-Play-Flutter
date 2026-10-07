@@ -1,155 +1,193 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:path/path.dart' as path;
-import 'package:share_plus/share_plus.dart';
-import 'package:http/http.dart' as http;
 
-import 'file_utils.dart';
-import '../models/gif_item.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../data/cache/collection_share_service.dart';
 import '../../data/cache/media_cache_manager.dart';
 import '../../data/local/media_identity.dart';
 import '../../data/local/models/media_record.dart';
+import '../models/gif_item.dart';
+import 'file_utils.dart';
 
-/// Utility class for downloading and sharing media files.
+/// Utility class for preparing, downloading, and sharing media.
 ///
-/// This class provides methods for downloading and sharing GIFs and other media files.
+/// Remote media always uses the canonical MediaCacheManager path. Local files
+/// already produced by the app can be shared directly without a second
+/// download or cache entry.
 class DownloadAndShare {
-  /// Downloads and shares multiple GIFs.
-  ///
-  /// If [share] is true, the GIFs will be shared after downloading.
-  /// Otherwise, they will just be saved to the device.
-  Future<void> downloadAndShareGifs(BuildContext context, List<GifItem> gifs, bool share) async {
+  Future<void> downloadAndShareGifs(
+    BuildContext context,
+    List<GifItem> gifs,
+    bool share,
+  ) async {
     if (gifs.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No GIFs selected'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      _showMessage(context, 'No GIFs selected', backgroundColor: Colors.orange);
       return;
     }
-    
-    final List<File> downloadedFiles = [];
-    
-    // Show loading indicator
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    scaffoldMessenger.showSnackBar(
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
       SnackBar(
         content: Row(
           children: [
             const SizedBox(
               width: 24,
               height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
             ),
             const SizedBox(width: 16),
-            Text(share 
-                ? 'Preparing ${gifs.length > 1 ? "${gifs.length} GIFs" : "GIF"} to share...' 
-                : 'Downloading ${gifs.length > 1 ? "${gifs.length} GIFs" : "GIF"}...'),
+            Text(
+              share
+                  ? 'Preparing \${gifs.length > 1 ? '\${gifs.length} GIFs' : 'GIF'} to share...'
+                  : 'Downloading \${gifs.length > 1 ? '\${gifs.length} GIFs' : 'GIF'}...',
+            ),
           ],
         ),
         duration: const Duration(seconds: 30),
       ),
     );
-    
+
     try {
       final cacheManager = _cacheManagerOrNull(context);
+      if (cacheManager == null) {
+        throw StateError(
+          'MediaCacheManager is not configured; refusing to use a duplicate download path.',
+        );
+      }
+
+      final files = <File>[];
+      final failures = <String>[];
+
       for (final gif in gifs) {
-        if (cacheManager != null) {
-          final media = _toMediaRecord(gif);
-          final cached = await cacheManager.prepareMedia(media);
-          if (cached != null) {
-            downloadedFiles.add(cached.file);
-            if (!share) {
-              await FileUtils.saveFile(cached.file);
-            }
-            continue;
-          }
-          debugPrint('Cache preparation failed for GIF: ${gif.title}');
+        final localFile = await _existingLocalFile(gif);
+        if (localFile != null) {
+          files.add(localFile);
+          if (!share) await FileUtils.saveFile(localFile);
           continue;
         }
 
-        File? file;
-        String? sourceUrl;
-        if (gif.url != null && gif.url!.startsWith('/')) {
-          file = File(gif.url!);
-          if (await file.exists()) { downloadedFiles.add(file); continue; }
-        } else if (gif.imageUrl != null && gif.imageUrl!.startsWith('/')) {
-          file = File(gif.imageUrl!);
-          if (await file.exists()) { downloadedFiles.add(file); continue; }
-        }
-        if (gif.imageUrl != null && gif.imageUrl!.startsWith('http')) {
-          sourceUrl = gif.imageUrl;
-        } else if (gif.url != null && gif.url!.startsWith('http')) {
-          sourceUrl = gif.url;
-        } else {
-          debugPrint('No valid URL found for GIF: ${gif.title}');
+        final mediaUrl = (gif.imageUrl ?? gif.url ?? '').trim();
+        if (mediaUrl.isEmpty || !mediaUrl.startsWith(RegExp(r'https?://'))) {
+          failures.add(gif.title);
           continue;
         }
-        try {
-          final response = await http.get(Uri.parse(sourceUrl));
-          if (response.statusCode != 200) throw Exception('Failed to download: HTTP ${response.statusCode}');
-          final fileName = '${DateTime.now().millisecondsSinceEpoch}_${path.basename(sourceUrl)}';
-          final hiddenFolder = await FileUtils.getHiddenFolder();
-          file = File('${hiddenFolder.path}/$fileName');
-          await file.writeAsBytes(response.bodyBytes);
-          if (!share) {
-            final savedFile = File('${hiddenFolder.path}/saved_$fileName');
-            await savedFile.writeAsBytes(response.bodyBytes);
-          }
-          downloadedFiles.add(file);
-        } catch (e) {
-          debugPrint('Error downloading GIF: $e');
+
+        final cached = await cacheManager.prepareMedia(_toMediaRecord(gif));
+        if (cached == null) {
+          failures.add(gif.title);
+          continue;
         }
+
+        files.add(cached.file);
+        if (!share) await FileUtils.saveFile(cached.file);
       }
-      // Hide loading indicator
-      scaffoldMessenger.hideCurrentSnackBar();
-      
-      if (share && downloadedFiles.isNotEmpty) {
-        // Share the files
-        debugPrint('Sharing ${downloadedFiles.length} files');
+
+      messenger.hideCurrentSnackBar();
+
+      if (share && files.isNotEmpty) {
         await Share.shareXFiles(
-          downloadedFiles.map((file) => XFile(file.path)).toList(),
-          text: '', // Empty text, no caption will be added when sharing
-        );
-        
-        // Optionally delete the temporary files after sharing
-        for (final file in downloadedFiles) {
-          if (!file.path.contains('gif_cache') && !file.path.contains('saved_') && file.path.contains('.hidden_folder') && await file.exists()) {
-            await file.delete();
-          }
-        }
-      } else if (downloadedFiles.isNotEmpty) {
-        // Show success message for download
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text('${downloadedFiles.length > 1 ? "${downloadedFiles.length} GIFs" : "GIF"} saved successfully'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      } else {
-        // No files were downloaded
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('No GIFs were processed'),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 2),
-          ),
+          files.map((file) => XFile(file.path)).toList(),
+          text: '',
         );
       }
-    } catch (e) {
-      // Show error message
-      scaffoldMessenger.hideCurrentSnackBar();
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
+
+      if (files.isEmpty) {
+        _showMessage(
+          context,
+          failures.isEmpty
+              ? 'No GIFs were processed'
+              : 'Could not prepare the selected GIFs',
+          backgroundColor: Colors.orange,
+        );
+        return;
+      }
+
+      if (!share) {
+        _showMessage(
+          context,
+          '\${files.length > 1 ? '\${files.length} GIFs' : 'GIF'} saved successfully',
+        );
+      } else if (failures.isNotEmpty) {
+        _showMessage(
+          context,
+          '\${failures.length} GIF\${failures.length == 1 ? '' : 's'} could not be prepared',
+          backgroundColor: Colors.orange,
+        );
+      }
+    } catch (error) {
+      messenger.hideCurrentSnackBar();
+      _showMessage(context, 'Error: \${error.toString()}', backgroundColor: Colors.red);
+    }
+  }
+
+  /// Prepares reusable collections through CollectionShareService and shares
+  /// their canonical cached files. Collection metadata is never deleted.
+  Future<void> shareCollections(
+    BuildContext context,
+    Iterable<String> collectionIds,
+  ) async {
+    final ids = collectionIds.toSet();
+    if (ids.isEmpty) {
+      _showMessage(context, 'No collections selected', backgroundColor: Colors.orange);
+      return;
+    }
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          'Preparing \${ids.length} collection\${ids.length == 1 ? '' : 's'} to share...',
         ),
+        duration: const Duration(seconds: 30),
+      ),
+    );
+
+    try {
+      final service = _collectionShareServiceOrNull(context);
+      if (service == null) {
+        throw StateError('CollectionShareService is not configured.');
+      }
+
+      final preparations = await service.prepareCollections(ids);
+      final allReady = preparations.length == ids.length &&
+          preparations.every((preparation) => preparation.isReadyToShare);
+
+      if (!allReady) {
+        messenger.hideCurrentSnackBar();
+        _showMessage(
+          context,
+          'Some collection items could not be prepared. Nothing was shared.',
+          backgroundColor: Colors.orange,
+        );
+        return;
+      }
+
+      final files = preparations
+          .expand((preparation) => preparation.cachedFiles)
+          .map((result) => result.file)
+          .toList();
+
+      if (files.isEmpty) {
+        messenger.hideCurrentSnackBar();
+        _showMessage(
+          context,
+          'Selected collections have no pending GIFs to share',
+          backgroundColor: Colors.orange,
+        );
+        return;
+      }
+
+      await Share.shareXFiles(
+        files.map((file) => XFile(file.path)).toList(),
+        text: '',
       );
+      await service.markCollectionsShared(preparations);
+      messenger.hideCurrentSnackBar();
+    } catch (error) {
+      messenger.hideCurrentSnackBar();
+      _showMessage(context, 'Error: \${error.toString()}', backgroundColor: Colors.red);
     }
   }
 
@@ -161,10 +199,30 @@ class DownloadAndShare {
     }
   }
 
+  CollectionShareService? _collectionShareServiceOrNull(BuildContext context) {
+    try {
+      return Provider.of<CollectionShareService>(context, listen: false);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<File?> _existingLocalFile(GifItem gif) async {
+    final candidates = <String?>[gif.url, gif.imageUrl];
+    for (final candidate in candidates) {
+      if (candidate == null || candidate.isEmpty || !candidate.startsWith('/')) continue;
+      final file = File(candidate);
+      if (await file.exists()) return file;
+    }
+    return null;
+  }
+
   MediaRecord _toMediaRecord(GifItem gif) {
     final mediaUrl = (gif.imageUrl ?? gif.url ?? '').trim();
     final sourceUrl = (gif.url ?? mediaUrl).trim();
-    final id = gif.id ?? MediaIdentity.fromUrls(mediaUrl: mediaUrl, sourceUrl: sourceUrl);
+    final id = gif.id ??
+        MediaIdentity.fromUrls(mediaUrl: mediaUrl, sourceUrl: sourceUrl);
+
     return MediaRecord(
       id: id,
       sourceUrl: sourceUrl,
@@ -173,18 +231,33 @@ class DownloadAndShare {
       title: gif.title,
       width: gif.width,
       height: gif.height,
-      searchText: '${gif.title} ${gif.altText ?? ''} $sourceUrl $mediaUrl'.toLowerCase(),
+      searchText:
+          '\${gif.title} \${gif.altText ?? ''} \$sourceUrl \$mediaUrl'.toLowerCase(),
       createdAt: gif.timestamp,
       updatedAt: DateTime.now(),
       lastSeenAt: gif.timestamp,
     );
   }
 
-  /// Downloads and shares a single GIF.
-  ///
-  /// This is a convenience method for downloading and sharing a single GIF.
-  Future<void> downloadAndShareGif(BuildContext context, GifItem gif, bool share) async {
+  Future<void> downloadAndShareGif(
+    BuildContext context,
+    GifItem gif,
+    bool share,
+  ) {
     return downloadAndShareGifs(context, [gif], share);
   }
-}
 
+  void _showMessage(
+    BuildContext context,
+    String message, {
+    Color? backgroundColor,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+}
