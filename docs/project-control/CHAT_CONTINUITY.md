@@ -38,4 +38,6 @@ Never infer completed work from a previous chat. GitHub files, Git history, and 
 - Collection UI now exposes per-item Ready/Downloading/Not cached/Failed/Expired status.
 - Failed/expired individual items can be retried through MediaCacheManager; a collection-level retry action is also available.
 - Prepared collection sharing still marks items shared only after the platform share operation returns.
-- The next implementation action is collection/share hardening and focused item-retry/share-state regression coverage, followed by the next authorized Phase 2 infrastructure slice.
+- Retry recovery has been batched so collection-level retry prepares only failed/expired items before one consolidated refresh.
+- Focused regression coverage now checks failed-item recovery and that an unready preparation cannot mutate share state.
+- The next implementation action is partial/empty collection handling, then the next authorized Phase 2 infrastructure slice.
