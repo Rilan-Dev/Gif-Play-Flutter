@@ -3,7 +3,7 @@
 ## Authority
 - Repository: Rilan-Dev/Gif-Play-Flutter
 - Branch: main
-- Current implementation baseline: 9a0c17c973a60b0e74aac4d6efc6f047f592f217
+- Original application baseline: 9a0c17c973a60b0e74aac4d6efc6f047f592f217
 - Repository research index: docs/AI_REPO_INDEX.md
 - Research protocol: docs/AI_RESEARCH_PROTOCOL.md
 
@@ -19,10 +19,21 @@ Large UX/data-layer improvement program:
 8. ChatGPT-session-independent project-control documentation
 
 ## Current status
-- Planning: ACTIVE
-- Implementation: NOT STARTED
-- Phase 0: PLANNED
-- No production feature code has been changed for this program.
+- Planning: COMPLETE for Phase 0
+- Implementation: NOT STARTED for product features
+- Phase 0: COMPLETE
+- Phase 1: READY / AUTHORIZED
+- No production feature code was changed during Phase 0.
+
+## Locked architecture
+- Drift + SQLite is the source of truth for structured local media/collection/navigation metadata.
+- SharedPreferences is limited to small settings.
+- GIF binaries live in a bounded app-private cache, not ordinary database rows.
+- Collections remain after sharing and can be reused when empty.
+- Spaces contain persistent nested DetailTabs.
+- Session restore is local-first and remote-revalidation-second.
+- Search is local indexed metadata first, with remote discovery isolated behind an adapter.
+- Provider remains the initial state-management layer.
 
 ## Non-negotiable product invariants
 - Collection/list definitions survive app restart.
@@ -48,4 +59,4 @@ Large UX/data-layer improvement program:
 - Existing widget test is only the generated Flutter counter test.
 
 ## Next
-Complete Phase 0 architecture/design baseline, then implement phases sequentially without mixing persistence, navigation, search, and visual redesign into one unbounded change.
+Implement Phase 1 from the locked contracts. Start with database bootstrap/schema/migrations, then MediaRecord and collection repositories, followed by focused persistence tests.
