@@ -6,6 +6,9 @@ import 'models/collection.dart';
 import 'models/collection_item.dart';
 import 'models/media_cache_entry.dart';
 import 'models/media_record.dart';
+import 'models/space.dart';
+import 'models/detail_tab.dart';
+import 'models/session_snapshot.dart';
 
 class LocalMediaRepository {
   LocalMediaRepository(this.database);
@@ -465,6 +468,259 @@ class LocalMediaRepository {
     return rows.isEmpty ? null : _cacheFromRow(rows.single);
   }
 
+  Future<BrowsingSpace> createSpace({
+    String? id,
+    String name = 'Space',
+    String feedType = 'home',
+    int? sortOrder,
+  }) async {
+    final spaceId = id ?? _newNavigationId('space');
+    final now = DateTime.now();
+    await database.customInsert(
+      '''
+      INSERT INTO spaces
+        (id, name, created_at, updated_at, feed_type, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ''',
+      variables: [
+        Variable.withString(spaceId),
+        Variable.withString(name.trim()),
+        Variable.withInt(now.millisecondsSinceEpoch),
+        Variable.withInt(now.millisecondsSinceEpoch),
+        Variable.withString(feedType),
+        Variable.withInt(sortOrder ?? 0),
+      ],
+    );
+    return (await getSpace(spaceId))!;
+  }
+
+  Future<BrowsingSpace?> getSpace(String spaceId) async {
+    final rows = await database.customSelect(
+      'SELECT * FROM spaces WHERE id = ? LIMIT 1',
+      variables: [Variable.withString(spaceId)],
+    ).get();
+    return rows.isEmpty ? null : _spaceFromRow(rows.single);
+  }
+
+  Future<List<BrowsingSpace>> listSpaces() async {
+    final rows = await database.customSelect(
+      'SELECT * FROM spaces ORDER BY sort_order ASC, updated_at DESC',
+    ).get();
+    return rows.map(_spaceFromRow).toList(growable: false);
+  }
+
+  Future<void> updateSpace({
+    required String id,
+    String? name,
+    String? feedType,
+    int? feedPage,
+    String? feedStateJson,
+    String? searchQuery,
+    String? filterStateJson,
+    double? scrollOffset,
+    String? activeDetailTabId,
+    int? sortOrder,
+  }) async {
+    final current = await getSpace(id);
+    if (current == null) throw StateError('Space $id does not exist');
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await database.customUpdate(
+      '''
+      UPDATE spaces SET
+        name = ?, updated_at = ?, feed_type = ?, feed_page = ?,
+        feed_state_json = ?, search_query = ?, filter_state_json = ?,
+        scroll_offset = ?, active_detail_tab_id = ?, sort_order = ?
+      WHERE id = ?
+      ''',
+      variables: [
+        Variable.withString(name ?? current.name),
+        Variable.withInt(now),
+        Variable.withString(feedType ?? current.feedType),
+        Variable<int>(feedPage ?? current.feedPage),
+        Variable<String>(feedStateJson ?? current.feedStateJson),
+        Variable<String>(searchQuery ?? current.searchQuery),
+        Variable<String>(filterStateJson ?? current.filterStateJson),
+        Variable<double>(scrollOffset ?? current.scrollOffset),
+        Variable<String>(activeDetailTabId ?? current.activeDetailTabId),
+        Variable.withInt(sortOrder ?? current.sortOrder),
+        Variable.withString(id),
+      ],
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Future<void> deleteSpace(String spaceId) async {
+    await database.customUpdate(
+      'DELETE FROM spaces WHERE id = ?',
+      variables: [Variable.withString(spaceId)],
+      updateKind: UpdateKind.delete,
+    );
+  }
+
+  Future<DetailTab> createDetailTab({
+    required String spaceId,
+    String? id,
+    String? mediaId,
+    String? canonicalUrl,
+    String? title,
+    String? thumbnailUrl,
+    String? stateJson,
+    int? sortOrder,
+  }) async {
+    final space = await getSpace(spaceId);
+    if (space == null) throw StateError('Space $spaceId does not exist');
+    final tabId = id ?? _newNavigationId('tab');
+    final now = DateTime.now();
+    await database.transaction(() async {
+      await database.customInsert(
+        '''
+        INSERT INTO detail_tabs
+          (id, space_id, media_id, canonical_url, title, thumbnail_url,
+           opened_at, updated_at, last_accessed_at, state_json, sort_order, is_closed)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+        ''',
+        variables: [
+          Variable.withString(tabId),
+          Variable.withString(spaceId),
+          Variable<String>(mediaId),
+          Variable<String>(canonicalUrl),
+          Variable<String>(title),
+          Variable<String>(thumbnailUrl),
+          Variable.withInt(now.millisecondsSinceEpoch),
+          Variable.withInt(now.millisecondsSinceEpoch),
+          Variable.withInt(now.millisecondsSinceEpoch),
+          Variable<String>(stateJson),
+          Variable.withInt(sortOrder ?? 0),
+        ],
+      );
+      await database.customUpdate(
+        'UPDATE spaces SET active_detail_tab_id = ?, updated_at = ? WHERE id = ?',
+        variables: [
+          Variable.withString(tabId),
+          Variable.withInt(now.millisecondsSinceEpoch),
+          Variable.withString(spaceId),
+        ],
+        updateKind: UpdateKind.update,
+      );
+    });
+    return (await getDetailTab(tabId))!;
+  }
+
+  Future<DetailTab?> getDetailTab(String tabId) async {
+    final rows = await database.customSelect(
+      'SELECT * FROM detail_tabs WHERE id = ? LIMIT 1',
+      variables: [Variable.withString(tabId)],
+    ).get();
+    return rows.isEmpty ? null : _detailTabFromRow(rows.single);
+  }
+
+  Future<List<DetailTab>> listDetailTabs(
+    String spaceId, {
+    bool includeClosed = false,
+  }) async {
+    final rows = await database.customSelect(
+      '''
+      SELECT * FROM detail_tabs
+      WHERE space_id = ? AND (? = 1 OR is_closed = 0)
+      ORDER BY sort_order ASC, updated_at DESC
+      ''',
+      variables: [
+        Variable.withString(spaceId),
+        Variable.withInt(includeClosed ? 1 : 0),
+      ],
+    ).get();
+    return rows.map(_detailTabFromRow).toList(growable: false);
+  }
+
+  Future<void> updateDetailTab({
+    required String id,
+    String? mediaId,
+    String? canonicalUrl,
+    String? title,
+    String? thumbnailUrl,
+    double? scrollOffset,
+    String? stateJson,
+    int? sortOrder,
+    bool? isClosed,
+    bool touchAccess = true,
+  }) async {
+    final current = await getDetailTab(id);
+    if (current == null) throw StateError('Detail tab $id does not exist');
+    final now = DateTime.now();
+    await database.customUpdate(
+      '''
+      UPDATE detail_tabs SET
+        media_id = ?, canonical_url = ?, title = ?, thumbnail_url = ?,
+        updated_at = ?, last_accessed_at = ?, scroll_offset = ?,
+        state_json = ?, sort_order = ?, is_closed = ?
+      WHERE id = ?
+      ''',
+      variables: [
+        Variable<String>(mediaId ?? current.mediaId),
+        Variable<String>(canonicalUrl ?? current.canonicalUrl),
+        Variable<String>(title ?? current.title),
+        Variable<String>(thumbnailUrl ?? current.thumbnailUrl),
+        Variable.withInt(now.millisecondsSinceEpoch),
+        Variable.withInt(
+          (touchAccess ? now : current.lastAccessedAt).millisecondsSinceEpoch,
+        ),
+        Variable<double>(scrollOffset ?? current.scrollOffset),
+        Variable<String>(stateJson ?? current.stateJson),
+        Variable.withInt(sortOrder ?? current.sortOrder),
+        Variable.withInt((isClosed ?? current.isClosed) ? 1 : 0),
+        Variable.withString(id),
+      ],
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Future<void> closeDetailTab(String tabId) async {
+    final tab = await getDetailTab(tabId);
+    if (tab == null) return;
+    await database.transaction(() async {
+      await updateDetailTab(id: tabId, isClosed: true);
+      final space = await getSpace(tab.spaceId);
+      if (space?.activeDetailTabId == tabId) {
+        final remaining = await listDetailTabs(tab.spaceId);
+        await updateSpace(
+          id: tab.spaceId,
+          activeDetailTabId: remaining.isEmpty ? null : remaining.last.id,
+        );
+      }
+    });
+  }
+
+  Future<SessionSnapshot?> getSessionSnapshot() async {
+    final rows = await database.customSelect(
+      'SELECT * FROM session_snapshot WHERE id = 1 LIMIT 1',
+    ).get();
+    return rows.isEmpty ? null : _sessionSnapshotFromRow(rows.single);
+  }
+
+  Future<void> saveSessionSnapshot({
+    required String? activeSpaceId,
+    required String? activeDetailTabId,
+  }) async {
+    final now = DateTime.now();
+    await database.customInsert(
+      '''
+      INSERT INTO session_snapshot
+        (id, active_space_id, active_detail_tab_id, updated_at, schema_version)
+      VALUES (1, ?, ?, ?, 1)
+      ON CONFLICT(id) DO UPDATE SET
+        active_space_id = excluded.active_space_id,
+        active_detail_tab_id = excluded.active_detail_tab_id,
+        updated_at = excluded.updated_at,
+        schema_version = excluded.schema_version
+      ''',
+      variables: [
+        Variable<String>(activeSpaceId),
+        Variable<String>(activeDetailTabId),
+        Variable.withInt(now.millisecondsSinceEpoch),
+      ],
+    );
+  }
+
   Future<int> _nextCollectionPosition(String collectionId) async {
     final row = await database.customSelect(
       '''
@@ -474,6 +730,53 @@ class LocalMediaRepository {
       variables: [Variable.withString(collectionId)],
     ).getSingle();
     return row.read<int>('next_position');
+  }
+
+  BrowsingSpace _spaceFromRow(QueryRow row) {
+    DateTime date(int value) => DateTime.fromMillisecondsSinceEpoch(value);
+    return BrowsingSpace(
+      id: row.read<String>('id'),
+      name: row.read<String>('name'),
+      createdAt: date(row.read<int>('created_at')),
+      updatedAt: date(row.read<int>('updated_at')),
+      feedType: row.read<String>('feed_type'),
+      feedPage: row.read<int?>('feed_page'),
+      feedStateJson: row.read<String?>('feed_state_json'),
+      searchQuery: row.read<String?>('search_query'),
+      filterStateJson: row.read<String?>('filter_state_json'),
+      scrollOffset: row.read<double?>('scroll_offset'),
+      activeDetailTabId: row.read<String?>('active_detail_tab_id'),
+      sortOrder: row.read<int>('sort_order'),
+    );
+  }
+
+  DetailTab _detailTabFromRow(QueryRow row) {
+    DateTime date(int value) => DateTime.fromMillisecondsSinceEpoch(value);
+    return DetailTab(
+      id: row.read<String>('id'),
+      spaceId: row.read<String>('space_id'),
+      mediaId: row.read<String?>('media_id'),
+      canonicalUrl: row.read<String?>('canonical_url'),
+      title: row.read<String?>('title'),
+      thumbnailUrl: row.read<String?>('thumbnail_url'),
+      openedAt: date(row.read<int>('opened_at')),
+      updatedAt: date(row.read<int>('updated_at')),
+      lastAccessedAt: date(row.read<int>('last_accessed_at')),
+      scrollOffset: row.read<double?>('scroll_offset'),
+      stateJson: row.read<String?>('state_json'),
+      sortOrder: row.read<int>('sort_order'),
+      isClosed: row.read<int>('is_closed') == 1,
+    );
+  }
+
+  SessionSnapshot _sessionSnapshotFromRow(QueryRow row) {
+    return SessionSnapshot(
+      activeSpaceId: row.read<String?>('active_space_id'),
+      activeDetailTabId: row.read<String?>('active_detail_tab_id'),
+      updatedAt:
+          DateTime.fromMillisecondsSinceEpoch(row.read<int>('updated_at')),
+      schemaVersion: row.read<int>('schema_version'),
+    );
   }
 
   MediaRecord _mediaFromRow(QueryRow row) {
@@ -549,6 +852,10 @@ class LocalMediaRepository {
       lastError: row.read<String?>('last_error'),
     );
   }
+
+  String _newNavigationId(String prefix) => MediaIdentity.fromUrls(
+        mediaUrl: '$prefix|${DateTime.now().microsecondsSinceEpoch}',
+      );
 
   String _newId() => MediaIdentity.fromUrls(
         mediaUrl: DateTime.now().microsecondsSinceEpoch.toString() + '|collection',
