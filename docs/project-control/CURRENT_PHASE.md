@@ -6,7 +6,7 @@ Status: **IN PROGRESS (runtime/dependency verification pending; development cont
 The persistence foundation, provider migration, migration hardening, reopen-test source, and cache-state primitives are implemented. Runtime verification remains pending because the available execution environment does not provide Flutter/Dart.
 
 ## Phase 2 — Temporary Download / Ready-to-Share Engine
-Status: **IN PROGRESS**
+Status: **IN PROGRESS (core implementation slice complete; runtime verification pending)**
 
 ### Implemented
 - Shared `MediaCacheManager`.
@@ -38,3 +38,18 @@ Do not start the large home redesign, full Search 2.0 UI, or persistent Spaces/D
 
 ## Phase boundary
 Do not start the large home redesign, full Search 2.0 UI, or persistent Spaces/Detail Tabs UI until the collection/share infrastructure is sufficiently implemented and the authorized phase boundary is explicitly advanced.
+
+
+## Phase 3 — Persistent Browsing Spaces & Detail Tabs
+Status: **IN PROGRESS — persistence infrastructure slice**
+
+### Implemented
+- Schema v2 tables for Spaces, Detail Tabs, and SessionSnapshot.
+- Forward migration from schema v1 to v2.
+- LocalMediaRepository CRUD and session snapshot APIs.
+- SessionNavigationController for restore, activation, tab open/close, and persistent navigation mutations.
+- App bootstrap registration.
+- Source-level migration, persistence, and restoration tests.
+
+### Next
+Continue restoration hardening and migration/reopen coverage before building the visual Space/Detail Tab strips.
