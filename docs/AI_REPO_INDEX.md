@@ -512,3 +512,10 @@ Existing feature seam
 ```
 
 Avoid introducing a parallel architecture merely to implement a single feature.
+
+## Phase 1 persistence layer additions
+- `lib/data/local/local_database.dart` — versioned SQLite/Drift bootstrap and schema.
+- `lib/data/local/local_media_repository.dart` — media, collection, membership, cache-state, and collection-media queries.
+- `lib/data/local/legacy_preferences_migration.dart` — one-time migration from `liked_gifs`/`viewed_gifs` SharedPreferences payloads.
+- `lib/common/providers/liked_gifs_provider.dart` and `viewed_gifs_provider.dart` — repository-backed Provider state with compatibility fallback.
+- `test/local_media_repository_test.dart` — persistence, reopen, migration, collection, deduplication, and cache-state coverage.
