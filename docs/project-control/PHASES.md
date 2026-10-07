@@ -2,8 +2,8 @@
 
 | Phase | Name | Status | Primary outcome |
 |---|---|---|---|
-| 0 | Architecture, contracts & migration | PLANNED | Stable data/navigation/search contracts |
-| 1 | Local Media Library & Collection Engine | PENDING | Persistent 500+ metadata-capable collection system |
+| 0 | Architecture, contracts & migration | **COMPLETE** | Stable data/navigation/search/cache contracts |
+| 1 | Local Media Library & Collection Engine | **READY / AUTHORIZED** | Persistent 500+ metadata-capable collection system |
 | 2 | Temporary Download / Ready-to-Share Engine | PENDING | Low-bandwidth, instant-share cache |
 | 3 | Persistent Spaces & Detail Tabs | PENDING | Browser-like persistent navigation |
 | 4 | Search 2.0 | PENDING | Fast local + remote GIF discovery |
