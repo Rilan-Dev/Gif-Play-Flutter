@@ -15,6 +15,9 @@ dependencies:
     sdk: flutter
   flutter_riverpod: ^2.3.6
   http: ^1.1.0
+  crypto: ^3.0.6
+  drift: ^2.32.1
+  drift_flutter: ^0.2.3
   html: ^0.15.4
   dartz: ^0.10.1
   cached_network_image: ^3.2.3
