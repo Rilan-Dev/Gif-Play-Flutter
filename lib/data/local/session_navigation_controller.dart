@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 
 import '../local/local_media_repository.dart';
 import '../local/models/detail_tab.dart';
-import '../local/models/session_snapshot.dart';
 import '../local/models/space.dart';
 
 class SessionNavigationController extends ChangeNotifier {
