@@ -200,4 +200,33 @@ void main() {
       await directory.delete(recursive: true);
     }
   });
+  test('collection readiness aggregates pending cache states', () async {
+    final collection = await repository.createCollection('Ready List');
+    await repository.addToCollection(collectionId: collection.id, media: media(1));
+    await repository.addToCollection(collectionId: collection.id, media: media(2));
+    await repository.addToCollection(collectionId: collection.id, media: media(3));
+
+    await repository.updateCollectionItemCacheState(
+      collectionId: collection.id,
+      mediaId: media(1).id,
+      cacheState: CollectionCacheState.ready,
+    );
+    await repository.updateCollectionItemCacheState(
+      collectionId: collection.id,
+      mediaId: media(2).id,
+      cacheState: CollectionCacheState.failed,
+      error: 'network',
+    );
+
+    final readiness = await MediaCacheManager(repository)
+        .getCollectionReadiness(collection.id);
+
+    expect(readiness.total, 3);
+    expect(readiness.pending, 3);
+    expect(readiness.ready, 1);
+    expect(readiness.failed, 1);
+    expect(readiness.notCached, 1);
+    expect(readiness.isReadyToShare, isFalse);
+  });
+
 }
