@@ -44,3 +44,9 @@ Finish Phase 1 provider migration, persistence/reopen tests, dependency verifica
 - Liked/viewed providers are now repository-backed when created by app bootstrap.
 - Legacy SharedPreferences migration is hardened and idempotent.
 - Cache-state metadata helpers are ready for Phase 2.
+
+## Current implementation continuation — Phase 2 cache
+- Phase 2 cache engine development has started without waiting for CI/Vercel gates.
+- `MediaCacheManager` provides demand-driven local file caching with bounded concurrency and LRU byte eviction.
+- Existing share/download flow now checks the durable cache first and does not delete cache files after sharing.
+- Collection-specific readiness/share orchestration is the next implementation slice.
