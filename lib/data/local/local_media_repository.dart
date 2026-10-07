@@ -203,6 +203,90 @@ class LocalMediaRepository {
     });
   }
 
+  Future<List<MediaRecord>> listCollectionMedia(
+    String collectionId, {
+    bool pendingOnly = false,
+    int limit = 500,
+    int offset = 0,
+  }) async {
+    final rows = await database.customSelect(
+      '''
+      SELECT m.*
+      FROM media_records m
+      INNER JOIN collection_items ci ON ci.media_id = m.id
+      WHERE ci.collection_id = ?
+        AND (? = 0 OR ci.share_state = 'pending')
+      ORDER BY ci.position ASC, ci.added_at ASC
+      LIMIT ? OFFSET ?
+      ''',
+      variables: [
+        Variable.withString(collectionId),
+        Variable.withInt(pendingOnly ? 1 : 0),
+        Variable.withInt(limit),
+        Variable.withInt(offset),
+      ],
+    ).get();
+    return rows.map(_mediaFromRow).toList(growable: false);
+  }
+
+  Future<void> clearCollectionItems(String collectionId) async {
+    await database.customUpdate(
+      'DELETE FROM collection_items WHERE collection_id = ?',
+      variables: [Variable.withString(collectionId)],
+      updateKind: UpdateKind.delete,
+    );
+    await database.customUpdate(
+      'UPDATE collections SET updated_at = ? WHERE id = ?',
+      variables: [
+        Variable.withInt(DateTime.now().millisecondsSinceEpoch),
+        Variable.withString(collectionId),
+      ],
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Future<void> updateCollectionItemCacheState({
+    required String collectionId,
+    required String mediaId,
+    required CollectionCacheState cacheState,
+    String? error,
+  }) async {
+    await database.customUpdate(
+      '''
+      UPDATE collection_items
+      SET cache_state = ?, last_error = ?
+      WHERE collection_id = ? AND media_id = ?
+      ''',
+      variables: [
+        Variable.withString(cacheState.name),
+        Variable<String>(error),
+        Variable.withString(collectionId),
+        Variable.withString(mediaId),
+      ],
+      updateKind: UpdateKind.update,
+    );
+  }
+
+  Future<List<CollectionItem>> listReadyCollectionItems(
+    String collectionId, {
+    int limit = 500,
+    int offset = 0,
+  }) async {
+    final rows = await database.customSelect(
+      '''
+      SELECT * FROM collection_items
+      WHERE collection_id = ? AND cache_state = 'ready'
+      ORDER BY position ASC, added_at ASC
+      LIMIT ? OFFSET ?
+      ''',
+      variables: [
+        Variable.withString(collectionId),
+        Variable.withInt(limit),
+        Variable.withInt(offset),
+      ],
+    ).get();
+    return rows.map(_collectionItemFromRow).toList(growable: false);
+  }
   Future<List<CollectionItem>> listCollectionItems(
     String collectionId, {
     bool pendingOnly = false,
