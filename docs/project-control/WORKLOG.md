@@ -34,3 +34,5 @@
 - Hardened legacy SharedPreferences migration: malformed top-level JSON no longer marks migration complete; malformed individual entries are skipped; repository collection IDs match the migration identities; reruns remain deduplicated.
 - Added tests for collection-media joins, cache-ready state, file-backed SQLite reopen, and migration idempotency.
 - Verification: Flutter/Dart executables are unavailable in the current execution environment, so dependency resolution, analyzer, and test execution remain pending. No CI/Vercel wait was introduced.
+
+- Closed a legacy UI bypass: `ViewedGifsScreen` now loads/clears through `ViewedGifsProvider` rather than reading `SharedPreferencesUtil` directly.
