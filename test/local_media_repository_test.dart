@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:gif_play/data/local/local_database.dart';
 import 'package:gif_play/data/cache/media_cache_manager.dart';
+import 'package:gif_play/data/cache/collection_share_service.dart';
 import 'package:gif_play/data/local/legacy_preferences_migration.dart';
 import 'package:gif_play/data/local/local_media_repository.dart';
 import 'package:gif_play/data/local/media_identity.dart';
