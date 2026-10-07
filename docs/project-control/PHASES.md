@@ -3,7 +3,7 @@
 | Phase | Name | Status | Primary outcome |
 |---|---|---|---|
 | 0 | Architecture, contracts & migration | **COMPLETE** | Stable data/navigation/search/cache contracts |
-| 1 | Local Media Library & Collection Engine | **READY / AUTHORIZED** | Persistent 500+ metadata-capable collection system |
+| 1 | Local Media Library & Collection Engine | **IN PROGRESS** | Persistent 500+ metadata-capable collection system |
 | 2 | Temporary Download / Ready-to-Share Engine | PENDING | Low-bandwidth, instant-share cache |
 | 3 | Persistent Spaces & Detail Tabs | PENDING | Browser-like persistent navigation |
 | 4 | Search 2.0 | PENDING | Fast local + remote GIF discovery |
@@ -14,11 +14,4 @@
 
 ## Execution rule
 
-Phases are sequential because:
-- storage precedes UI that depends on storage;
-- cache depends on media identity;
-- tabs depend on persistent navigation models;
-- search depends on indexed media metadata;
-- home redesign depends on all of the above.
-
-Parallel work is allowed only where the tasks do not modify the same architectural seam.
+Phases are sequential because storage precedes dependent UI, cache depends on media identity, tabs depend on persistent navigation models, search depends on indexed media metadata, and the home redesign depends on the completed storage/navigation seams.
