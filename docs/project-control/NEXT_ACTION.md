@@ -65,3 +65,5 @@ Do not wait for GitHub Actions, Vercel deployments, or continuous verification t
 - Do not redesign the entire home screen.
 - Do not implement full Search 2.0 UI.
 - Do not implement Spaces/Detail Tabs UI.
+
+- Added collection-level cache readiness aggregation and regression coverage.
