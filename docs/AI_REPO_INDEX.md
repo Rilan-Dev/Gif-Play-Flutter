@@ -524,3 +524,5 @@ Avoid introducing a parallel architecture merely to implement a single feature.
 - `lib/data/cache/media_cache_manager.dart` — demand-driven cache preparation, TTL validation, checksum recording, bounded collection workers, and LRU byte-budget eviction.
 - `LocalMediaRepository` now exposes cache manifest listing, byte accounting, access touch, and deletion primitives.
 - `DownloadAndShare` now reuses the shared cache when the app-level cache service is available.
+
+- `MediaCacheManager` now exposes collection readiness aggregation for share-list preparation.
