@@ -22,6 +22,9 @@
 - Provider public APIs remain compatible while app bootstrap uses repository-backed state.
 - MediaCacheManager provides durable filesystem caching with SQLite manifest, bounded collection preparation, TTL, checksum, retry/backoff, expired-file recovery, and byte-budget LRU maintenance.
 - CollectionShareService provides reusable single/multi-collection preparation and successful-share state transitions.
+- DownloadAndShare now uses the canonical cache path for remote media and direct sharing only for already-local files.
+- CollectionShareController exposes reusable multi-select collection state, readiness, preparation progress, and errors to UI consumers.
+- Regression test sources cover cache retry, cleanup preserving collection metadata, and collection-selection deduplication.
 
 ## Non-negotiable product invariants
 - Collection/list definitions survive app restart.
@@ -38,4 +41,4 @@
 - UI must avoid loading hundreds of full GIF binaries into memory simultaneously.
 
 ## Next
-Normalize the existing DownloadAndShareGif implementation onto MediaCacheManager, wire CollectionShareService into the existing share flow, then continue the reusable collection/share-list data layer. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
+Connect the collection/share controller to existing collection-capable UI entry points, add retry and explicit status presentation, and preserve post-share state transitions. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
