@@ -138,6 +138,32 @@ void main() {
     expect(ready.single.mediaId, media(1).id);
   });
 
+  test('schema v1 migrates forward to persistent navigation tables', () async {
+    final executor = NativeDatabase.memory();
+    final legacy = LocalDatabase.forTesting(executor);
+    await legacy.customStatement(
+      'CREATE TABLE migration_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)',
+    );
+    await legacy.customStatement('PRAGMA user_version = 1');
+
+    await legacy.initialize();
+
+    final spaces = await legacy.customSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'spaces'",
+    ).get();
+    final tabs = await legacy.customSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'detail_tabs'",
+    ).get();
+    final session = await legacy.customSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'session_snapshot'",
+    ).get();
+
+    expect(spaces, isNotEmpty);
+    expect(tabs, isNotEmpty);
+    expect(session, isNotEmpty);
+    await legacy.close();
+  });
+
   test('spaces, detail tabs, and session snapshot persist independently',
       () async {
     final space = await repository.createSpace(name: 'Home');
