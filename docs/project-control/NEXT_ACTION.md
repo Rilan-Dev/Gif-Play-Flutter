@@ -18,10 +18,10 @@ Phase 2 — Temporary Download / Ready-to-Share Engine is **IN PROGRESS**. Phase
 - Focused regression source added for cache retry, cache cleanup, collection preservation, and collection-selection deduplication.
 
 ## Immediate next implementation sequence
-1. Continue Phase 3 persistence: add controller-level restoration/transition coverage and lightweight state mutation persistence.
-2. Add session-aware startup restoration behavior without blocking on remote data.
-3. Add focused migration/reopen tests for Spaces, Detail Tabs, and SessionSnapshot.
-4. Continue Phase 3 infrastructure before introducing the large Space/Detail UI redesign.
+1. Continue Phase 3 persistence: add controller-level transition coverage and lightweight state mutation persistence.
+2. Add startup restoration handling for invalid/closed tab references and stale session snapshots.
+3. Add migration/reopen tests covering Spaces, Detail Tabs, and SessionSnapshot across process/database reopen.
+4. Then introduce the visual Space/Detail Tab UI layer without changing the established persistence contracts.
 5. Continue project-control/index updates.
 
 ## Execution rule
