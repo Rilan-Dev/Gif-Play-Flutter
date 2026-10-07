@@ -13,9 +13,12 @@ A new ChatGPT conversation must be able to continue this project without relying
 7. docs/project-control/WORKLOG.md
 8. docs/AI_REPO_INDEX.md
 9. docs/AI_RESEARCH_PROTOCOL.md
+10. docs/project-control/DATA_MODEL.md
+11. docs/project-control/STORAGE_AND_CACHE.md
+12. docs/project-control/SESSION_AND_NAVIGATION.md
 
 ## Current handoff
-The product improvement program is planned but not implemented. Phase 0 is the active planning phase. The first implementation target is the local media/collection engine.
+Phase 0 is complete and its architecture contracts are locked. Phase 1 — Local Media Library & Collection Engine — is the current authorized implementation phase.
 
 ## Session-independent rule
 Never infer completed work from a previous chat. GitHub files, Git history, and current repository contents are authoritative.
