@@ -17,6 +17,7 @@ import 'data/local/local_database.dart';
 import 'data/local/local_media_repository.dart';
 import 'data/cache/media_cache_manager.dart';
 import 'data/cache/collection_share_service.dart';
+import 'data/cache/collection_share_controller.dart';
 
 // Import screens
 import 'screens/login_screen.dart';
@@ -80,6 +81,12 @@ void main() async {
             localMediaRepository,
             cacheManager: mediaCacheManager,
           ),
+        ),
+        ChangeNotifierProvider<CollectionShareController>(
+          create: (_) => CollectionShareController(
+            localMediaRepository,
+            cacheManager: mediaCacheManager,
+          )..loadCollections(),
         ),
       ],
       child: const MyApp(),
