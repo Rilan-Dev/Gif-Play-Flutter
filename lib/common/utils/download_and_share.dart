@@ -40,8 +40,8 @@ class DownloadAndShare {
             const SizedBox(width: 16),
             Text(
               share
-                  ? 'Preparing \${gifs.length > 1 ? '\${gifs.length} GIFs' : 'GIF'} to share...'
-                  : 'Downloading \${gifs.length > 1 ? '\${gifs.length} GIFs' : 'GIF'}...',
+                  ? 'Preparing ${gifs.length > 1 ? '${gifs.length} GIFs' : 'GIF'} to share...'
+                  : 'Downloading ${gifs.length > 1 ? '${gifs.length} GIFs' : 'GIF'}...',
             ),
           ],
         ),
@@ -107,18 +107,18 @@ class DownloadAndShare {
       if (!share) {
         _showMessage(
           context,
-          '\${files.length > 1 ? '\${files.length} GIFs' : 'GIF'} saved successfully',
+          '${files.length > 1 ? '${files.length} GIFs' : 'GIF'} saved successfully',
         );
       } else if (failures.isNotEmpty) {
         _showMessage(
           context,
-          '\${failures.length} GIF\${failures.length == 1 ? '' : 's'} could not be prepared',
+          '${failures.length} GIF${failures.length == 1 ? '' : 's'} could not be prepared',
           backgroundColor: Colors.orange,
         );
       }
     } catch (error) {
       messenger.hideCurrentSnackBar();
-      _showMessage(context, 'Error: \${error.toString()}', backgroundColor: Colors.red);
+      _showMessage(context, 'Error: ${error.toString()}', backgroundColor: Colors.red);
     }
   }
 
@@ -138,7 +138,7 @@ class DownloadAndShare {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          'Preparing \${ids.length} collection\${ids.length == 1 ? '' : 's'} to share...',
+          'Preparing ${ids.length} collection${ids.length == 1 ? '' : 's'} to share...',
         ),
         duration: const Duration(seconds: 30),
       ),
@@ -187,7 +187,7 @@ class DownloadAndShare {
       messenger.hideCurrentSnackBar();
     } catch (error) {
       messenger.hideCurrentSnackBar();
-      _showMessage(context, 'Error: \${error.toString()}', backgroundColor: Colors.red);
+      _showMessage(context, 'Error: ${error.toString()}', backgroundColor: Colors.red);
     }
   }
 
@@ -232,7 +232,7 @@ class DownloadAndShare {
       width: gif.width,
       height: gif.height,
       searchText:
-          '\${gif.title} \${gif.altText ?? ''} \$sourceUrl \$mediaUrl'.toLowerCase(),
+          '${gif.title} ${gif.altText ?? ''} $sourceUrl $mediaUrl'.toLowerCase(),
       createdAt: gif.timestamp,
       updatedAt: DateTime.now(),
       lastSeenAt: gif.timestamp,
