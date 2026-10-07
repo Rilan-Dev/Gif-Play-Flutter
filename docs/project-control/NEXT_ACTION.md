@@ -18,11 +18,11 @@ Phase 2 — Temporary Download / Ready-to-Share Engine is **IN PROGRESS**. Phase
 - Focused regression source added for cache retry, cache cleanup, collection preservation, and collection-selection deduplication.
 
 ## Immediate next implementation sequence
-1. Extend the collection/share workflow from data-layer readiness into the existing collection-capable UI entry points, without redesigning the home screen.
-2. Add explicit per-item progress/status presentation where collection items are prepared: ready, downloading, not cached, expired, failed.
-3. Make retry of failed/expired collection items a first-class action using the same cache manager.
-4. Add share-result handling so collection items transition to shared only after the share operation returns successfully.
-5. Continue project-control/index updates and then advance to the next authorized Phase 2 slice.
+1. Continue collection/share hardening: preserve item-level state while retrying failed/expired items.
+2. Add explicit preparation/share summaries for partial failures and empty collections.
+3. Add focused tests for item retry and successful-share-only state mutation.
+4. Then advance Phase 2 toward persistent browsing/session infrastructure according to IMPLEMENTATION_PLAN.md.
+5. Continue project-control/index updates.
 
 ## Execution rule
 Do not wait for GitHub Actions, Vercel deployments, or continuous verification to continue implementation. Runtime verification must be recorded honestly when unavailable, but it is not a development blocker.
