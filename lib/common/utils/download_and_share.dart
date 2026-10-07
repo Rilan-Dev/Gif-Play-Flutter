@@ -122,6 +122,42 @@ class DownloadAndShare {
     }
   }
 
+  /// Shares already-prepared collection files and commits share state only
+  /// after the platform share operation returns successfully.
+  Future<void> sharePreparedCollections(
+    BuildContext context,
+    Iterable<CollectionSharePreparation> preparations,
+  ) async {
+    final items = preparations.toList(growable: false);
+    final files = items
+        .expand((preparation) => preparation.cachedFiles)
+        .map((result) => result.file)
+        .toList(growable: false);
+
+    if (files.isEmpty || items.any((item) => !item.isReadyToShare)) {
+      _showMessage(
+        context,
+        'Selected collections are not ready to share',
+        backgroundColor: Colors.orange,
+      );
+      return;
+    }
+
+    try {
+      await Share.shareXFiles(
+        files.map((file) => XFile(file.path)).toList(),
+        text: '',
+      );
+      final service = _collectionShareServiceOrNull(context);
+      if (service == null) {
+        throw StateError('CollectionShareService is not configured.');
+      }
+      await service.markCollectionsShared(items);
+    } catch (error) {
+      _showMessage(context, 'Error: ${error.toString()}', backgroundColor: Colors.red);
+    }
+  }
+
   /// Prepares reusable collections through CollectionShareService and shares
   /// their canonical cached files. Collection metadata is never deleted.
   Future<void> shareCollections(
