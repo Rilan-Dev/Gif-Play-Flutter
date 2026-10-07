@@ -42,6 +42,7 @@ void main() async {
   final localDatabase = LocalDatabase.open();
   await localDatabase.initialize();
   final localMediaRepository = LocalMediaRepository(localDatabase);
+  final mediaCacheManager = MediaCacheManager(localMediaRepository);
   await LegacyPreferencesMigration(localDatabase, localMediaRepository)
       .run(sharedPreferences);
 
@@ -72,10 +73,13 @@ void main() async {
         ChangeNotifierProvider(create: (_) => moodVibeViewModeProvider),
         Provider<LocalMediaRepository>.value(value: localMediaRepository),
         Provider<MediaCacheManager>.value(
-          value: MediaCacheManager(localMediaRepository),
+          value: mediaCacheManager,
         ),
         Provider<CollectionShareService>.value(
-          value: CollectionShareService(localMediaRepository),
+          value: CollectionShareService(
+            localMediaRepository,
+            cacheManager: mediaCacheManager,
+          ),
         ),
       ],
       child: const MyApp(),
