@@ -14,7 +14,7 @@ class LikedGifsProvider with ChangeNotifier {
   final List<GifItem> _likedGifs = [];
   static const String _likedGifsKey = 'liked_gifs';
   static const int _maxLikedGifs = 500;
-  static const String _collectionId = 'a3d8f3f3f3f3';
+  static const String _collectionId = 'bbdfa3ba3e08f524f1813368e5373a40d7a363bdd51289475aad93c37c07ae7c';
 
   List<GifItem> get likedGifs => List.unmodifiable(_likedGifs);
 
