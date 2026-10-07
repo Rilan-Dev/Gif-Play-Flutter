@@ -1,5 +1,16 @@
 # Worklog
 
+## 2026-10-08 — Phase 2 share orchestration continuation
+- Re-read repository-authored continuation state and proceeded from the first pending Phase 2 action without waiting for CI, Vercel, or runtime gates.
+- Normalized `DownloadAndShare` so remote media uses `MediaCacheManager` exclusively; removed the legacy direct HTTP download fallback.
+- Preserved direct sharing of existing local files so saved GIFs do not incur a redundant network/cache operation.
+- Added collection sharing to `DownloadAndShare`: selected collection IDs are deduplicated, prepared through `CollectionShareService`, and only marked shared after `Share.shareXFiles` returns.
+- Registered one shared `MediaCacheManager`, `CollectionShareService`, and `CollectionShareController` instance at app bootstrap.
+- Added `CollectionShareController` with reusable collection loading, multi-select, readiness, progress, and error state for UI consumers.
+- Injected an HTTP client into `MediaCacheManager` so retry behavior can be tested deterministically.
+- Added focused regression test sources for retry recovery, expired/failed cleanup preserving collection metadata, and collection-ID deduplication.
+- Verification status: Flutter/Dart execution remains unavailable in the current environment; no CI/Vercel wait was introduced.
+
 ## 2026-10-08 — Phase 2 cache/share continuation
 - Continued from the repository-authored Phase 2 next action without waiting for GitHub Actions, Vercel, or runtime verification.
 - Extended `MediaCacheManager` with configurable retry/backoff for failed downloads.
