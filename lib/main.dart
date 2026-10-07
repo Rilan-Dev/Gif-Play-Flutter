@@ -18,6 +18,7 @@ import 'data/local/local_media_repository.dart';
 import 'data/cache/media_cache_manager.dart';
 import 'data/cache/collection_share_service.dart';
 import 'data/cache/collection_share_controller.dart';
+import 'data/local/session_navigation_controller.dart';
 
 // Import screens
 import 'screens/login_screen.dart';
@@ -87,6 +88,9 @@ void main() async {
             localMediaRepository,
             cacheManager: mediaCacheManager,
           )..loadCollections(),
+        ),
+        ChangeNotifierProvider<SessionNavigationController>(
+          create: (_) => SessionNavigationController(localMediaRepository)..load(),
         ),
       ],
       child: const MyApp(),
