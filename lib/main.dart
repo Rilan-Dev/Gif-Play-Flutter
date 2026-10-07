@@ -48,11 +48,11 @@ void main() async {
   await themeProvider.loadThemeMode();
 
   // Initialize liked gifs provider
-  final likedGifsProvider = LikedGifsProvider();
+  final likedGifsProvider = LikedGifsProvider(localMediaRepository);
   await likedGifsProvider.loadLikedGifs();
 
   // Initialize viewed gifs provider
-  final viewedGifsProvider = ViewedGifsProvider();
+  final viewedGifsProvider = ViewedGifsProvider(localMediaRepository);
   await viewedGifsProvider.loadViewedGifs();
 
   // Initialize view mode providers
