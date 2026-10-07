@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:gif_play/data/local/local_database.dart';
 import 'package:gif_play/data/cache/media_cache_manager.dart';
 import 'package:gif_play/data/cache/collection_share_service.dart';
+import 'package:gif_play/data/cache/collection_share_controller.dart';
 import 'package:gif_play/data/local/legacy_preferences_migration.dart';
 import 'package:gif_play/data/local/local_media_repository.dart';
 import 'package:gif_play/data/local/media_identity.dart';
@@ -309,6 +310,83 @@ void main() {
     expect(await repository.getCacheEntry(media(2).id), isNull);
     expect(await repository.getCollection(collection.id), isNotNull);
     expect(await repository.countCollectionItems(collection.id), 1);
+  });
+
+  test('controller retry clears failed item state through the cache manager',
+      () async {
+    final collection = await repository.createCollection('Retry List');
+    await repository.addToCollection(
+      collectionId: collection.id,
+      media: media(11),
+    );
+
+    final failingClient = _RetryClient(
+      () => http.Response('temporary failure', 503),
+    );
+    final failingManager = MediaCacheManager(
+      repository,
+      client: failingClient,
+      maxRetries: 0,
+      retryBaseDelay: Duration.zero,
+    );
+    await failingManager.prepareMedia(
+      media(11),
+      collectionId: collection.id,
+    );
+
+    var item = (await repository.listCollectionItems(collection.id)).single;
+    expect(item.cacheState, CollectionCacheState.failed);
+
+    final successClient = _RetryClient(
+      () => http.Response.bytes([7, 8, 9], 200),
+    );
+    final manager = MediaCacheManager(
+      repository,
+      client: successClient,
+      maxRetries: 0,
+      retryBaseDelay: Duration.zero,
+    );
+    final controller = CollectionShareController(
+      repository,
+      cacheManager: manager,
+    );
+
+    await controller.retryItem(collection.id, item.mediaId);
+
+    item = (await repository.listCollectionItems(collection.id)).single;
+    expect(item.cacheState, CollectionCacheState.ready);
+    expect(controller.itemsForCollection(collection.id).single.cacheState,
+        CollectionCacheState.ready);
+  });
+
+  test('collection share service never marks an unready preparation shared',
+      () async {
+    final collection = await repository.createCollection('Safe Share');
+    await repository.addToCollection(
+      collectionId: collection.id,
+      media: media(12),
+    );
+
+    final readiness =
+        await MediaCacheManager(repository).getCollectionReadiness(collection.id);
+    final preparation = CollectionSharePreparation(
+      collectionId: collection.id,
+      media: [media(12)],
+      cachedFiles: const [],
+      readiness: readiness,
+    );
+
+    await CollectionShareService(repository).markCollectionsShared(
+      [preparation],
+    );
+
+    expect(
+      await repository.countCollectionItems(
+        collection.id,
+        pendingOnly: true,
+      ),
+      1,
+    );
   });
 
   test('collection share service deduplicates selected collection ids', () async {
