@@ -42,4 +42,4 @@
 - UI must avoid loading hundreds of full GIF binaries into memory simultaneously.
 
 ## Next
-Phase 3 persistence infrastructure is active: harden startup restoration and add migration/reopen coverage before visual Space/Detail Tab UI. Do not wait for CI/Vercel/runtime gates; record verification status honestly. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
+Phase 3 persistence infrastructure is active: startup now repairs missing active-space state and creates a durable Home Space; next is invalid/closed-tab restoration and migration/reopen coverage before visual Space/Detail Tab UI. Do not wait for CI/Vercel/runtime gates; record verification status honestly. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
