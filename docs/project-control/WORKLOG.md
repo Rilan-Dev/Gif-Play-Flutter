@@ -36,3 +36,14 @@
 - Verification: Flutter/Dart executables are unavailable in the current execution environment, so dependency resolution, analyzer, and test execution remain pending. No CI/Vercel wait was introduced.
 
 - Closed a legacy UI bypass: `ViewedGifsScreen` now loads/clears through `ViewedGifsProvider` rather than reading `SharedPreferencesUtil` directly.
+
+
+
+## 2026-10-07 — Phase 2 cache engine started
+- Continued implementation immediately after the Phase 1 persistence/provider slice without waiting for CI, Vercel, or runtime verification gates.
+- Added cache manifest primitives to `LocalMediaRepository`: list entries, byte accounting, access-time updates, and manifest deletion.
+- Added `MediaCacheManager` with demand-driven download, ready-file reuse, TTL checks, SHA-256 checksum recording, bounded concurrent collection preparation, and byte-budget LRU eviction.
+- Wired the existing `DownloadAndShare` utility to reuse the shared cache through the app-level Provider.
+- Preserved cached files after sharing; non-share cached downloads still produce the existing saved copy.
+- Added a source-level eviction regression test.
+- Verification remains pending because Flutter/Dart is unavailable in the current execution environment; development intentionally continues without waiting for that verification.
