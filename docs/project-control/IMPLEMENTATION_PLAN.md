@@ -17,7 +17,7 @@ The implementation is deliberately phased so the storage/navigation contracts ex
 
 # Phase 0 — Architecture, contracts & migration plan
 
-**Status:** PLANNED
+**Status:** COMPLETE
 
 ### Deliverables
 - canonical GIF identity contract;
@@ -149,7 +149,7 @@ Minimum acceptance target:
 
 # Phase 1 — Local Media Library & Collection Engine
 
-**Status:** PENDING
+**Status:** IN PROGRESS (runtime/dependency verification pending)
 
 ### Work
 1. Add storage dependency/abstraction.
@@ -186,7 +186,7 @@ Example:
 
 # Phase 2 — Temporary Download / Ready-to-Share Engine
 
-**Status:** PENDING
+**Status:** IN PROGRESS
 
 ### Work
 1. Cache manager abstraction.
