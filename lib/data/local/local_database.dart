@@ -10,6 +10,8 @@ import 'package:drift_flutter/drift_flutter.dart';
 class LocalDatabase extends DatabaseConnectionUser {
   LocalDatabase._(DatabaseConnection connection) : super.fromConnection(connection);
 
+  LocalDatabase.forTesting(QueryExecutor executor) : super(executor);
+
   factory LocalDatabase.open() {
     return LocalDatabase._(
       driftDatabase(name: 'gif_play_library'),
