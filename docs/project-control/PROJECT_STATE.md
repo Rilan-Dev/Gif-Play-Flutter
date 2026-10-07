@@ -41,4 +41,4 @@
 - UI must avoid loading hundreds of full GIF binaries into memory simultaneously.
 
 ## Next
-Connect the collection/share controller to existing collection-capable UI entry points, add retry and explicit status presentation, and preserve post-share state transitions. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
+Harden collection/share item recovery and add focused regression coverage for retry and successful-share-only transitions. Then continue into the next authorized Phase 2 infrastructure slice. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
