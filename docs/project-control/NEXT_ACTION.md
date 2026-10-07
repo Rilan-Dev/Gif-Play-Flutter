@@ -34,3 +34,34 @@ Phase 1 — Local Media Library & Collection Engine is **IN PROGRESS**.
 - Do not implement Spaces/Detail Tabs UI.
 - Do not implement binary GIF downloading/cache eviction; Phase 2 owns that behavior.
 - Do not replace Provider with another state-management architecture.
+
+# Next Action
+
+## Current
+Phase 2 — Temporary Download / Ready-to-Share Engine is **IN PROGRESS** for implementation continuity. Phase 1 runtime/dependency verification remains recorded as pending and is not blocking development per project-owner instruction.
+
+## Completed in the current development stream
+- Phase 1 SQLite persistence foundation.
+- Repository-backed liked/viewed providers.
+- Legacy migration hardening and idempotency coverage.
+- File-backed persistence/reopen test source.
+- Repository cache-state primitives.
+- Shared `MediaCacheManager` with cache reuse, bounded collection preparation, TTL, checksum, and byte-budget LRU eviction.
+- Existing `DownloadAndShare` flow now attempts the durable cache before downloading.
+
+## Immediate next implementation sequence
+1. Add collection-specific cache preparation/readiness aggregation APIs.
+2. Integrate cache preparation with reusable collection/share-list operations.
+3. Normalize `DownloadAndShareGif` to the shared cache path.
+4. Add retry/backoff and expired-entry recovery.
+5. Add cache cleanup/maintenance APIs and preserve collection metadata.
+6. Build the collection/share-list data layer and UI against the durable repository.
+7. Continue project-control/index updates after each coherent slice.
+
+## Execution rule
+Do not wait for GitHub Actions, Vercel deployments, or continuous verification to continue implementation. Runtime verification must be recorded honestly when unavailable, but it is not a development blocker.
+
+## Do not do yet
+- Do not redesign the entire home screen.
+- Do not implement full Search 2.0 UI.
+- Do not implement Spaces/Detail Tabs UI.
