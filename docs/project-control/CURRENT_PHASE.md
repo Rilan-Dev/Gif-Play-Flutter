@@ -1,35 +1,41 @@
 # Current Phase
 
-## Phase 0 — Product Architecture & Persistence Foundation
+## Phase 1 — Local Media Library & Collection Engine
 
-Status: PLANNED / IMPLEMENTATION NOT AUTHORIZED
+Status: **READY / IMPLEMENTATION AUTHORIZED**
 
 ## Objective
-Convert the requested UX into stable contracts before implementation.
+Build the durable local media/collection foundation defined by the completed Phase 0 contracts.
 
-## Required outputs
-- data model for GIF records
-- collection/share-list model
-- collection item model
-- temporary download/cache model
-- browsing-space model
-- nested detail-tab model
-- persisted navigation/session snapshot
-- search/index strategy
-- cache quota/eviction policy
-- migration strategy from existing SharedPreferences state
-- performance acceptance criteria
-- test strategy
+## Phase 0 completion record
+Phase 0 is complete. The locked contracts are:
+- docs/project-control/DATA_MODEL.md
+- docs/project-control/STORAGE_AND_CACHE.md
+- docs/project-control/SESSION_AND_NAVIGATION.md
+- docs/project-control/PHASE0_ACCEPTANCE.md
 
-## Completion criteria
-- All entities and relationships documented.
-- Storage responsibilities are explicit.
-- No requirement depends on storing 500 GIF binaries in RAM.
-- Session restoration behavior is specified for normal close, crash, offline restart, and stale URLs.
-- Share-list lifecycle is unambiguous.
-- Search behavior is defined for loaded and persisted GIFs.
-- Home redesign has a defined information architecture.
-- Phase 1 implementation tasks are ready.
+## Phase 1 required outputs
+- Drift + SQLite persistence dependency and initialization
+- versioned schema and migrations
+- canonical MediaRecord model/identity service
+- Collection and CollectionItem models
+- MediaCacheEntry metadata foundation
+- repository interfaces/implementations
+- liked/viewed migration where applicable
+- indexes and efficient collection queries
+- reusable empty collection behavior
+- independent multi-list membership
+- focused database/repository/migration tests
+
+## Phase 1 completion criteria
+- 500+ MediaRecords can persist/query without SharedPreferences.
+- Collection definitions survive restart, including empty collections.
+- Multiple collections remain independent.
+- Collection membership is deduplicated by canonical media identity.
+- Database migrations are versioned and tested.
+- Repository APIs do not expose UI-specific state.
+- No GIF binary payload is stored in ordinary database rows.
+- Tests cover create/add/remove/share-state/reset and persistence/reopen behavior.
 
 ## Gate
-Only planning artifacts are being created in this phase. Do not claim implementation complete.
+Phase 1 may now be implemented. Do not begin the large home redesign, full search UI, or persistent tab UI until their storage dependencies are ready.
