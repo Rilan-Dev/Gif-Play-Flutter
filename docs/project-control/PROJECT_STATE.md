@@ -7,33 +7,18 @@
 - Repository research index: docs/AI_REPO_INDEX.md
 - Research protocol: docs/AI_RESEARCH_PROTOCOL.md
 
-## Program
-Large UX/data-layer improvement program:
-1. GIF search
-2. persistent multi-list collections/share lists
-3. redesigned home experience
-4. local storage capacity for at least 500 GIF records without UI degradation
-5. temporary pre-download cache for ready-to-share GIFs
-6. persistent browser-like browsing/session restoration
-7. persistent top-level browsing spaces and nested detail tabs
-8. ChatGPT-session-independent project-control documentation
-
 ## Current status
-- Planning: COMPLETE for Phase 0
-- Implementation: NOT STARTED for product features
 - Phase 0: COMPLETE
-- Phase 1: READY / AUTHORIZED
-- No production feature code was changed during Phase 0.
+- Phase 1: IN PROGRESS
+- Product feature implementation: persistence foundation started; major UI features remain pending.
 
-## Locked architecture
-- Drift + SQLite is the source of truth for structured local media/collection/navigation metadata.
-- SharedPreferences is limited to small settings.
-- GIF binaries live in a bounded app-private cache, not ordinary database rows.
-- Collections remain after sharing and can be reused when empty.
-- Spaces contain persistent nested DetailTabs.
-- Session restore is local-first and remote-revalidation-second.
-- Search is local indexed metadata first, with remote discovery isolated behind an adapter.
-- Provider remains the initial state-management layer.
+## Current implementation
+- Drift + SQLite local database initialized during app bootstrap.
+- Version 1 schema stores media metadata, collections, collection membership, cache metadata, and migration state.
+- Canonical media identity uses normalized URL material hashed with SHA-256.
+- LocalMediaRepository provides media persistence/search, reusable collections, membership, share-state lifecycle, and cache metadata operations.
+- Legacy liked/viewed JSON is imported once into durable collections; legacy SharedPreferences data is not deleted.
+- Provider public APIs remain unchanged so existing screens can continue during the migration.
 
 ## Non-negotiable product invariants
 - Collection/list definitions survive app restart.
@@ -49,14 +34,5 @@ Large UX/data-layer improvement program:
 - Restoring a session must preserve enough state to reopen the same content even if network access is temporarily unavailable.
 - UI must avoid loading hundreds of full GIF binaries into memory simultaneously.
 
-## Current architecture observations
-- Provider is the active state-management mechanism.
-- SharedPreferences is currently used for lightweight persistence.
-- Main feed uses MainScreenDataService and HTML parsing.
-- MediaItem is the main feed representation.
-- GifItem is used by GIF/detail/viewer paths.
-- MediaViewSwitcher is the main presentation router.
-- Existing widget test is only the generated Flutter counter test.
-
 ## Next
-Implement Phase 1 from the locked contracts. Start with database bootstrap/schema/migrations, then MediaRecord and collection repositories, followed by focused persistence tests.
+Finish Phase 1 provider migration, persistence/reopen tests, dependency verification, cache metadata helpers, and repository indexing. Then proceed to Phase 2 only after Phase 1 acceptance evidence is recorded.
