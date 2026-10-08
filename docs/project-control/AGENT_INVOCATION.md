@@ -121,3 +121,8 @@ Task:
 <TASK>
 
 Classify it as SAFE-LOCAL, already AUTHORIZED, or MATERIAL-CHANGE. Execute safe/already-authorized work without disturbing active agents. For material change, record impact and route for authorization. Record the session, work, lessons, blockers, and exact next action.
+
+
+## User-friendly invocation guide
+
+For the clearest situation-based instructions and minimal-effort copy/paste prompts, use `docs/project-control/HOW_TO_USE_AGENTS.md` first. This is the human-facing guide; this file remains the role invocation reference.
