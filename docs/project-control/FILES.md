@@ -42,3 +42,12 @@ When governance changes again, update this index in the same governance change.
 | docs/project-control/AGENT_BACKLOG.md | Cross-agent ownership/dependency backlog |
 | docs/project-control/agents/<ROLE>/MEMORY.md | Role-local durable memory |
 | docs/project-control/agents/<ROLE>/WORKLOG.md | Role-local append-only worklog |
+
+
+## User-facing agent usage
+
+| File | Purpose |
+|---|---|
+| docs/project-control/HOW_TO_USE_AGENTS.md | Primary human guide: agent selection, fresh-chat continuation, daily work, concurrent agents, memory, stop conditions, and copy/paste prompts |
+
+The user-facing guide is convenience documentation only. It does not create authorization or override APCP governance.
