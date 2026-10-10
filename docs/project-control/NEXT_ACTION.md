@@ -1,7 +1,7 @@
 # Next Action
 
 ## Current
-Phase 2 — Temporary Download / Ready-to-Share Engine is **IN PROGRESS**. Phase 1 runtime/dependency verification remains recorded as pending and is not a development blocker.
+Phase 3 — Persistent Browsing Spaces & Detail Tabs is **IN PROGRESS**. Phase 1/2 runtime and dependency verification remains pending and is not a development blocker.
 
 ## Completed development slices
 - Phase 1 SQLite persistence foundation and repository-backed liked/viewed state.
@@ -22,8 +22,10 @@ Phase 2 — Temporary Download / Ready-to-Share Engine is **IN PROGRESS**. Phase
 2. [x] Repair startup restoration for invalid, closed, stale, and cross-Space detail-tab references; persist the corrected snapshot.
 3. [x] Add database close/reopen coverage for Spaces, Detail Tabs, and SessionSnapshot; retain the existing v1-to-v2 migration test.
 4. [x] Add the initial visual Space/Detail Tab UI layer through the existing Provider/controller boundary: compact horizontally scrollable Space chips, create/close/select actions, nested Detail Tab chips, and feed-open tab metadata persistence.
-5. [NEXT] Bind active Space/Detail Tab selection to the actual visible feed/detail content. Persist and restore per-Space feed/search/scroll state and restore a selected detail page from its canonical URL/local metadata without blocking startup or mass-downloading historical media.
-6. Update the research index and project-control records as the content-restoration integration evolves.
+5. [x] Render selected Detail Tab content from its saved title, thumbnail, and canonical URL, with a safe external-source action.
+6. [x] Persist and restore per-Space feed state (bounded to 120 lightweight media records), current page metadata, visited pages, search query, and scroll offset; debounce persistence during scrolling/search changes.
+7. [NEXT] Add focused tests for Space feed-state persistence/restoration and continue edge-case handling for rapid Space switching, empty saved feeds, and stale detail URLs. Ensure tab creation does not cause duplicate dialogs or unexpected feed loss.
+8. Refresh the research index and project-control records as this integration evolves.
 
 Runtime Flutter/Dart verification remains pending in the available environment; continue implementation without waiting for CI/Vercel/runtime gates.
 
@@ -48,3 +50,7 @@ Do not wait for GitHub Actions, Vercel deployments, or continuous verification t
 
 ## Current UI implementation note
 The initial strip and feed-open tab recording are implemented. Detail-tab selection currently updates persisted navigation state but does not yet swap the visible page content; per-Space feed state is also not yet wired into MainScreen. These are explicit next actions, not completed behavior.
+
+
+## Phase 3 implementation status — 2026-10-10
+The main screen now restores per-Space feed/search/scroll state from the persisted `feed_state_json` snapshot, bounded to 120 lightweight `MediaItem` records, and writes updates with a short debounce. Selecting a Detail Tab renders a local-first content view using stored title/thumbnail/URL metadata; opening the original URL is an explicit user action. The next slice is focused regression coverage and UX edge-case cleanup. Runtime tests remain pending.
