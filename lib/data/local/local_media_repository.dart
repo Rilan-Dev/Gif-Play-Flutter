@@ -519,6 +519,7 @@ class LocalMediaRepository {
     String? filterStateJson,
     double? scrollOffset,
     String? activeDetailTabId,
+    bool clearActiveDetailTabId = false,
     int? sortOrder,
   }) async {
     final current = await getSpace(id);
@@ -541,7 +542,11 @@ class LocalMediaRepository {
         Variable<String>(searchQuery ?? current.searchQuery),
         Variable<String>(filterStateJson ?? current.filterStateJson),
         Variable<double>(scrollOffset ?? current.scrollOffset),
-        Variable<String>(activeDetailTabId ?? current.activeDetailTabId),
+        Variable<String>(
+          clearActiveDetailTabId
+              ? null
+              : activeDetailTabId ?? current.activeDetailTabId,
+        ),
         Variable.withInt(sortOrder ?? current.sortOrder),
         Variable.withString(id),
       ],
@@ -685,6 +690,7 @@ class LocalMediaRepository {
         await updateSpace(
           id: tab.spaceId,
           activeDetailTabId: remaining.isEmpty ? null : remaining.last.id,
+          clearActiveDetailTabId: remaining.isEmpty,
         );
       }
     });
