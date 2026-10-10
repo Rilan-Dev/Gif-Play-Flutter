@@ -24,8 +24,9 @@ Phase 3 — Persistent Browsing Spaces & Detail Tabs is **IN PROGRESS**. Phase 1
 4. [x] Add the initial visual Space/Detail Tab UI layer through the existing Provider/controller boundary: compact horizontally scrollable Space chips, create/close/select actions, nested Detail Tab chips, and feed-open tab metadata persistence.
 5. [x] Render selected Detail Tab content from its saved title, thumbnail, and canonical URL, with a safe external-source action.
 6. [x] Persist and restore per-Space feed state (bounded to 120 lightweight media records), current page metadata, visited pages, search query, and scroll offset; debounce persistence during scrolling/search changes.
-7. [NEXT] Add focused tests for Space feed-state persistence/restoration and continue edge-case handling for rapid Space switching, empty saved feeds, and stale detail URLs. Ensure tab creation does not cause duplicate dialogs or unexpected feed loss.
-8. Refresh the research index and project-control records as this integration evolves.
+7. [x] Add a repository regression assertion that closing the final Detail Tab clears the Space's persisted active-tab pointer.
+8. [NEXT] Harden MainScreen Space-switch restoration against overlapping async restores and stale feed fetch completions; preserve the latest selected Space and retry its fetch when an earlier request is still in flight.
+9. Add focused controller/UI regression sources for last-tab close, empty saved feeds, stale detail URLs, and tab-open interaction; refresh the research index and project-control records as the implementation evolves.
 
 Runtime Flutter/Dart verification remains pending in the available environment; continue implementation without waiting for CI/Vercel/runtime gates.
 
@@ -42,10 +43,10 @@ Do not wait for GitHub Actions, Vercel deployments, or continuous verification t
 - Remote sharing has one canonical download path; no legacy direct HTTP fallback remains in the share utility.
 - Collection items become shared only after a successful share operation.
 
-## Do not do yet
-- Do not redesign the entire home screen.
-- Do not implement full Search 2.0 UI.
-- Do not implement persistent Spaces/Detail Tabs UI.
+## Scope boundaries
+- Do not redesign the entire home screen yet.
+- Do not implement full Search 2.0 UI until Phase 3 navigation behavior is stable.
+- Persistent Spaces/Detail Tabs UI is already in progress; extend the existing strip rather than creating a second navigation system.
 
 
 ## Current UI implementation note
