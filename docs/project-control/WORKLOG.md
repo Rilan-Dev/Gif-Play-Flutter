@@ -1,5 +1,10 @@
 # Worklog
 
+## 2026-10-10 — Phase 3 empty-feed and item-open regression continuation
+- Added a widget interaction test source that invokes the regular feed-item click handler and asserts it activates a persistent Detail Tab without showing the legacy GIF details dialog.
+- `NEXT_ACTION.md` now tracks empty saved-feed restoration/fetch fallback as the remaining immediate regression gap for this slice.
+- Tests remain unexecuted by request; no CI or deployment gate was awaited.
+
 ## 2026-10-10 — Phase 3 stale restoration and Detail Tab UX
 - Added generation and active-Space checks to delayed post-frame scroll restoration so an old Space cannot jump the newly selected feed.
 - Applied the captured restore generation to both successful and failed feed-fetch completion paths, preventing a stale request from mutating the current Space after rapid switching.
