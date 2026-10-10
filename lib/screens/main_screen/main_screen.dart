@@ -192,6 +192,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _onScroll() {
+    if (!_scrollController.hasClients) return;
     _scheduleSpaceStateSave();
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.8 &&
         !_isLoading &&
