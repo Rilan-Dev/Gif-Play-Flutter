@@ -54,6 +54,16 @@ Other feature branches:
 
 ## 3. Core architecture
 
+### Phase 3 persistent navigation (current implementation)
+- `lib/data/local/session_navigation_controller.dart` — active Space and Detail Tab state, restoration, and navigation persistence.
+- `lib/common/widgets/session_navigation_strip.dart` — existing UI for switching Spaces and Detail Tabs.
+- `lib/common/widgets/detail_tab_content.dart` — local-first selected-tab preview and safe explicit source opening; exposes an explicit GIF options callback.
+- `lib/screens/main_screen/main_screen.dart` — bounded per-Space feed snapshot, query/page/visited-page/scroll restoration, generation-guarded restore/fetch lifecycle, and stale post-frame scroll protection.
+- `lib/screens/main_screen/main_screen_actions.dart` — regular item open persists/activates a Detail Tab without immediately layering a legacy details dialog; special Mood & Vibe route remains.
+- `test/session_navigation_recovery_test.dart` — startup recovery, persistence, close/activation transitions, and independent per-Space feed snapshot source coverage.
+- `test/detail_tab_content_test.dart` — unsafe source URL rejection and explicit GIF options widget test sources.
+
+
 ### Bootstrap
 - `lib/main.dart`
   - orientation lock
