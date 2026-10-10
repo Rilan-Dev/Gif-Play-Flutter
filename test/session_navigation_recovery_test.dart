@@ -188,6 +188,36 @@ void main() {
         secondTab!.id);
   });
 
+  test('closing the active Space restores the destination Space Home feed',
+      () async {
+    final controller = SessionNavigationController(repository);
+    await controller.load();
+    final homeSpaceId = controller.activeSpaceId!;
+    await controller.openDetailTab(
+      spaceId: homeSpaceId,
+      canonicalUrl: 'https://example.test/home-tab',
+      title: 'Keep in Home history',
+    );
+    await controller.activateHomeFeed(homeSpaceId);
+    final temporarySpace = await controller.createSpace(name: 'Temporary');
+    await controller.openDetailTab(
+      spaceId: temporarySpace.id,
+      canonicalUrl: 'https://example.test/temporary',
+      title: 'Temporary tab',
+    );
+
+    await controller.closeSpace(temporarySpace.id);
+
+    expect(controller.activeSpaceId, homeSpaceId);
+    expect(controller.activeDetailTabId, isNull);
+    expect(controller.tabsForSpace(homeSpaceId), hasLength(1));
+    final snapshot = await repository.getSessionSnapshot();
+    expect(snapshot?.activeSpaceId, homeSpaceId);
+    expect(snapshot?.activeDetailTabId, isNull);
+    expect((await repository.getSpace(homeSpaceId))?.activeDetailTabId,
+        isNull);
+  });
+
   test('Spaces, Detail Tabs, and session snapshot survive database reopen',
       () async {
     final directory =
