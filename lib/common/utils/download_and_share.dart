@@ -17,7 +17,7 @@ import 'file_utils.dart';
 /// already produced by the app can be shared directly without a second
 /// download or cache entry.
 class DownloadAndShare {
-  Future<void> downloadAndShareGifs(
+  Future<bool> downloadAndShareGifs(
     BuildContext context,
     List<GifItem> gifs,
     bool share,
@@ -320,7 +320,7 @@ class DownloadAndShare {
     );
   }
 
-  Future<void> downloadAndShareGif(
+  Future<bool> downloadAndShareGif(
     BuildContext context,
     GifItem gif,
     bool share,
