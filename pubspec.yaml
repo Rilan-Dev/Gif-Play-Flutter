@@ -8,7 +8,7 @@ environment:
   sdk: ^3.6.0
 
 # APK CI compatibility: drift_flutter 0.3.x pairs with drift 2.32.x.
-# Android Gradle wrapper is pinned to Gradle 8.14.3 for the current Flutter stable SDK.
+# Android build tooling: Gradle 8.14.3 + Android Gradle Plugin 8.11.1.
 # Consider running flutter pub outdated before upgrading dependencies.
 
 dependencies:
