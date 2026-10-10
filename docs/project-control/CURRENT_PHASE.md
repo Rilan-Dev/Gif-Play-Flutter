@@ -88,3 +88,6 @@ The visual Space/Detail Tab strips, restored GIF detail/suggestions surface, thu
 
 
 - Follow-up edge case fixed: closing the active Space preserves the destination Space's own saved child tab/Home-feed state rather than selecting its last tab unconditionally.
+
+
+- Feed lifecycle hardening also now queues a fetch for a newly active Space if the previous Space's request is still in flight, while ignoring duplicate same-Space requests.
