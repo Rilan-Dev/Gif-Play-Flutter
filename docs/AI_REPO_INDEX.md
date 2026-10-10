@@ -602,3 +602,10 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 - `LocalMediaRepository.updateSpace` now exposes `clearActiveDetailTabId` so callers can explicitly clear a nullable active-tab pointer without accidentally preserving the previous value.
 - `SessionNavigationController` uses that option during session repair, last-tab close, and Space activation when no valid Detail Tab remains.
 - `test/local_media_repository_test.dart` includes a repository assertion that closing the final Detail Tab clears the persisted Space pointer.
+
+
+### Phase 3 async restoration update — 2026-10-10
+- `lib/screens/main_screen/main_screen.dart` now tracks a Space-restore generation and checks active Space identity before applying asynchronous restore/fetch results.
+- Feed fetches operate on snapshots of current items, query, and visited-page state. A fetch needed for the latest Space is queued if another request is active and started after it completes.
+- The feed scroll listener is guarded when its ScrollController is detached.
+- Next edge cases: stale post-frame scroll restoration and overlapping legacy dialog/route actions with selected Detail Tab content. Runtime verification has not been run.
