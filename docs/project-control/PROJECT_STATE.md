@@ -69,3 +69,7 @@ Phase 3 persistence infrastructure remains active. Startup creates a durable Hom
 
 
 - MainScreen now queues an overlapping fetch when the requested/current Space differs from the Space owning the active fetch. Same-Space duplicate requests are ignored to avoid repeated redundant fetches; the pure policy is covered by test/space_fetch_policy_test.dart.
+
+
+- Home/feed states now distinguish initial loading, true empty/search-no-match results, and fetch errors with a single retry surface.
+- Collections are now user-manageable from the UI: CollectionsScreen exposes Create Collection; GIF Details exposes Save to collection, allowing existing collection selection or creating a new one. Selected GIF metadata and memberships are saved in SQLite; Share list remains a separate persistent SharedPreferences queue.
