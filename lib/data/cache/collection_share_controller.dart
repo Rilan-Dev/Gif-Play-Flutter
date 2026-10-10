@@ -73,6 +73,38 @@ class CollectionShareController extends ChangeNotifier {
       _preparations.length == _selectedCollectionIds.length &&
       _preparations.values.every((item) => item.isEmpty || item.isReadyToShare);
 
+  Future<GifCollection> createCollection(String name) async {
+    final normalizedName = name.trim();
+    if (normalizedName.isEmpty) {
+      throw ArgumentError.value(name, 'name', 'Collection name cannot be empty');
+    }
+    final collection = await repository.createCollection(
+      normalizedName,
+      sortOrder: _collections.length,
+    );
+    _collections = await repository.listCollections();
+    _readiness[collection.id] =
+        await cacheManager.getCollectionReadiness(collection.id);
+    notifyListeners();
+    return collection;
+  }
+
+  Future<void> addMediaToCollection({
+    required String collectionId,
+    required MediaRecord media,
+  }) async {
+    await repository.addToCollection(
+      collectionId: collectionId,
+      media: media,
+    );
+    await loadCollectionItems(collectionId);
+    _readiness[collectionId] =
+        await cacheManager.getCollectionReadiness(collectionId);
+    _status = CollectionShareStatus.idle;
+    _error = null;
+    notifyListeners();
+  }
+
   Future<void> loadCollections() async {
     _collections = await repository.listCollections();
     _selectedCollectionIds.removeWhere(
