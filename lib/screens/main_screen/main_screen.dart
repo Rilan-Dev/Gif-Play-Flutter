@@ -231,7 +231,14 @@ class _MainScreenState extends State<MainScreen> {
         _mediaItems.clear();
         _mediaItems.addAll(result['mediaItems']);
         _filteredItems.clear();
-        _filteredItems.addAll(result['filteredItems']);
+        final activeQuery = _searchController.text.trim().toLowerCase();
+        _filteredItems.addAll(
+          activeQuery.isEmpty
+              ? _mediaItems
+              : _mediaItems.where(
+                  (item) => item.title?.toLowerCase().contains(activeQuery) ?? false,
+                ),
+        );
         _hasError = result['hasError'];
         _errorMessage = result['errorMessage'];
         _visitedPages = result['visitedPages'];
