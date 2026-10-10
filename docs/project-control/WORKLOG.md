@@ -200,3 +200,10 @@
 
 
 - Follow-up fetch-lifecycle fix: a feed/pagination request triggered after switching Spaces could be dropped while the previous Space still had an in-flight fetch, because only explicit restore calls supplied a queued Space ID. MainScreen now queues a request for a different currently active Space while ignoring duplicate requests for the Space that already owns the fetch. Extracted the policy to space_fetch_policy.dart and added unit regression source.
+
+
+## 2026-10-11 — Feed state UX and user-managed collections
+- Fixed feed empty/error/loading presentation: initial empty feeds show a loading indicator, failed empty feeds show one actionable ErrorState, and an empty search result now explains that title/source/image URL matching is supported. Removed duplicate Retry controls and stopped showing "No GIFs found" alongside an actual fetch error.
+- Found a user-facing collection gap: the repository/controller supported SQLite collections, but CollectionsScreen had no create action and the GIF Details dialog's "Collect" action only added items to the Share Queue. Added a Create Collection dialog on CollectionsScreen, plus a distinct Save to collection action in GIF Details that can choose an existing named collection or create one and then persist selected GIFs/memberships in SQLite. Existing Share Queue behavior remains available and is labeled Share list.
+- Collection-save records use canonical MediaIdentity IDs and persist media metadata before membership rows; duplicate GIFs in one selection are deduplicated. Added controller-level regression source for creating a named collection and restoring its saved GIF membership.
+- Runtime verification remains pending; do not claim APK/device behavior is verified. Continue implementation without waiting for CI/Vercel.
