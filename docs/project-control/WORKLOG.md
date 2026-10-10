@@ -197,3 +197,6 @@
 
 
 - Additional 2026-10-11 edge-case fix: closing the active Space now activates the destination Space through its normal restoration path, preserving that Space's saved active child tab or intentional Home-feed selection. Closing the active child tab refreshes the in-memory Space models after persisting its new active-tab pointer. Added a regression test for closing one Space while restoring another Space's Home feed.
+
+
+- Follow-up fetch-lifecycle fix: a feed/pagination request triggered after switching Spaces could be dropped while the previous Space still had an in-flight fetch, because only explicit restore calls supplied a queued Space ID. MainScreen now queues a request for a different currently active Space while ignoring duplicate requests for the Space that already owns the fetch. Extracted the policy to space_fetch_policy.dart and added unit regression source.
