@@ -57,8 +57,9 @@ class MainScreenActions {
           ),
         );
       } else {
-        // Show a dialog with options
-        showGifDetailsDialog(context, item);
+        // Keep the selected Detail Tab as the primary surface. GIF actions are
+        // available from its explicit "GIF options" control, avoiding a dialog
+        // that immediately covers the tab the user just opened.
       }
     }
   }
