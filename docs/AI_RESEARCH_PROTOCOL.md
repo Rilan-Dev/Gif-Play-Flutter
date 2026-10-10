@@ -117,3 +117,7 @@ For Space switching and selected-tab content, read `lib/screens/main_screen/main
 
 ## 2026-10-11 — Continuation note
 For Share All, inspect the full queue-to-cache-to-share chain, including the media_records foreign key required by media_cache_entries; do not stop at filename or MIME fixes. For persistent tabs, verify that detail_tabs.media_id references an existing media_records.id, and that every explicit GIF selection creates a new child tab. Confirm Home feed is reachable without closing tabs and that the active Space/tab snapshot survives process restart. The Share Queue is persisted in SharedPreferences; named collections/memberships are stored in SQLite. New regression source is committed but has not been run in this environment.
+
+
+## 2026-10-11 — App lifecycle continuation rule
+When investigating state loss after restart, check both eager persistence (navigation mutations and SQLite collection membership) and debounced feed state. MainScreen now flushes the current Space snapshot on inactive/paused/detached and flushes queued SharedPreferences writes. Preserve the stable Drift database name and verify state across process recreation rather than treating a widget rebuild as a restart. Runtime verification remains pending.
