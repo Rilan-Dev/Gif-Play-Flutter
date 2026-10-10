@@ -49,10 +49,11 @@ void main() {
       (index) => '{"imageUrl":"https://example.com/$index.gif"}',
     ).join(',');
     final snapshot = SpaceFeedSnapshot.restore(
-      feedStateJson: '{"mediaItems":[$media]}',
+      feedStateJson: '{"mediaItems":[{"title":"missing image"},$media]}',
     );
 
     expect(snapshot.mediaItems, hasLength(120));
+    expect(snapshot.mediaItems.every((item) => item.imageUrl.isNotEmpty), isTrue);
     expect(snapshot.requiresFetch, isFalse);
   });
 }
