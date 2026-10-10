@@ -11,8 +11,8 @@
 - Phase 0: COMPLETE
 - Phase 1: IN PROGRESS (implementation complete; runtime/dependency verification pending)
 - Phase 2: IN PROGRESS (core implementation slice complete; runtime verification pending)
-- Phase 3: IN PROGRESS (persistent navigation infrastructure and initial content restoration)
-- Product feature implementation: local persistence and cache/share infrastructure are under active development; major UI redesign remains pending.
+- Phase 3: IN PROGRESS (persistent navigation, per-Space feed restoration, and Detail Tab UX)
+- Product feature implementation: local persistence, cache/share infrastructure, persistent Spaces/Detail Tabs, and feed-state restoration are under active development; broader home-screen redesign and Search 2.0 remain pending.
 
 ## Current implementation
 - Drift + SQLite local database initialized during app bootstrap.
