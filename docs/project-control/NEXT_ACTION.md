@@ -31,7 +31,7 @@ Phase 3 — Persistent Browsing Spaces & Detail Tabs is **IN PROGRESS**. Phase 1
 11. [x] Harden fetch lifecycle ownership: each active fetch has a request generation, and only that request may clear loading state or drain the queued Space fetch. Successful fetches schedule a debounced snapshot save, and results are filtered using the latest query.
 12. [x] Add regression source for queue-only cache preparation/foreign-key safety, repeated same-GIF child tabs, URL media-ID normalization, per-Space active tabs, Home-feed restoration, and Share Queue persistence.
 13. [x] Add regression source for rapid concurrent Space switches, Home/tab/overview interactions, and suggestion-to-child-tab creation; improve copyable bulk-share diagnostics.
-14. [NEXT] Continue focused home/search UX and state-recovery work: verify visible search restoration per Space, search across title/source/image URL, and collection/tab persistence contracts. Device retest remains pending because build 28 predates these commits.
+14. [NEXT] Continue focused home/search UX and state-recovery work: inspect feed item actions and empty/error/loading states, review collection/tab persistence contracts, and add any missing regression coverage. Device retest remains pending because build 28 predates these commits.
 
 Runtime Flutter/Dart verification remains pending in the available environment; continue implementation without waiting for CI/Vercel/runtime gates.
 
@@ -68,21 +68,21 @@ The main screen now restores per-Space feed/search/scroll state from the persist
 - [x] Fix tab creation by normalizing URL-shaped IDs to a persisted media record before writing detail_tabs.
 - [x] Always create a new child tab for each explicit GIF selection; add persistent Home-feed selection and tab overview close controls.
 - [x] Persist and restore the Share Queue across app launches.
-- [NEXT] Continue focused interaction coverage and improve visible/share-stage diagnostics. Flutter runtime verification is pending; do not block development on CI/Vercel. Build 28 does not contain these commits.
+- [x] Add focused interaction coverage and improve visible/share-stage diagnostics. Flutter runtime verification remains pending; do not block development on CI/Vercel. Build 28 does not contain these commits.
 
 
 ## 2026-10-11 follow-up — navigation regressions and lifecycle flush
 - [x] Add rapid concurrent Space-switch regression source that checks final session snapshot and independent per-Space active tab pointers.
 - [x] Add widget regression source for Home feed ↔ child-tab navigation, tab overview visibility, and closing a tab from the overview.
 - [x] Flush the debounced Space feed/search/pagination/scroll snapshot when the app backgrounds, and flush queued Share Queue writes through its serialized persistence chain.
-- [NEXT] Continue Phase 3 with explicit suggestion-to-child-tab interaction coverage and review the full lifecycle of tabs and collections after process recreation. Then proceed with focused home/search UX improvements without a broad redesign. Tests/analyzer/build/device verification are still pending and are not a development blocker.
+- [x] Add explicit suggestion-to-child-tab interaction coverage and review the lifecycle of tabs/collections after process recreation. Continue focused home/search UX improvements without a broad redesign; tests/analyzer/build/device verification remain pending.
 
 
 ## 2026-10-11 follow-up — suggestions and focused search behavior
 - [x] Add deterministic suggestion-to-child-tab widget coverage via an injectable loader.
 - [x] Restore the search input visibility when restoring a non-empty Space query.
 - [x] Make local search match title, source URL, and image URL, and add focused unit-test source.
-- [NEXT] Continue home/search UX without a broad redesign: inspect feed item actions and empty/error/loading states, preserve current navigation contracts, and add focused tests around search restoration and collection persistence. Keep runtime verification pending and do not wait for CI/Vercel.
+- [x] Restore search visibility and shared title/source/image URL matching; keep current navigation contracts and add focused tests. Continue remaining empty/error/loading and collection persistence review under the current NEXT action.
 
 
 - [x] Preserve destination Space tab/Home-feed selection when closing the currently active Space; refresh in-memory active-tab pointers after closing the current child tab.
