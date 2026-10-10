@@ -25,6 +25,7 @@ import '../liked_gifs_screen.dart';
 
 import 'main_screen_data_service.dart';
 import 'main_screen_actions.dart';
+import 'space_feed_snapshot.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -103,35 +104,23 @@ class _MainScreenState extends State<MainScreen> {
       final space = await navigation.repository.getSpace(spaceId);
       if (!mounted || generation != _spaceRestoreGeneration ||
           navigation.activeSpaceId != spaceId) return;
-      Map<String, dynamic>? saved;
-      if (space?.feedStateJson != null && space!.feedStateJson!.isNotEmpty) {
-        try {
-          final decoded = jsonDecode(space.feedStateJson!);
-          if (decoded is Map<String, dynamic>) saved = decoded;
-        } catch (_) {
-          // Ignore malformed optional feed state and start with a fresh feed.
-        }
-      }
-
-      final savedItems = (saved?['mediaItems'] as List<dynamic>? ?? const [])
-          .whereType<Map>()
-          .map((item) => MediaItem.fromMap(Map<String, dynamic>.from(item)))
-          .where((item) => item.imageUrl.isNotEmpty)
-          .take(120)
-          .toList();
+      final snapshot = SpaceFeedSnapshot.restore(
+        feedStateJson: space?.feedStateJson,
+        persistedSearchQuery: space?.searchQuery,
+        persistedScrollOffset: space?.scrollOffset,
+        persistedPage: space?.feedPage,
+      );
+      final savedItems = snapshot.mediaItems;
       if (!mounted || generation != _spaceRestoreGeneration ||
           navigation.activeSpaceId != spaceId) return;
       setState(() {
         _mediaItems
           ..clear()
           ..addAll(savedItems);
-        _currentPage = (saved?['currentPage'] as num?)?.toInt() ?? 1;
-        _totalPages = (saved?['totalPages'] as num?)?.toInt() ?? 0;
-        _visitedPages = (saved?['visitedPages'] as List<dynamic>?)
-            ?.whereType<num>()
-            .map((value) => value.toInt())
-            .toSet();
-        final query = space?.searchQuery ?? (saved?['searchQuery'] as String? ?? '');
+        _currentPage = snapshot.currentPage;
+        _totalPages = snapshot.totalPages;
+        _visitedPages = snapshot.visitedPages;
+        final query = snapshot.searchQuery;
         _searchController.text = query;
         _filteredItems
           ..clear()
@@ -141,7 +130,7 @@ class _MainScreenState extends State<MainScreen> {
                   item.title?.toLowerCase().contains(query.toLowerCase()) ?? false));
       });
 
-      final offset = space?.scrollOffset ?? (saved?['scrollOffset'] as num?)?.toDouble() ?? 0;
+      final offset = snapshot.scrollOffset;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted ||
             generation != _spaceRestoreGeneration ||
@@ -152,7 +141,7 @@ class _MainScreenState extends State<MainScreen> {
         final maxOffset = _scrollController.position.maxScrollExtent;
         _scrollController.jumpTo(offset.clamp(0, maxOffset).toDouble());
       });
-      if (savedItems.isEmpty && generation == _spaceRestoreGeneration &&
+      if (snapshot.requiresFetch && generation == _spaceRestoreGeneration &&
           navigation.activeSpaceId == spaceId) {
         await _fetchData(expectedSpaceId: spaceId);
       }
