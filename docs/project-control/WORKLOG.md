@@ -207,3 +207,6 @@
 - Found a user-facing collection gap: the repository/controller supported SQLite collections, but CollectionsScreen had no create action and the GIF Details dialog's "Collect" action only added items to the Share Queue. Added a Create Collection dialog on CollectionsScreen, plus a distinct Save to collection action in GIF Details that can choose an existing named collection or create one and then persist selected GIFs/memberships in SQLite. Existing Share Queue behavior remains available and is labeled Share list.
 - Collection-save records use canonical MediaIdentity IDs and persist media metadata before membership rows; duplicate GIFs in one selection are deduplicated. Added controller-level regression source for creating a named collection and restoring its saved GIF membership.
 - Runtime verification remains pending; do not claim APK/device behavior is verified. Continue implementation without waiting for CI/Vercel.
+
+
+- Added test/save_to_collection_flow_test.dart for the end-to-end UI path: open GIF Details with a deterministic suggestion, choose Save to collection, create a named collection from the selector, and assert the GIF membership is stored in SQLite.
