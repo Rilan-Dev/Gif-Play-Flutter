@@ -113,3 +113,7 @@ For automated Android builds, read `docs/AI_REPO_INDEX_CI_CD.md` and `docs/CI_CD
 
 ## Phase 3 content restoration research path
 For Space switching and selected-tab content, read `lib/screens/main_screen/main_screen.dart`, `lib/common/widgets/session_navigation_strip.dart`, `lib/common/widgets/detail_tab_content.dart`, `lib/data/local/session_navigation_controller.dart`, and `lib/data/local/local_media_repository.dart` Space/tab APIs. Feed snapshots are JSON metadata bounded to 120 `MediaItem` records and reuse existing schema fields. Add focused persistence tests before changing the serialization contract. Flutter/Dart runtime verification remains pending and is not a development blocker.
+
+
+## 2026-10-11 — Continuation note
+For Share All, inspect the full queue-to-cache-to-share chain, including the media_records foreign key required by media_cache_entries; do not stop at filename or MIME fixes. For persistent tabs, verify that detail_tabs.media_id references an existing media_records.id, and that every explicit GIF selection creates a new child tab. Confirm Home feed is reachable without closing tabs and that the active Space/tab snapshot survives process restart. The Share Queue is persisted in SharedPreferences; named collections/memberships are stored in SQLite. New regression source is committed but has not been run in this environment.
