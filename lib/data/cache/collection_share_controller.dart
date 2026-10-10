@@ -176,6 +176,19 @@ class CollectionShareController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Makes all saved items in a reusable collection eligible for sharing
+  /// again without deleting their records or cached media.
+  Future<void> resetCollectionForSharing(String collectionId) async {
+    await repository.resetCollectionItemsToPending(collectionId);
+    _preparations.remove(collectionId);
+    _readiness[collectionId] =
+        await cacheManager.getCollectionReadiness(collectionId);
+    await loadCollectionItems(collectionId);
+    _status = CollectionShareStatus.idle;
+    _error = null;
+    notifyListeners();
+  }
+
   Future<void> retryItem(String collectionId, String mediaId) async {
     final media = await repository.getMedia(mediaId);
     if (media == null) {
