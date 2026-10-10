@@ -143,10 +143,14 @@ class _MainScreenState extends State<MainScreen> {
 
       final offset = space?.scrollOffset ?? (saved?['scrollOffset'] as num?)?.toDouble() ?? 0;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _scrollController.hasClients) {
-          final maxOffset = _scrollController.position.maxScrollExtent;
-          _scrollController.jumpTo(offset.clamp(0, maxOffset).toDouble());
+        if (!mounted ||
+            generation != _spaceRestoreGeneration ||
+            navigation.activeSpaceId != spaceId ||
+            !_scrollController.hasClients) {
+          return;
         }
+        final maxOffset = _scrollController.position.maxScrollExtent;
+        _scrollController.jumpTo(offset.clamp(0, maxOffset).toDouble());
       });
       if (savedItems.isEmpty && generation == _spaceRestoreGeneration &&
           navigation.activeSpaceId == spaceId) {
@@ -227,8 +231,12 @@ class _MainScreenState extends State<MainScreen> {
         visitedPages: _visitedPages == null ? null : Set<int>.from(_visitedPages!),
         totalPages: _totalPages,
       );
-      if (!mounted || (requestSpaceId != null &&
-          _navigationController?.activeSpaceId != requestSpaceId)) return;
+      if (!mounted ||
+          requestGeneration != _spaceRestoreGeneration ||
+          (requestSpaceId != null &&
+              _navigationController?.activeSpaceId != requestSpaceId)) {
+        return;
+      }
       
       setState(() {
         _mediaItems.clear();
@@ -255,8 +263,10 @@ class _MainScreenState extends State<MainScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      if (mounted && (requestSpaceId == null ||
-          _navigationController?.activeSpaceId == requestSpaceId)) {
+      if (mounted &&
+          requestGeneration == _spaceRestoreGeneration &&
+          (requestSpaceId == null ||
+              _navigationController?.activeSpaceId == requestSpaceId)) {
         setState(() {
           _hasError = true;
           _errorMessage = 'Error fetching data: $e';
