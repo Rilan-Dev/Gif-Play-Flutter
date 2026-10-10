@@ -589,3 +589,9 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 - Android build configuration research: `pubspec.yaml`, `android/app/build.gradle`, `android/settings.gradle`, `android/build.gradle`, and `android/gradle/wrapper/gradle-wrapper.properties`.
 - Signing caveat: current Android release build uses debug signing; treat the artifact as a test/install build, not a production Play Store release.
 - CI/CD failures must not block independent feature implementation; inspect a failed run when practical without repeated polling.
+
+
+### Phase 3 content restoration — 2026-10-10
+- `lib/common/widgets/detail_tab_content.dart` — local-first content for a selected Detail Tab, showing saved title/thumbnail/source URL and opening the original URL only via an explicit safe external action.
+- `lib/screens/main_screen/main_screen.dart` — bounded per-Space feed snapshot restore/save (`feed_state_json`), query/pagination/visited-page/scroll persistence, debounced state writes, and selected Detail Tab content rendering.
+- Existing `BrowsingSpace` persistence fields are reused; this slice does not require a schema change. Feed snapshots are capped at 120 lightweight `MediaItem` records to avoid persisting large binary payloads.
