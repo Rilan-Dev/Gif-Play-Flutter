@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/native.dart';
+import 'package:provider/provider.dart';
+import 'package:gif_play/common/models/gif_item.dart';
+import 'package:gif_play/data/local/local_database.dart';
+import 'package:gif_play/data/local/local_media_repository.dart';
+import 'package:gif_play/data/local/session_navigation_controller.dart';
 import 'package:gif_play/common/widgets/detail_tab_content.dart';
 import 'package:gif_play/data/local/models/detail_tab.dart';
 
@@ -50,5 +56,56 @@ void main() {
 
     await tester.tap(find.text('GIF options'));
     expect(invoked, isTrue);
+
+  testWidgets('choosing a suggestion opens a new persistent child tab',
+      (tester) async {
+    final database = LocalDatabase.forTesting(NativeDatabase.memory());
+    await database.initialize();
+    final controller = SessionNavigationController(
+      LocalMediaRepository(database),
+    );
+    await controller.load();
+    final spaceId = controller.activeSpaceId!;
+    final parent = await controller.openDetailTab(
+      spaceId: spaceId,
+      canonicalUrl: 'https://example.test/post/parent',
+      title: 'Parent GIF',
+      thumbnailUrl: 'https://example.test/parent.gif',
+    );
+    final suggestion = GifItem(
+      id: 'suggestion-1',
+      url: 'https://example.test/suggestion.gif',
+      imageUrl: 'https://example.test/suggestion.gif',
+      title: 'Suggestion GIF',
+    );
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider<SessionNavigationController>.value(
+        value: controller,
+        child: MaterialApp(
+          home: Scaffold(
+            body: DetailTabContent(
+              tab: parent!,
+              suggestionLoader: (_) async => [suggestion],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('Suggestion GIF'), findsOneWidget);
+
+    await tester.tap(find.text('Suggestion GIF'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump();
+
+    expect(controller.tabsForSpace(spaceId), hasLength(2));
+    expect(controller.activeDetailTab?.title, 'Suggestion GIF');
+    expect(controller.activeDetailTab?.id, isNot(parent.id));
+
+    await database.close();
+  });
   });
 }
