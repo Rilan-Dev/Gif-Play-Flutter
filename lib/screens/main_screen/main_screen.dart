@@ -584,21 +584,15 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                   'Total Items: ${_filteredItems.length}',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                if (_hasError)
-                  TextButton.icon(
+                if (_hasError && _filteredItems.isNotEmpty)
+                  IconButton(
+                    tooltip: 'Retry feed loading',
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
                     onPressed: _refreshData,
                   ),
               ],
             ),
           ),
-          if (_hasError)
-            ErrorState(
-              message: 'Error loading GIFs',
-              details: _errorMessage,
-              onRetry: _refreshData,
-            ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refreshData,
@@ -620,14 +614,30 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                           : null,
                     );
                   }
-                  return _filteredItems.isEmpty && !_isLoading
-                  ? EmptyState(
+                  if (_hasError && _filteredItems.isEmpty) {
+                    return ErrorState(
+                      message: 'Error loading GIFs',
+                      details: _errorMessage,
+                      onRetry: _refreshData,
+                    );
+                  }
+                  if (_isLoading && _filteredItems.isEmpty) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  if (_filteredItems.isEmpty) {
+                    return EmptyState(
                       icon: Icons.image_not_supported,
-                      title: 'No GIFs found',
+                      title: _isSearchVisible ? 'No matching GIFs' : 'No GIFs found',
+                      message: _isSearchVisible
+                          ? 'Try a different title or source/image URL.'
+                          : null,
                       actionLabel: 'Refresh',
                       onAction: _refreshData,
-                    )
-                  : Consumer<LikedGifsProvider>(
+                    );
+                  }
+                  return Consumer<LikedGifsProvider>(
                       builder: (context, likedProvider, child) {
                         return Consumer<ViewModeProvider>(
                           builder: (context, viewModeProvider, child) {
