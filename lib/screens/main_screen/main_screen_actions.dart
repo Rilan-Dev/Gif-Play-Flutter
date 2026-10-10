@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../common/models/media_item.dart';
 import '../../common/models/gif_item.dart';
 import '../../common/providers/liked_gifs_provider.dart';
+import '../../common/providers/share_queue_provider.dart';
 import '../../common/utils/download_and_share.dart';
 import '../../common/widgets/shimmer_loading.dart';
 import '../../data/local/session_navigation_controller.dart';
@@ -67,6 +68,7 @@ class MainScreenActions {
   /// Shows a dialog with GIF details
   static void showGifDetailsDialog(BuildContext context, MediaItem item) {
     final likedProvider = Provider.of<LikedGifsProvider>(context, listen: false);
+    final shareQueue = Provider.of<ShareQueueProvider>(context, listen: false);
     final downloadAndShare = DownloadAndShare();
 
     // Convert MediaItem to GifItem for provider operations
@@ -278,6 +280,19 @@ class MainScreenActions {
                 children: [
                   Expanded(
                     child: TextButton.icon(
+                      icon: const Icon(Icons.playlist_add),
+                      label: const Text('Queue'),
+                      onPressed: () {
+                        shareQueue.addGif(gifItem);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Added to share queue')),
+                        );
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: TextButton.icon(
                       icon: const Icon(Icons.share),
                       label: const Text('Share'),
                       onPressed: () {
@@ -286,7 +301,6 @@ class MainScreenActions {
                       },
                     ),
                   ),
-                  
                   Expanded(
                     child: TextButton.icon(
                       icon: const Icon(Icons.close),
