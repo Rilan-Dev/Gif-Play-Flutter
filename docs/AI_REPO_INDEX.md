@@ -615,6 +615,10 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 - `test/local_media_repository_test.dart` includes a repository assertion that closing the final Detail Tab clears the persisted Space pointer.
 
 
+### Phase 3 feed snapshot restoration and Detail Tab UX update — 2026-10-10
+- `lib/screens/main_screen/space_feed_snapshot.dart` parses persisted feed state, filters invalid entries, restores pagination/search/scroll metadata, caps records at 120, and marks empty/missing/malformed snapshots for fetch fallback.
+- `test/space_feed_snapshot_test.dart` covers empty, absent/malformed, valid, and bounded snapshots.
+
 ### Phase 3 async restoration and Detail Tab UX update — 2026-10-10
 - `lib/screens/main_screen/main_screen.dart` tracks a Space-restore generation and checks active Space identity before applying asynchronous restore/fetch results and before applying delayed scroll restoration.
 - Feed fetches operate on snapshots of current items, query, and visited-page state. A fetch needed for the latest Space is queued if another request is active and started after it completes.
