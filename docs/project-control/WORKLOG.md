@@ -165,3 +165,15 @@
 - If a Space needs a fetch while another request is in flight, its ID is queued and fetched after the current request completes, rather than silently skipping the required load.
 - Added a detached-scroll-controller guard to avoid accessing scroll position after the feed scrollable has detached.
 - Runtime verification was not run; implementation continued without waiting for tests, CI, or Vercel.
+
+
+## 2026-10-11 — Build 28 feedback: persistent tabs and Share All root causes
+- User reported build 28 still fails Share All, browser-style tab controls disappear/inaccessible on detail navigation, selecting GIFs does not reliably create independent subtabs, and tab/collection state disappears after app restart.
+- Re-traced the queue-to-cache-to-SQLite path. A second Share All defect was found beyond unsafe cache filenames: queued GIFs were passed to MediaCacheManager.prepareMedia without first being inserted into media_records, while media_cache_entries.media_id has a foreign-key constraint to that table. Cache preparation could therefore fail while recording the cache result. prepareMedia now upserts the canonical media record before touching/creating its cache entry.
+- Found a matching navigation foreign-key defect: home and suggestion callers passed the GIF URL as detail_tabs.media_id, but that column references media_records.id. SessionNavigationController.openDetailTab now normalizes URL-shaped IDs, stores a corresponding media record, and writes the canonical media ID into the tab.
+- Removed duplicate-tab reuse from openDetailTab: every explicit GIF selection now creates a new child tab, including repeated selections of the same GIF. Tab order increments from the current maximum.
+- Added an always-visible Home-feed chip beside child tabs, an explicit activateHomeFeed transition, and close controls in the tab overview. Home-feed selection is persisted as an intentional null active-tab pointer rather than being replaced with the last child tab on restart. Per-Space active child-tab pointers are refreshed after activation.
+- Removed the legacy special-domain route push from the home GIF click path so GIF details remain inside the MainScreen navigation shell, with Space and child-tab controls still available.
+- The Share Queue was previously only in-memory. It now serializes the queue to SharedPreferences, restores it before the first UI frame, and persists additions/removals/clear operations. Added regression source for queue recreation.
+- Added regression source for cache preparation with queue-only media, duplicate child tabs, URL media-ID normalization, independent per-Space tab restoration, and intentional Home-feed restoration. Existing file-backed SQLite collection reopen coverage remains in place.
+- Verification status: source changes and test files were committed directly to main; Flutter tests, analyzer, device Share Sheet, app restart, and build 29 have not been run here. Do not claim device-level resolution until the user retests. Continue implementation without waiting for CI/Vercel/runtime gates.
