@@ -91,3 +91,7 @@ The visual Space/Detail Tab strips, restored GIF detail/suggestions surface, thu
 
 
 - Feed lifecycle hardening also now queues a fetch for a newly active Space if the previous Space's request is still in flight, while ignoring duplicate same-Space requests.
+
+
+- User-managed collections are now exposed in the UI with durable create/add operations. GIF Details can save selected GIFs into named SQLite collections, while Share list remains a separate persisted queue.
+- Feed loading, empty search and error states have distinct UI surfaces. Regression test source covers collection creation/membership restoration.
