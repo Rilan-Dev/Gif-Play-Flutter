@@ -9,6 +9,7 @@ import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'common/providers/theme_provider.dart';
 import 'common/providers/liked_gifs_provider.dart';
 import 'common/providers/viewed_gifs_provider.dart';
+import 'common/providers/share_queue_provider.dart';
 import 'common/providers/view_mode_provider.dart';
 import 'common/providers/mood_vibe_view_mode_provider.dart';
 import 'common/utils/shared_preferences_util.dart';
@@ -71,6 +72,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => themeProvider),
         ChangeNotifierProvider(create: (_) => likedGifsProvider),
         ChangeNotifierProvider(create: (_) => viewedGifsProvider),
+        ChangeNotifierProvider(create: (_) => ShareQueueProvider()),
         ChangeNotifierProvider(create: (_) => viewModeProvider),
         ChangeNotifierProvider(create: (_) => moodVibeViewModeProvider),
         Provider<LocalMediaRepository>.value(value: localMediaRepository),
