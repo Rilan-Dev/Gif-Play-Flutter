@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 import '../../common/models/gif_item.dart';
 import '../../common/models/media_item.dart';
 import '../../common/providers/liked_gifs_provider.dart';
+import '../../common/providers/share_queue_provider.dart';
 import '../../common/animations/slide_animation.dart';
 import '../../common/mixins/selection_state_mixin.dart';
+import '../../common/widgets/global_share_fab.dart';
 import '../mood_vibe/mood_vibe_screen.dart';
 
 import 'gif_viewer_data_service.dart';
@@ -207,6 +209,25 @@ class _GifViewerScreenState extends State<GifViewerScreen> with TickerProviderSt
     disableSelectionMode();
   }
 
+  void _collectSelectedGifs() {
+    final shareQueue = Provider.of<ShareQueueProvider>(context, listen: false);
+    final List<GifItem> gifsToCollect;
+    if (selectedItems.isEmpty) {
+      gifsToCollect = [widget.gifItems[_currentPage]];
+    } else {
+      gifsToCollect = selectedItems.map((index) => widget.gifItems[index]).toList();
+    }
+
+    shareQueue.addGifs(gifsToCollect);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Added ${gifsToCollect.length} GIFs to share list')),
+    );
+
+    if (selectedItems.isNotEmpty) {
+      disableSelectionMode();
+    }
+  }
+
   Future<bool> _onWillPop() async {
     if (isSelectionMode) {
       // If in selection mode, just disable it instead of popping
@@ -353,6 +374,7 @@ class _GifViewerScreenState extends State<GifViewerScreen> with TickerProviderSt
                           toggleLike: _toggleLike,
                           shareGifs: _shareSelectedGifs,
                           saveGifs: _saveSelectedGifs,
+                          collectGifs: _collectSelectedGifs,
                           selectionColor: _selectionColor,
                         ),
                       ),
@@ -367,6 +389,7 @@ class _GifViewerScreenState extends State<GifViewerScreen> with TickerProviderSt
                           shareGifs: _shareSelectedGifs,
                           saveGifs: _saveSelectedGifs,
                           deleteGifs: _deleteSelectedGifs,
+                          collectGifs: _collectSelectedGifs,
                           isProcessing: _isProcessing,
                         ),
                       ),
@@ -381,6 +404,8 @@ class _GifViewerScreenState extends State<GifViewerScreen> with TickerProviderSt
                   ],
                 ),
               ),
+              floatingActionButton: const GlobalShareFab(),
+              floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
             ),
           ),
         ),

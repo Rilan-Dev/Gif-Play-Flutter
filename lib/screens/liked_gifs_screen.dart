@@ -5,6 +5,7 @@ import '../common/models/gif_item.dart';
 import '../common/providers/liked_gifs_provider.dart';
 import '../common/utils/time_ago_util.dart';
 import '../common/widgets/shimmer_loading.dart';
+import '../common/widgets/global_share_fab.dart';
 import 'gif_viewer_screen.dart';
 
 class LikedGifsScreen extends StatefulWidget {
@@ -286,9 +287,9 @@ class _LikedGifsScreenState extends State<LikedGifsScreen> {
                     );
                   },
                 );
-              },
-            ),
+                },
+              ),
+      floatingActionButton: const GlobalShareFab(),
     );
   }
 }
-

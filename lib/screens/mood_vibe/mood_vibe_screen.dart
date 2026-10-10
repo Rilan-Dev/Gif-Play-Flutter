@@ -5,6 +5,7 @@ import '../../common/models/gif_item.dart';
 import '../../common/models/media_item.dart';
 import '../../common/providers/liked_gifs_provider.dart';
 import '../../common/providers/mood_vibe_view_mode_provider.dart';
+import '../../common/providers/share_queue_provider.dart';
 import '../../common/widgets/shimmer_loading.dart';
 import '../../common/widgets/empty_state.dart';
 import '../../common/widgets/error_state.dart';
@@ -12,6 +13,7 @@ import '../../common/widgets/action_mode_bottom_bar.dart';
 import '../../common/animations/slide_animation.dart';
 import '../../common/mixins/selection_state_mixin.dart';
 import '../../common/widgets/mood_vibe_view_mode_selector.dart';
+import '../../common/widgets/global_share_fab.dart';
 import '../../screens/gif_viewer/gif_viewer_screen.dart';
 
 import 'mood_vibe_data_service.dart';
@@ -55,7 +57,7 @@ class _MoodVibeScreenState extends State<MoodVibeScreen>
   late SlideAnimationController _slideController;
 
   // Scroll controller for the main scroll view
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController _mainScrollController = ScrollController();
 
   @override
   void initState() {
@@ -84,7 +86,7 @@ class _MoodVibeScreenState extends State<MoodVibeScreen>
   @override
   void dispose() {
     _slideController.dispose();
-    _scrollController.dispose();
+    _mainScrollController.dispose();
     super.dispose();
   }
 
@@ -283,6 +285,20 @@ class _MoodVibeScreenState extends State<MoodVibeScreen>
     );
   }
 
+  void _collectSelectedGifs() {
+    if (selectedItems.isEmpty) return;
+    final shareQueue = Provider.of<ShareQueueProvider>(context, listen: false);
+    final gifsToCollect =
+        selectedItems.map((index) => _gifItems[index]).toList();
+    shareQueue.addGifs(gifsToCollect);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content:
+              Text('Added ${gifsToCollect.length} GIFs to share list')),
+    );
+    disableSelectionMode();
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -323,29 +339,41 @@ class _MoodVibeScreenState extends State<MoodVibeScreen>
               children: [
                 // Main content
                 if (!_isLoading && !_hasError && _mediaItems.isNotEmpty)
-                  MoodVibeUI.buildMainContent(
-                    context,
-                    _mediaItems,
-                    _suggestedItems,
-                    _handleItemClick,
-                    _handleItemLongPress,
-                    selectedItems,
-                    isSelectionMode,
-                    _scrollController,
+                  Positioned.fill(
+                    child: MoodVibeUI.buildMainContent(
+                      context,
+                      _mediaItems,
+                      _handleItemClick,
+                      _handleItemLongPress,
+                      selectedItems,
+                      isSelectionMode,
+                      _mainScrollController,
+                    ),
                   )
                 else if (_isLoading)
                   const Center(child: CircularProgressIndicator())
                 else if (_hasError)
-                    ErrorState(
-                      message: 'Failed to load GIFs',
-                      details: _errorMessage,
-                      onRetry: _fetchData,
-                    )
-                  else
-                    const EmptyState(
-                      icon: Icons.image_not_supported,
-                      title: 'No GIFs found',
+                  ErrorState(
+                    message: 'Failed to load GIFs',
+                    details: _errorMessage,
+                    onRetry: _fetchData,
+                  )
+                else
+                  const EmptyState(
+                    icon: Icons.image_not_supported,
+                    title: 'No GIFs found',
+                  ),
+
+                if (!_isLoading &&
+                    !_hasError &&
+                    _suggestedItems.isNotEmpty &&
+                    !isSelectionMode)
+                  Positioned.fill(
+                    child: MoodVibeUI.buildSuggestionsSheet(
+                      context,
+                      _suggestedItems,
                     ),
+                  ),
 
                 // Swipe hint indicators
                 if (widget.homeItems != null &&
@@ -374,6 +402,11 @@ class _MoodVibeScreenState extends State<MoodVibeScreen>
                           onPressed: _downloadSelectedGifs,
                         ),
                         ActionItem(
+                          icon: Icons.playlist_add,
+                          label: 'Collect',
+                          onPressed: _collectSelectedGifs,
+                        ),
+                        ActionItem(
                           icon: Icons.share,
                           label: 'Share',
                           onPressed: _shareSelectedGifs,
@@ -394,9 +427,9 @@ class _MoodVibeScreenState extends State<MoodVibeScreen>
               ],
             ),
           ),
+          floatingActionButton: isSelectionMode ? null : const GlobalShareFab(),
         ),
       ),
     );
   }
 }
-

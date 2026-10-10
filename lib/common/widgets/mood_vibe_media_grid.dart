@@ -18,6 +18,8 @@ class MoodVibeMediaGrid extends StatelessWidget {
   final Set<int> selectedItems;
   final bool isSelectionMode;
   final ScrollController? scrollController;
+  final bool shrinkWrap;
+  final ScrollPhysics? physics;
 
   const MoodVibeMediaGrid({
     Key? key,
@@ -28,12 +30,17 @@ class MoodVibeMediaGrid extends StatelessWidget {
     this.selectedItems = const {},
     this.isSelectionMode = false,
     this.scrollController,
+    this.shrinkWrap = false,
+    this.physics,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
       controller: scrollController,
+      primary: scrollController == null && !shrinkWrap,
+      shrinkWrap: shrinkWrap,
+      physics: physics,
       padding: const EdgeInsets.all(8.0),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -121,4 +128,3 @@ class MoodVibeMediaGrid extends StatelessWidget {
     );
   }
 }
-

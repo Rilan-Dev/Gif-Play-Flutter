@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../common/models/gif_item.dart';
+import '../common/providers/share_queue_provider.dart';
 import '../common/providers/viewed_gifs_provider.dart';
+import '../common/widgets/global_share_fab.dart';
 import '../services/gif_service.dart';
 import 'mood_vibe_screen.dart';
 import 'search_screen.dart';
@@ -95,19 +97,27 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: _buildBody(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MoodVibeScreen(
-                gifLink: 'https://example.com/gif',
-                imgLink: 'https://example.com/img',
-              ),
-            ),
-          );
-        },
-        child: const Icon(Icons.mood),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const GlobalShareFab(heroTag: 'global_share_fab_home'),
+          const SizedBox(height: 12),
+          FloatingActionButton(
+            heroTag: 'mood_vibe_fab',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MoodVibeScreen(
+                    gifLink: 'https://example.com/gif',
+                    imgLink: 'https://example.com/img',
+                  ),
+                ),
+              );
+            },
+            child: const Icon(Icons.mood),
+          ),
+        ],
       ),
     );
   }
@@ -149,6 +159,33 @@ class _HomeScreenState extends State<HomeScreen> {
                               const Icon(Icons.error),
                         )
                       : const Icon(Icons.image),
+                  trailing: Consumer<ShareQueueProvider>(
+                    builder: (context, shareQueue, child) {
+                      final isCollected = shareQueue.contains(gif);
+                      return IconButton(
+                        icon: Icon(
+                          isCollected
+                              ? Icons.playlist_add_check
+                              : Icons.playlist_add,
+                        ),
+                        onPressed: () {
+                          if (isCollected) {
+                            shareQueue.removeGif(gif);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Removed from share list')),
+                            );
+                          } else {
+                            shareQueue.addGif(gif);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Added to share list')),
+                            );
+                          }
+                        },
+                      );
+                    },
+                  ),
                   onTap: () {
                     // Mark gif as viewed
                     Provider.of<ViewedGifsProvider>(context, listen: false).addViewedGif(gif);
@@ -168,4 +205,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-

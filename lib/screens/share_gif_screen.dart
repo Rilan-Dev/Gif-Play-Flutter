@@ -9,6 +9,7 @@ import '../common/utils/file_utils.dart';
 import '../common/utils/download_and_share.dart';
 import '../common/utils/time_ago_util.dart';
 import '../common/widgets/shimmer_loading.dart';
+import '../common/widgets/global_share_fab.dart';
 import 'gif_viewer_screen.dart';
 
 // Define ActionMode class at the top level
@@ -537,15 +538,22 @@ class _ShareGifScreenState extends State<ShareGifScreen> with SingleTickerProvid
                         );
                       },
                     ),
-      floatingActionButton: _gifItems.isEmpty || _actionMode != null
-          ? null
-          : FloatingActionButton(
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const GlobalShareFab(heroTag: 'global_share_fab_saved'),
+          if (_gifItems.isNotEmpty && _actionMode == null) ...[
+            const SizedBox(height: 12),
+            FloatingActionButton(
+              heroTag: 'saved_gifs_refresh_fab',
               onPressed: () {
                 _loadSavedGifs();
               },
               child: const Icon(Icons.refresh),
             ),
+          ],
+        ],
+      ),
     );
   }
 }
-

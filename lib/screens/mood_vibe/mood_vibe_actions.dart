@@ -4,11 +4,17 @@ import 'package:provider/provider.dart';
 import '../../common/models/gif_item.dart';
 import '../../common/models/media_item.dart';
 import '../../common/providers/liked_gifs_provider.dart';
+import '../../common/providers/share_queue_provider.dart';
 import '../../common/utils/download_and_share.dart';
 import '../../common/widgets/shimmer_loading.dart';
 import '../../screens/gif_viewer_screen.dart';
 import 'mood_vibe_screen.dart';
 import 'mood_vibe_data_service.dart';
+
+class _DialogSelectionState {
+  bool isSelecting = false;
+  final Set<int> selectedIndices = {};
+}
 
 /// Class for handling actions in the MoodVibe screen
 class MoodVibeActions {
@@ -59,6 +65,8 @@ class MoodVibeActions {
     final likedProvider =
         Provider.of<LikedGifsProvider>(context, listen: false);
     final downloadAndShare = DownloadAndShare();
+    final shareQueueProvider =
+        Provider.of<ShareQueueProvider>(context, listen: false);
 
     // Convert MediaItem to GifItem for provider operations
     final gifItem = GifItem(
@@ -85,17 +93,32 @@ class MoodVibeActions {
       // Close loading dialog
       Navigator.pop(context);
 
+      final selectionState = _DialogSelectionState();
+      final shareFallbackGif = GifItem(
+        id: item.imageUrl.hashCode.toString(),
+        url: item.imageUrl,
+        title: item.title ?? 'No Title',
+        imageUrl: item.imageUrl,
+        timestamp: DateTime.now(),
+      );
+
       // Show the actual dialog with fetched GIFs
       showDialog(
         context: context,
-        builder: (context) => _buildGifDetailsDialog(
-          context,
-          item,
-          gifs,
-          isLiked,
-          likedProvider,
-          downloadAndShare,
-          gifItem,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setState) => _buildGifDetailsDialog(
+            context,
+            item,
+            gifs,
+            isLiked,
+            likedProvider,
+            downloadAndShare,
+            gifItem,
+            shareFallbackGif,
+            selectionState,
+            shareQueueProvider,
+            setState,
+          ),
         ),
       );
     });
@@ -110,6 +133,10 @@ class MoodVibeActions {
     LikedGifsProvider likedProvider,
     DownloadAndShare downloadAndShare,
     GifItem gifItem,
+    GifItem shareFallbackGif,
+    _DialogSelectionState selectionState,
+    ShareQueueProvider shareQueueProvider,
+    StateSetter setState,
   ) {
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -127,6 +154,10 @@ class MoodVibeActions {
             likedProvider,
             downloadAndShare,
             gifItem,
+            shareFallbackGif,
+            selectionState,
+            shareQueueProvider,
+            setState,
           ),
         ],
       ),
@@ -142,6 +173,10 @@ class MoodVibeActions {
     LikedGifsProvider likedProvider,
     DownloadAndShare downloadAndShare,
     GifItem gifItem,
+    GifItem shareFallbackGif,
+    _DialogSelectionState selectionState,
+    ShareQueueProvider shareQueueProvider,
+    StateSetter setState,
   ) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -156,9 +191,6 @@ class MoodVibeActions {
           ),
         ),
 
-        // Preview image with like button
-        _buildPreviewImage(context, item, isLiked, likedProvider, gifItem),
-
         // Title
         Padding(
           padding: const EdgeInsets.all(16.0),
@@ -171,7 +203,12 @@ class MoodVibeActions {
 
         // GIFs grid (if any)
         if (gifs.isNotEmpty)
-          _buildGifsGrid(context, gifs),
+          _buildGifsGrid(
+            context,
+            gifs,
+            selectionState,
+            setState,
+          ),
 
         // View all button
         if (gifs.isNotEmpty)
@@ -184,6 +221,11 @@ class MoodVibeActions {
           likedProvider,
           downloadAndShare,
           gifItem,
+          shareFallbackGif,
+          gifs,
+          selectionState,
+          shareQueueProvider,
+          setState,
         ),
 
         const SizedBox(height: 8),
@@ -191,69 +233,13 @@ class MoodVibeActions {
     );
   }
 
-  /// Builds the preview image with like button
-  static Widget _buildPreviewImage(
-    BuildContext context,
-    MediaItem item,
-    bool isLiked,
-    LikedGifsProvider likedProvider,
-    GifItem gifItem,
-  ) {
-    return Stack(
-      children: [
-        ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-          ),
-          child: Image.network(
-            item.imageUrl,
-            height: 200,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return const ShimmerLoading(height: 200);
-            },
-            errorBuilder: (context, error, stackTrace) =>
-                const Icon(Icons.error),
-          ),
-        ),
-
-        // Like button overlay
-        Positioned(
-          top: 16,
-          right: 16,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                likedProvider.toggleLikedGif(gifItem);
-                Navigator.pop(context);
-                showGifDetailsDialog(context, item); // Reopen to refresh like status
-              },
-              borderRadius: BorderRadius.circular(24),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isLiked ? Icons.favorite : Icons.favorite_border,
-                  color: isLiked ? Colors.red : Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   /// Builds the GIFs grid
-  static Widget _buildGifsGrid(BuildContext context, List<GifItem> gifs) {
+  static Widget _buildGifsGrid(
+    BuildContext context,
+    List<GifItem> gifs,
+    _DialogSelectionState selectionState,
+    StateSetter setState,
+  ) {
     return Flexible(
       child: Container(
         constraints: BoxConstraints(
@@ -269,31 +255,64 @@ class MoodVibeActions {
           ),
           itemCount: gifs.length,
           itemBuilder: (context, index) {
+            final isSelected = selectionState.selectedIndices.contains(index);
             return GestureDetector(
               onTap: () {
-                Navigator.pop(context); // Close dialog
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GifViewerScreen(
-                      gifItems: gifs,
-                      initialIndex: index,
+                if (selectionState.isSelecting) {
+                  setState(() {
+                    if (isSelected) {
+                      selectionState.selectedIndices.remove(index);
+                    } else {
+                      selectionState.selectedIndices.add(index);
+                    }
+                  });
+                } else {
+                  Navigator.pop(context); // Close dialog
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => GifViewerScreen(
+                        gifItems: gifs,
+                        initialIndex: index,
+                      ),
+                    ),
+                  );
+                }
+              },
+              onLongPress: () {
+                if (!selectionState.isSelecting) {
+                  setState(() {
+                    selectionState.isSelecting = true;
+                    selectionState.selectedIndices.add(index);
+                  });
+                }
+              },
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: Image.network(
+                      gifs[index].imageUrl ?? '',
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const ShimmerLoading(height: 100);
+                      },
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.error),
                     ),
                   ),
-                );
-              },
-              child: Card(
-                clipBehavior: Clip.antiAlias,
-                child: Image.network(
-                  gifs[index].imageUrl ?? '',
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const ShimmerLoading(height: 100);
-                  },
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.error),
-                ),
+                  if (isSelected)
+                    Container(
+                      color: Colors.black.withOpacity(0.35),
+                      child: const Icon(
+                        Icons.check_circle,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                ],
               ),
             );
           },
@@ -332,6 +351,11 @@ class MoodVibeActions {
     LikedGifsProvider likedProvider,
     DownloadAndShare downloadAndShare,
     GifItem gifItem,
+    GifItem shareFallbackGif,
+    List<GifItem> gifs,
+    _DialogSelectionState selectionState,
+    ShareQueueProvider shareQueueProvider,
+    StateSetter setState,
   ) {
     return Column(
       children: [
@@ -366,8 +390,44 @@ class MoodVibeActions {
                 icon: const Icon(Icons.save),
                 label: const Text('Save'),
                 onPressed: () {
+                  final gifToSave = gifs.isNotEmpty ? gifs.first : shareFallbackGif;
                   downloadAndShare.downloadAndShareGifs(
-                      context, [gifItem], false);
+                      context, [gifToSave], false);
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+            Expanded(
+              child: TextButton.icon(
+                icon: const Icon(Icons.playlist_add),
+                label: const Text('Collect'),
+                onPressed: () {
+                  List<GifItem> gifsToCollect;
+                  if (selectionState.isSelecting &&
+                      selectionState.selectedIndices.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Select GIFs to collect')),
+                    );
+                    return;
+                  }
+
+                  if (selectionState.selectedIndices.isNotEmpty) {
+                    gifsToCollect = selectionState.selectedIndices
+                        .where((index) => index < gifs.length)
+                        .map((index) => gifs[index])
+                        .toList();
+                  } else if (gifs.isNotEmpty) {
+                    gifsToCollect = [gifs.first];
+                  } else {
+                    gifsToCollect = [shareFallbackGif];
+                  }
+
+                  shareQueueProvider.addGifs(gifsToCollect);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            'Added ${gifsToCollect.length} GIFs to share list')),
+                  );
                   Navigator.pop(context);
                 },
               ),
@@ -382,11 +442,46 @@ class MoodVibeActions {
             Expanded(
               child: TextButton.icon(
                 icon: const Icon(Icons.share),
-                label: const Text('Share'),
+                label: Text(selectionState.isSelecting ? 'Share Selected' : 'Share'),
                 onPressed: () {
+                  List<GifItem> gifsToShare;
+                  if (selectionState.selectedIndices.isNotEmpty) {
+                    gifsToShare = selectionState.selectedIndices
+                        .where((index) => index < gifs.length)
+                        .map((index) => gifs[index])
+                        .toList();
+                  } else if (gifs.isNotEmpty) {
+                    gifsToShare = [gifs.first];
+                  } else {
+                    gifsToShare = [shareFallbackGif];
+                  }
+
+                  if (selectionState.isSelecting && gifsToShare.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Select GIFs to share')),
+                    );
+                    return;
+                  }
+
                   downloadAndShare.downloadAndShareGifs(
-                      context, [gifItem], true);
+                      context, gifsToShare, true);
                   Navigator.pop(context);
+                },
+              ),
+            ),
+            Expanded(
+              child: TextButton.icon(
+                icon: Icon(selectionState.isSelecting ? Icons.check_box : Icons.check_box_outline_blank),
+                label: Text(selectionState.isSelecting ? 'Cancel Select' : 'Select'),
+                onPressed: () {
+                  setState(() {
+                    if (selectionState.isSelecting) {
+                      selectionState.isSelecting = false;
+                      selectionState.selectedIndices.clear();
+                    } else {
+                      selectionState.isSelecting = true;
+                    }
+                  });
                 },
               ),
             ),
@@ -535,4 +630,3 @@ class MoodVibeActions {
     });
   }
 }
-

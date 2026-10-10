@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 
 import '../models/media_item.dart';
 import '../providers/liked_gifs_provider.dart';
-import 'shimmer_loading.dart';
+import 'media_image.dart';
 
 /// A widget for displaying media items in a grid layout.
 ///
@@ -78,16 +77,10 @@ class MediaGrid extends StatelessWidget {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              CachedNetworkImage(
+                              MediaImage(
                                 imageUrl: item.imageUrl,
                                 fit: BoxFit.cover,
-                                placeholder: (context, url) => const ShimmerLoading(height: 200),
-                                errorWidget: (context, url, error) => Center(
-                                  child: Icon(
-                                    Icons.error,
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
-                                ),
+                                placeholderHeight: 200,
                               ),
                               Positioned(
                                 bottom: 0,
@@ -177,4 +170,3 @@ class MediaGrid extends StatelessWidget {
     );
   }
 }
-
