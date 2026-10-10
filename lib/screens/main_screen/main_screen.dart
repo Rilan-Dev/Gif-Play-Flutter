@@ -16,6 +16,7 @@ import '../../common/widgets/error_state.dart';
 import '../../common/widgets/media_view_switcher.dart';
 import '../../common/widgets/session_navigation_strip.dart';
 import '../../common/widgets/detail_tab_content.dart';
+import '../../common/widgets/global_share_fab.dart';
 import '../../data/local/session_navigation_controller.dart';
 
 import '../viewed_gifs_screen.dart';
@@ -537,6 +538,7 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ],
       ),
+      floatingActionButton: const GlobalShareFab(),
       body: Column(
         children: [
           const SessionNavigationStrip(),
