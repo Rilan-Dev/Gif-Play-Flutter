@@ -11,6 +11,7 @@ import 'common/providers/liked_gifs_provider.dart';
 import 'common/providers/viewed_gifs_provider.dart';
 import 'common/providers/view_mode_provider.dart';
 import 'common/providers/mood_vibe_view_mode_provider.dart';
+import 'common/providers/share_queue_provider.dart';
 import 'common/utils/shared_preferences_util.dart';
 
 // Import screens
@@ -56,6 +57,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => viewedGifsProvider),
         ChangeNotifierProvider(create: (_) => viewModeProvider),
         ChangeNotifierProvider(create: (_) => moodVibeViewModeProvider),
+        ChangeNotifierProvider(create: (_) => ShareQueueProvider()),
       ],
       child: const MyApp(),
     ),
@@ -244,4 +246,3 @@ class _SplashContentState extends State<SplashContent> with SingleTickerProvider
     );
   }
 }
-

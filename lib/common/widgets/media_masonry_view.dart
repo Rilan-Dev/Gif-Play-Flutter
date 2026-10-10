@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../models/media_item.dart';
 import '../providers/liked_gifs_provider.dart';
-import 'shimmer_loading.dart';
+import 'media_image.dart';
 
 /// A widget for displaying media items in a masonry layout.
 ///
@@ -118,16 +117,12 @@ class MediaMasonryView extends StatelessWidget {
                       child: SizedBox(
                         width: double.infinity,
                         height: itemHeight,
-                        child: CachedNetworkImage(
+                        child: MediaImage(
                           imageUrl: item.imageUrl,
+                          width: double.infinity,
+                          height: itemHeight,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => ShimmerLoading(height: itemHeight),
-                          errorWidget: (context, url, error) => Center(
-                            child: Icon(
-                              Icons.error,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
+                          placeholderHeight: itemHeight,
                         ),
                       ),
                     ),
@@ -199,4 +194,3 @@ class MediaMasonryView extends StatelessWidget {
     );
   }
 }
-

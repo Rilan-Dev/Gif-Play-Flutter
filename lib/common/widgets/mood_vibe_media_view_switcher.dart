@@ -22,6 +22,9 @@ class MoodVibeMediaViewSwitcher extends StatelessWidget {
   final bool isSelectionMode;
   final ScrollController? scrollController;
   final ViewMode? viewMode;
+  final bool shrinkWrap;
+  final ScrollPhysics? physics;
+  final bool scrollable;
 
   const MoodVibeMediaViewSwitcher({
     Key? key,
@@ -33,6 +36,9 @@ class MoodVibeMediaViewSwitcher extends StatelessWidget {
     this.isSelectionMode = false,
     this.scrollController,
     this.viewMode,
+    this.shrinkWrap = false,
+    this.physics,
+    this.scrollable = true,
   }) : super(key: key);
 
   @override
@@ -51,6 +57,8 @@ class MoodVibeMediaViewSwitcher extends StatelessWidget {
           selectedItems: selectedItems,
           isSelectionMode: isSelectionMode,
           scrollController: scrollController,
+          shrinkWrap: shrinkWrap,
+          physics: physics,
         );
       case ViewMode.list:
         return MoodVibeMediaListView(
@@ -61,6 +69,8 @@ class MoodVibeMediaViewSwitcher extends StatelessWidget {
           selectedItems: selectedItems,
           isSelectionMode: isSelectionMode,
           scrollController: scrollController,
+          shrinkWrap: shrinkWrap,
+          physics: physics,
         );
       case ViewMode.card:
         return MoodVibeMediaCardView(
@@ -71,6 +81,8 @@ class MoodVibeMediaViewSwitcher extends StatelessWidget {
           selectedItems: selectedItems,
           isSelectionMode: isSelectionMode,
           scrollController: scrollController,
+          shrinkWrap: shrinkWrap,
+          physics: physics,
         );
       case ViewMode.masonry:
         return MoodVibeMediaMasonryView(
@@ -81,6 +93,8 @@ class MoodVibeMediaViewSwitcher extends StatelessWidget {
           selectedItems: selectedItems,
           isSelectionMode: isSelectionMode,
           scrollController: scrollController,
+          physics: physics,
+          scrollable: scrollable,
         );
       default:
         return MoodVibeMediaGrid(
@@ -91,8 +105,9 @@ class MoodVibeMediaViewSwitcher extends StatelessWidget {
           selectedItems: selectedItems,
           isSelectionMode: isSelectionMode,
           scrollController: scrollController,
+          shrinkWrap: shrinkWrap,
+          physics: physics,
         );
     }
   }
 }
-

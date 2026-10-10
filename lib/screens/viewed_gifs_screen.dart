@@ -9,6 +9,7 @@ import '../common/utils/shared_preferences_util.dart';
 import '../common/utils/time_ago_util.dart';
 import '../common/utils/download_and_share.dart';
 import '../common/widgets/shimmer_loading.dart';
+import '../common/widgets/global_share_fab.dart';
 import 'mood_vibe_screen.dart';
 
 class ViewedGifsScreen extends StatefulWidget {
@@ -444,7 +445,7 @@ class _ViewedGifsScreenState extends State<ViewedGifsScreen> {
                         );
                       },
                     ),
+      floatingActionButton: const GlobalShareFab(),
     );
   }
 }
-

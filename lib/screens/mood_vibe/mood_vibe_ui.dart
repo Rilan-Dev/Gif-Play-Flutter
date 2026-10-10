@@ -16,41 +16,28 @@ class MoodVibeUI {
   static Widget buildMainContent(
       BuildContext context,
       List<MediaItem> mediaItems,
-      List<MediaItem> suggestedItems,
       Function(MediaItem, int) handleItemClick,
       Function(MediaItem, int) handleItemLongPress,
       Set<int> selectedItems,
       bool isSelectionMode,
       ScrollController scrollController,
       ) {
-    return SingleChildScrollView(
-      controller: scrollController,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Information bar for main GIF content
-          _buildInfoBar(context, mediaItems),
-
-          // Main GIFs view
-          _buildMainGifsView(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildInfoBar(context, mediaItems),
+        Expanded(
+          child: _buildMainGifsView(
             context,
             mediaItems,
             handleItemClick,
             handleItemLongPress,
             selectedItems,
             isSelectionMode,
+            scrollController,
           ),
-
-          // Divider and suggestions section
-          if (suggestedItems.isNotEmpty) ...[
-            const Divider(height: 32, thickness: 1),
-            _buildSuggestionsSection(context, suggestedItems),
-          ],
-
-          // Bottom padding
-          const SizedBox(height: 16),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -87,76 +74,146 @@ class MoodVibeUI {
       Function(MediaItem, int) handleItemLongPress,
       Set<int> selectedItems,
       bool isSelectionMode,
+      ScrollController scrollController,
       ) {
     return Consumer2<LikedGifsProvider, MoodVibeViewModeProvider>(
       builder: (context, likedProvider, viewModeProvider, child) {
-        return SizedBox(
-          height: MediaQuery.of(context).size.height * 0.5, // Set a fixed height
-          child: MediaViewSwitcher(
-            mediaItems: mediaItems,
-            onItemClick: handleItemClick,
-            onItemLongPress: handleItemLongPress,
-            onLikeTap: (item) {
-              // Convert MediaItem to GifItem for liking functionality
-              final gifItem = GifItem(
-                id: item.imageUrl.hashCode.toString(),
-                url: item.href ?? '',
-                title: item.title ?? 'No Title',
-                imageUrl: item.imageUrl,
-                timestamp: DateTime.now(),
-              );
-              likedProvider.toggleLikedGif(gifItem);
-            },
-            selectedItems: selectedItems,
-            isSelectionMode: isSelectionMode,
-            viewMode: viewModeProvider.currentViewMode,
-          ),
+        return MediaViewSwitcher(
+          mediaItems: mediaItems,
+          onItemClick: handleItemClick,
+          onItemLongPress: handleItemLongPress,
+          onLikeTap: (item) {
+            // Convert MediaItem to GifItem for liking functionality
+            final gifItem = GifItem(
+              id: item.imageUrl.hashCode.toString(),
+              url: item.href ?? '',
+              title: item.title ?? 'No Title',
+              imageUrl: item.imageUrl,
+              timestamp: DateTime.now(),
+            );
+            likedProvider.toggleLikedGif(gifItem);
+          },
+          selectedItems: selectedItems,
+          isSelectionMode: isSelectionMode,
+          scrollController: scrollController,
+          viewMode: viewModeProvider.currentViewMode,
         );
       },
     );
   }
 
-  /// Builds the suggestions section
-  static Widget _buildSuggestionsSection(
+  static Widget buildSuggestionsSheet(
       BuildContext context,
       List<MediaItem> suggestedItems,
       ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Title for suggestions
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            'Suggestions',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
+    if (suggestedItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-        // Suggested thumbnails
-        Consumer2<LikedGifsProvider, MoodVibeViewModeProvider>(
-          builder: (context, likedProvider, viewModeProvider, child) {
-            return SizedBox(
-              height: MediaQuery.of(context).size.height * 0.3, // Set a fixed height for suggestions
-              child: MoodVibeMediaViewSwitcher(
-                mediaItems: suggestedItems,
-                onItemClick: (item, index) =>
-                    MoodVibeActions.handleSuggestedItemClick(context, item),
-                onItemLongPress: (item, index) {
-                  MoodVibeActions.showGifDetailsDialog(context, item);
-                },
-                onLikeTap: (item) {
-                  MoodVibeActions.toggleLike(context, item);
-                },
-                isSelectionMode: false,
-                viewMode: viewModeProvider.currentViewMode,
+    return DraggableScrollableSheet(
+      minChildSize: 0.12,
+      initialChildSize: 0.12,
+      maxChildSize: 0.9,
+      builder: (context, scrollController) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final showList = constraints.maxHeight > 220;
+            return Material(
+              color: Theme.of(context).colorScheme.surface,
+              elevation: 12,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              child: SingleChildScrollView(
+                controller: scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 8),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).dividerColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    _buildSuggestionsHeader(context, suggestedItems.length),
+                    const Divider(height: 1),
+                    if (showList) _buildSuggestionsList(context, suggestedItems),
+                    if (!showList) const SizedBox(height: 8),
+                  ],
+                ),
               ),
             );
           },
-        ),
-      ],
+        );
+      },
+    );
+  }
+
+  static Widget _buildSuggestionsHeader(BuildContext context, int count) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.auto_awesome,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Suggestions',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                Text(
+                  '$count picks • Pull up to explore',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildSuggestionsList(
+      BuildContext context,
+      List<MediaItem> suggestedItems,
+      ) {
+    return Consumer2<LikedGifsProvider, MoodVibeViewModeProvider>(
+      builder: (context, likedProvider, viewModeProvider, child) {
+        return MoodVibeMediaViewSwitcher(
+          mediaItems: suggestedItems,
+          onItemClick: (item, index) =>
+              MoodVibeActions.handleSuggestedItemClick(context, item),
+          onItemLongPress: (item, index) {
+            MoodVibeActions.showGifDetailsDialog(context, item);
+          },
+          onLikeTap: (item) {
+            MoodVibeActions.toggleLike(context, item);
+          },
+          isSelectionMode: false,
+          scrollController: null,
+          viewMode: viewModeProvider.currentViewMode,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          scrollable: false,
+        );
+      },
     );
   }
 
@@ -226,4 +283,3 @@ class MoodVibeUI {
     );
   }
 }
-

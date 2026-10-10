@@ -8,6 +8,8 @@ import '../common/providers/viewed_gifs_provider.dart';
 import '../services/gif_service.dart';
 import '../common/widgets/cached_gif.dart';
 import '../common/providers/liked_gifs_provider.dart';
+import '../common/providers/share_queue_provider.dart';
+import '../common/widgets/global_share_fab.dart';
 
 class GifDetailScreen extends StatefulWidget {
   final GifItem gif;
@@ -79,6 +81,29 @@ class _GifDetailScreenState extends State<GifDetailScreen> {
               );
             },
           ),
+          Consumer<ShareQueueProvider>(
+            builder: (context, shareQueue, child) {
+              final isCollected = shareQueue.contains(widget.gif);
+              return IconButton(
+                icon: Icon(
+                  isCollected ? Icons.playlist_add_check : Icons.playlist_add,
+                ),
+                onPressed: () {
+                  if (isCollected) {
+                    shareQueue.removeGif(widget.gif);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Removed from share list')),
+                    );
+                  } else {
+                    shareQueue.addGif(widget.gif);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Added to share list')),
+                    );
+                  }
+                },
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: _isDownloading ? null : _shareGif,
@@ -142,7 +167,7 @@ class _GifDetailScreenState extends State<GifDetailScreen> {
           ],
         ),
       ),
+      floatingActionButton: const GlobalShareFab(),
     );
   }
 }
-

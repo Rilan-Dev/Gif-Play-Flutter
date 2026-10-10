@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 
 import '../models/media_item.dart';
 import '../providers/liked_gifs_provider.dart';
-import 'shimmer_loading.dart';
+import 'media_image.dart';
 
 /// A widget for displaying media items in a card layout.
 ///
@@ -74,17 +73,12 @@ class MediaCardView extends StatelessWidget {
                             child: SizedBox(
                               width: double.infinity,
                               height: 300, // Very large image height
-                              child: CachedNetworkImage(
+                              child: MediaImage(
                                 imageUrl: item.imageUrl,
+                                width: double.infinity,
+                                height: 300,
                                 fit: BoxFit.cover,
-                                placeholder: (context, url) => const ShimmerLoading(height: 300),
-                                errorWidget: (context, url, error) => Center(
-                                  child: Icon(
-                                    Icons.error,
-                                    color: Theme.of(context).colorScheme.error,
-                                    size: 48,
-                                  ),
-                                ),
+                                placeholderHeight: 300,
                               ),
                             ),
                           ),
@@ -196,4 +190,3 @@ class MediaCardView extends StatelessWidget {
     );
   }
 }
-

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../common/models/gif_item.dart';
 import '../../common/providers/liked_gifs_provider.dart';
+import '../../common/providers/share_queue_provider.dart';
 import 'gif_viewer_data_service.dart';
 import 'gif_viewer_actions.dart';
 
@@ -18,6 +19,7 @@ class GifViewerUI {
     required Function(int) toggleLike,
     required Function shareGifs,
     required Function saveGifs,
+    required Function collectGifs,
     required Color selectionColor,
   }) {
     final currentGif = context.read<List<GifItem>>()[currentPage];
@@ -110,6 +112,19 @@ class GifViewerUI {
                       label: 'Save',
                       onPressed: () => saveGifs(),
                     ),
+                    Consumer<ShareQueueProvider>(
+                      builder: (context, shareQueue, child) {
+                        final isCollected = shareQueue.contains(currentGif);
+                        return GifViewerActions.buildQuickActionButton(
+                          icon: isCollected
+                              ? Icons.playlist_add_check
+                              : Icons.playlist_add,
+                          label: isCollected ? 'Collected' : 'Collect',
+                          onPressed: () => collectGifs(),
+                          color: isCollected ? Colors.greenAccent : Colors.white,
+                        );
+                      },
+                    ),
                     Consumer<LikedGifsProvider>(
                       builder: (context, likedProvider, child) {
                         final isLiked = likedProvider.isGifLiked(currentGif.id ?? '');
@@ -136,6 +151,7 @@ class GifViewerUI {
     required Function shareGifs,
     required Function saveGifs,
     required Function deleteGifs,
+    required Function collectGifs,
     required bool isProcessing,
   }) {
     return Container(
@@ -153,6 +169,11 @@ class GifViewerUI {
             icon: const Icon(Icons.download, color: Colors.white, size: 28),
             onPressed: isProcessing ? null : () => saveGifs(),
             tooltip: 'Save',
+          ),
+          IconButton(
+            icon: const Icon(Icons.playlist_add, color: Colors.white, size: 28),
+            onPressed: isProcessing ? null : () => collectGifs(),
+            tooltip: 'Collect',
           ),
           IconButton(
             icon: const Icon(Icons.share, color: Colors.white, size: 28),
@@ -260,4 +281,3 @@ class GifViewerUI {
     );
   }
 }
-

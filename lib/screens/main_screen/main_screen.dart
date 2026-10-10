@@ -8,11 +8,13 @@ import '../../common/models/gif_item.dart';
 import '../../common/providers/theme_provider.dart';
 import '../../common/providers/liked_gifs_provider.dart';
 import '../../common/providers/view_mode_provider.dart';
+import '../../common/providers/share_queue_provider.dart';
 import '../../common/widgets/view_mode_selector.dart';
 import '../../common/widgets/shimmer_loading.dart';
 import '../../common/widgets/empty_state.dart';
 import '../../common/widgets/error_state.dart';
 import '../../common/widgets/media_view_switcher.dart';
+import '../../common/widgets/global_share_fab.dart';
 
 import '../viewed_gifs_screen.dart';
 import '../share_gif_screen.dart';
@@ -194,6 +196,30 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  void _collectSelectedItems() {
+    if (_selectedItems.isEmpty) return;
+    final shareQueue = Provider.of<ShareQueueProvider>(context, listen: false);
+    final gifsToCollect = _selectedItems.map((index) {
+      final item = _filteredItems[index];
+      return GifItem(
+        id: item.imageUrl.hashCode.toString(),
+        url: item.imageUrl,
+        title: item.title ?? 'No Title',
+        imageUrl: item.imageUrl,
+        timestamp: DateTime.now(),
+      );
+    }).toList();
+
+    shareQueue.addGifs(gifsToCollect);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Added ${gifsToCollect.length} GIFs to share list')),
+    );
+    setState(() {
+      _isSelectionMode = false;
+      _selectedItems.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -240,6 +266,14 @@ class _MainScreenState extends State<MainScreen> {
                     icon: const Icon(Icons.download),
                     tooltip: 'Save selected',
                     onPressed: _selectedItems.isNotEmpty ? _saveSelectedItems : null,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0, left: 4.0),
+                  child: IconButton(
+                    icon: const Icon(Icons.playlist_add),
+                    tooltip: 'Collect for sharing',
+                    onPressed: _selectedItems.isNotEmpty ? _collectSelectedItems : null,
                   ),
                 ),
               ]
@@ -437,6 +471,7 @@ class _MainScreenState extends State<MainScreen> {
             ),
         ],
       ),
+      floatingActionButton: const GlobalShareFab(),
     );
   }
 
@@ -448,4 +483,3 @@ class _MainScreenState extends State<MainScreen> {
     super.dispose();
   }
 }
-
