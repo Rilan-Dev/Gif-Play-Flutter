@@ -167,6 +167,57 @@ void main() {
     expect(restored.activeDetailTab!.mediaId, media(31).id);
   });
 
+  test('opening the same GIF twice creates separate child tabs', () async {
+    final controller = SessionNavigationController(repository);
+    await controller.load();
+    final space = controller.activeSpaceId!;
+
+    final first = await controller.openDetailTab(
+      spaceId: space,
+      mediaId: media(91).id,
+      canonicalUrl: media(91).sourceUrl,
+      title: 'GIF 91',
+      thumbnailUrl: media(91).thumbnailUrl,
+    );
+    final second = await controller.openDetailTab(
+      spaceId: space,
+      mediaId: media(91).id,
+      canonicalUrl: media(91).sourceUrl,
+      title: 'GIF 91 again',
+      thumbnailUrl: media(91).thumbnailUrl,
+    );
+
+    expect(first, isNotNull);
+    expect(second, isNotNull);
+    expect(first!.id, isNot(second!.id));
+    expect(controller.tabsForSpace(space), hasLength(2));
+    expect(controller.activeDetailTabId, second.id);
+  });
+
+  test('switching Spaces restores each Space active child tab', () async {
+    final controller = SessionNavigationController(repository);
+    await controller.load();
+    final firstSpaceId = controller.activeSpaceId!;
+    final firstTab = await controller.openDetailTab(
+      spaceId: firstSpaceId,
+      mediaId: media(92).id,
+      canonicalUrl: media(92).sourceUrl,
+      title: 'First Space tab',
+    );
+    final secondSpace = await controller.createSpace(name: 'Second');
+    final secondTab = await controller.openDetailTab(
+      spaceId: secondSpace.id,
+      mediaId: media(93).id,
+      canonicalUrl: media(93).sourceUrl,
+      title: 'Second Space tab',
+    );
+
+    await controller.activateSpace(firstSpaceId);
+    expect(controller.activeDetailTabId, firstTab!.id);
+    await controller.activateSpace(secondSpace.id);
+    expect(controller.activeDetailTabId, secondTab!.id);
+  });
+
   test('schema v1 migrates forward to persistent navigation tables', () async {
     final executor = NativeDatabase.memory();
     final legacy = LocalDatabase.forTesting(executor);
