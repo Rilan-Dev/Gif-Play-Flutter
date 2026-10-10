@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Light theme colors
   static const Color _lightPrimaryColor = Color(0xFF6750A4);
   static const Color _lightSecondaryColor = Color(0xFF625B71);
   static const Color _lightBackgroundColor = Color(0xFFF6F5F5);
   static const Color _lightSurfaceColor = Colors.white;
   static const Color _lightErrorColor = Color(0xFFB3261E);
 
-  // Dark theme colors
   static const Color _darkPrimaryColor = Color(0xFFD0BCFF);
   static const Color _darkSecondaryColor = Color(0xFFCCC2DC);
   static const Color _darkBackgroundColor = Color(0xFF1C1B1F);
   static const Color _darkSurfaceColor = Color(0xFF2B2930);
   static const Color _darkErrorColor = Color(0xFFF2B8B5);
 
-  // Light theme
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
@@ -38,7 +35,7 @@ class AppTheme {
       elevation: 0,
       centerTitle: true,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: _lightSurfaceColor,
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -118,7 +115,6 @@ class AppTheme {
     ),
   );
 
-  // Dark theme
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
@@ -141,7 +137,7 @@ class AppTheme {
       elevation: 0,
       centerTitle: true,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: _darkSurfaceColor,
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -221,4 +217,3 @@ class AppTheme {
     ),
   );
 }
-
