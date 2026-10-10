@@ -31,7 +31,7 @@ Phase 3 — Persistent Browsing Spaces & Detail Tabs is **IN PROGRESS**. Phase 1
 11. [x] Harden fetch lifecycle ownership: each active fetch has a request generation, and only that request may clear loading state or drain the queued Space fetch. Successful fetches schedule a debounced snapshot save, and results are filtered using the latest query.
 12. [x] Add regression source for queue-only cache preparation/foreign-key safety, repeated same-GIF child tabs, URL media-ID normalization, per-Space active tabs, Home-feed restoration, and Share Queue persistence.
 13. [x] Add regression source for rapid concurrent Space switches, Home/tab/overview interactions, and suggestion-to-child-tab creation; improve copyable bulk-share diagnostics.
-14. [NEXT] Continue focused home/search UX and state-recovery work: inspect feed item actions and empty/error/loading states, review collection/tab persistence contracts, and add any missing regression coverage. Device retest remains pending because build 28 predates these commits.
+14. [NEXT] Add focused UI regression coverage for saving GIF selections into existing/new collections, then inspect the bulk-share diagnostic flow and remaining feed actions. Continue home/search UX without a broad redesign. Device retest remains pending because build 28 predates these commits.
 
 Runtime Flutter/Dart verification remains pending in the available environment; continue implementation without waiting for CI/Vercel/runtime gates.
 
