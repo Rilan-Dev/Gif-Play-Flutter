@@ -56,10 +56,11 @@ Other feature branches:
 
 ### Phase 3 persistent navigation (current implementation)
 - `lib/data/local/session_navigation_controller.dart` — active Space and Detail Tab state, restoration, and navigation persistence.
-- `lib/common/widgets/session_navigation_strip.dart` — existing UI for switching Spaces and Detail Tabs.
-- `lib/common/widgets/detail_tab_content.dart` — local-first selected-tab preview and safe explicit source opening; exposes an explicit GIF options callback.
+- `lib/common/widgets/session_navigation_strip.dart` — existing UI for switching Spaces and Detail Tabs, plus the thumbnail/title overview dialog for all child tabs.
+- `lib/common/widgets/detail_tab_content.dart` — restored selected-GIF detail surface, source-page suggestion grid, safe explicit source opening, and child-tab activation; exposes an explicit GIF options callback.
 - `lib/screens/main_screen/main_screen.dart` — bounded per-Space feed snapshot, query/page/visited-page/scroll restoration, generation-guarded restore/fetch lifecycle, and stale post-frame scroll protection.
-- `lib/screens/main_screen/main_screen_actions.dart` — regular item open persists/activates a Detail Tab without immediately layering a legacy details dialog; special Mood & Vibe route remains.
+- `lib/screens/main_screen/main_screen_actions.dart` — regular item open persists/activates a Detail Tab with stable media identity without immediately layering a legacy details dialog; special Mood & Vibe route remains.
+- `lib/screens/collections_screen.dart` and `lib/data/cache/collection_share_controller.dart` — refresh SQLite-backed collections on entry, show saved membership, support safe reset/retry, and allow bulk share to skip empty selected lists.
 - `test/session_navigation_recovery_test.dart` — startup recovery, persistence, close/activation transitions, and independent per-Space feed snapshot source coverage.
 - `test/detail_tab_content_test.dart` — unsafe source URL rejection and explicit GIF options widget test sources.
 - `test/main_screen_actions_test.dart` — regular feed-item interaction activates a saved Detail Tab without displaying the legacy GIF details dialog.
