@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -7,6 +9,7 @@ import '../../common/models/gif_item.dart';
 import '../../common/providers/liked_gifs_provider.dart';
 import '../../common/utils/download_and_share.dart';
 import '../../common/widgets/shimmer_loading.dart';
+import '../../data/local/session_navigation_controller.dart';
 import '../gif_viewer/gif_viewer_screen.dart';
 import '../mood_vibe/mood_vibe_screen.dart';
 import 'main_screen_data_service.dart';
@@ -25,6 +28,21 @@ class MainScreenActions {
     if (isSelectionMode) {
       toggleItemSelection(index);
     } else {
+      // Persist a lightweight tab record before navigating away from the feed.
+      // The local tab metadata is available on the next app launch even if the
+      // remote detail page is temporarily unavailable.
+      final navigation =
+          Provider.of<SessionNavigationController>(context, listen: false);
+      final spaceId = navigation.activeSpaceId;
+      if (spaceId != null) {
+        unawaited(navigation.openDetailTab(
+          spaceId: spaceId,
+          canonicalUrl: item.href ?? item.imageUrl,
+          title: item.title ?? 'GIF detail',
+          thumbnailUrl: item.imageUrl,
+        ));
+      }
+
       // Check if the item has the porngifmag.com domain
       if (item.href != null && item.href!.contains('porngifmag.com')) {
         Navigator.push(
