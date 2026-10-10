@@ -99,3 +99,11 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 - `MainScreen` now restores and persists a bounded per-Space feed snapshot (`feed_state_json`), page/visited-page metadata, search query, and scroll offset. Feed-state writes are debounced.
 - Next action from `NEXT_ACTION.md`: add focused tests for feed snapshot persistence/restoration and harden Space-switching, empty-feed recovery, and tab-open UX. Keep existing schema contracts; no CI/Vercel wait is required.
 - Flutter/Dart tests remain unexecuted in this session; record verification as pending.
+
+
+## Latest continuation point — Phase 3 active-tab pointer cleanup (2026-10-10)
+- Fixed nullable Space active-tab persistence: `updateSpace` now supports explicit clearing, rather than treating null as “keep the old value.”
+- Repository close-last-tab behavior and SessionNavigationController repair/activation paths now clear stale active-tab references.
+- Added a regression assertion that the Space pointer is null after its final Detail Tab closes.
+- `NEXT_ACTION.md` now marks repository-level pointer coverage complete and prioritizes overlapping Space restores/stale feed fetches, then controller/UI edge cases.
+- Flutter/Dart test execution remains pending. Continue implementation without waiting for CI/Vercel/runtime gates.
