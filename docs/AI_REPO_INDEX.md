@@ -571,3 +571,10 @@ For collection/cache/share work, read:
 
 ### Research-index maintenance
 When adding or moving a repository, controller, provider, feature screen, or shared widget, update this index and `docs/AI_RESEARCH_PROTOCOL.md`. Do not use the historical baseline inventory above as a complete current-tree listing; use the current GitHub tree and this active-module map together.
+
+
+### Phase 3 UI slice — 2026-10-10
+- `lib/common/widgets/session_navigation_strip.dart` — compact horizontal Space strip with create/close/select controls and a nested Detail Tab strip with select/close controls.
+- `lib/screens/main_screen/main_screen.dart` — mounts the navigation strips above the existing feed without replacing the established media layout.
+- `lib/screens/main_screen/main_screen_actions.dart` — records a lightweight Detail Tab when a feed item is opened, using the active Space and local metadata.
+- Current UI limitation: selecting a Space changes the durable active-space pointer, but per-Space feed/search/scroll restoration and rendering the selected Detail Tab's actual page content are still the next integration slice. Do not treat the visual strip alone as full browser-like content switching.
