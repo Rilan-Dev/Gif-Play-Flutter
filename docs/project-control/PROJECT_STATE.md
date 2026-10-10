@@ -63,3 +63,6 @@ Phase 3 persistence infrastructure remains active. Startup creates a durable Hom
 - MainScreen now flushes debounced feed/search/pagination/scroll state when the app backgrounds and flushes serialized Share Queue writes.
 - Search field visibility follows a restored non-empty query; local matching now checks title, source URL and image URL using a shared helper.
 - Runtime test/analyzer/APK/device verification remains pending; development continues without waiting for CI/Vercel.
+
+
+- Further edge-case hardening: closing the active Space now restores the destination Space's persisted active tab or Home feed, and closing an active child tab refreshes the in-memory Space pointer after the database update.
