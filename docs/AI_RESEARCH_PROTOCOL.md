@@ -125,3 +125,7 @@ When investigating state loss after restart, check both eager persistence (navig
 
 ## 2026-10-11 — Search state correctness
 For a restored Space with a saved non-empty query, restore both the filtered feed and the visible search input; never leave users with a hidden filter. Local search should check title, source URL and image URL consistently after restore and after a new page fetch. Use the shared mediaItemMatchesQuery helper to avoid divergent matching behavior.
+
+
+## 2026-10-11 — Collection ownership distinction
+The user-facing Share list is a separate persisted queue; it must not be conflated with named reusable collections. CollectionsScreen should support creating named collections, and GIF Details should allow saving selected GIFs to a chosen/new collection. Always persist the MediaRecord before the collection membership row and deduplicate canonical media IDs within a selection.
