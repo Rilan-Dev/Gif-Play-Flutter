@@ -546,6 +546,7 @@ class MainScreenActions {
     if (collectionId == null || !context.mounted) return false;
 
     var savedCount = 0;
+    final seenMediaIds = <String>{};
     try {
       for (final gif in gifs) {
         final imageUrl = gif.imageUrl?.trim().isNotEmpty == true
@@ -564,6 +565,7 @@ class MainScreenActions {
           mediaUrl: imageUrl,
           sourceUrl: sourceUrl,
         );
+        if (!seenMediaIds.add(id)) continue;
         final now = DateTime.now();
         await controller.addMediaToCollection(
           collectionId: collectionId,
