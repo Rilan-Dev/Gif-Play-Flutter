@@ -7,8 +7,8 @@ import 'package:drift_flutter/drift_flutter.dart';
 /// generated tables so the repository can be introduced without requiring a
 /// generator artifact to be committed. The schema remains explicit SQL and is
 /// versioned through SQLite's user_version pragma.
-class LocalDatabase extends DatabaseConnectionUser {
-  LocalDatabase._(DatabaseConnection connection) : super.fromConnection(connection);
+class LocalDatabase extends GeneratedDatabase {
+  LocalDatabase._(QueryExecutor executor) : super(executor);
 
   LocalDatabase.forTesting(QueryExecutor executor) : super(executor);
 
@@ -19,6 +19,25 @@ class LocalDatabase extends DatabaseConnectionUser {
   }
 
   static const int currentSchemaVersion = 2;
+
+  @override
+  int get schemaVersion => currentSchemaVersion;
+
+  @override
+  Iterable<DatabaseSchemaEntity> get allSchemaEntities => const [];
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (_) async {
+          await _createSchema();
+        },
+        onUpgrade: (_, from, to) async {
+          await _migrate(from, to);
+        },
+        beforeOpen: (_) async {
+          await customStatement('PRAGMA foreign_keys = ON');
+        },
+      );
 
   Future<void> initialize() async {
     await customStatement('PRAGMA foreign_keys = ON');
