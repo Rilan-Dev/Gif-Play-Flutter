@@ -67,9 +67,22 @@ class SessionNavigationController extends ChangeNotifier {
 
     if (_activeSpaceId == null) {
       _activeSpaceId = _spaces.first.id;
-      _activeDetailTabId = _tabsBySpace[_activeSpaceId]?.isNotEmpty == true
-          ? _tabsBySpace[_activeSpaceId]!.last.id
-          : null;
+    }
+
+    // A snapshot can outlive a tab (explicit close) or point at a tab owned
+    // by a different Space. Repair it from durable Space/tab state instead
+    // of restoring an invalid reference or leaving the snapshot stale.
+    final activeSpace = _spaces.firstWhere(
+      (space) => space.id == _activeSpaceId,
+    );
+    final tabs = _tabsBySpace[_activeSpaceId] ?? const <DetailTab>[];
+    _activeDetailTabId =
+        _validTabId(snapshot?.activeDetailTabId, _activeSpaceId) ??
+        _validTabId(activeSpace.activeDetailTabId, _activeSpaceId) ??
+        (tabs.isEmpty ? null : tabs.last.id);
+
+    if (snapshot?.activeSpaceId != _activeSpaceId ||
+        snapshot?.activeDetailTabId != _activeDetailTabId) {
       await repository.updateSpace(
         id: _activeSpaceId!,
         activeDetailTabId: _activeDetailTabId,
