@@ -179,3 +179,11 @@
 - Verification status: source changes and test files were committed directly to main; Flutter tests, analyzer, device Share Sheet, app restart, and build 29 have not been run here. Do not claim device-level resolution until the user retests. Continue implementation without waiting for CI/Vercel/runtime gates.
 
 - Follow-up on 2026-10-11: legacy GIF Details dialog suggestions now open a new persistent child tab instead of navigating to a separate GifViewerScreen. Bulk Share All now records per-GIF cache/URL failure reasons and displays a scrollable, selectable error dialog with a Copy error details action. Share-queue persistence writes are serialized to prevent stale snapshots overwriting newer queue changes.
+
+
+## 2026-10-11 — Continued Phase 3 navigation and restart reliability
+- Added controller regression coverage for rapid concurrent Space switches. The test asserts that the final active Space/tab and session snapshot match the last requested transition, while each Space retains its own active child-tab pointer.
+- Added widget regression coverage for the navigation strip: Home feed remains visible while a child tab is open; selecting Home does not close the child tab; the child tab can be reactivated; the browser-style overview opens; and a tab can be closed directly from the overview.
+- Added app lifecycle persistence flush in MainScreen. When the app becomes inactive, paused, or detached, it cancels the feed snapshot debounce and writes the current Space's feed/search/pagination/scroll snapshot; it also flushes the Share Queue's serialized persistence queue asynchronously.
+- Confirmed application bootstrap uses the stable Drift database name gif_play_library, initializes it before UI startup, runs the legacy preferences migration, and restores the Share Queue before runApp. Named collections/memberships and Spaces/tabs/session state are SQLite-backed; the queue is SharedPreferences-backed.
+- Verification remains source-only: tests/analyzer/APK/device restart and share sheet were not executed in this environment. Continue development without waiting for CI/Vercel. Build 28 predates these changes.
