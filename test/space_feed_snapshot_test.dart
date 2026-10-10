@@ -19,7 +19,12 @@ void main() {
   });
 
   test('missing or malformed saved feed safely requests a fresh fetch', () {
-    for (final state in <String?>[null, '', '{not valid json']) {
+    for (final state in <String?>[
+      null,
+      '',
+      '{not valid json',
+      '{"mediaItems":"bad","currentPage":"not-a-number","visitedPages":{},"scrollOffset":"bad"}',
+    ]) {
       final snapshot = SpaceFeedSnapshot.restore(feedStateJson: state);
       expect(snapshot.mediaItems, isEmpty);
       expect(snapshot.requiresFetch, isTrue);
@@ -55,5 +60,13 @@ void main() {
     expect(snapshot.mediaItems, hasLength(120));
     expect(snapshot.mediaItems.every((item) => item.imageUrl.isNotEmpty), isTrue);
     expect(snapshot.requiresFetch, isFalse);
+
+    final corruptRecord = SpaceFeedSnapshot.restore(
+      feedStateJson:
+          '{"mediaItems":[{"imageUrl":"https://example.com/bad.gif","timestamp":"bad"},{"imageUrl":"https://example.com/good.gif"}]}',
+    );
+    expect(corruptRecord.mediaItems, hasLength(1));
+    expect(corruptRecord.mediaItems.single.imageUrl,
+        'https://example.com/good.gif');
   });
 }
