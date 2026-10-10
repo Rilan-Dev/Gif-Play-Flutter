@@ -12,13 +12,12 @@ import '../../common/utils/download_and_share.dart';
 import '../../common/widgets/shimmer_loading.dart';
 import '../../data/local/session_navigation_controller.dart';
 import '../gif_viewer/gif_viewer_screen.dart';
-import '../mood_vibe/mood_vibe_screen.dart';
 import 'main_screen_data_service.dart';
 
 /// Class for handling actions in the main screen
 class MainScreenActions {
   /// Handles item click based on selection mode
-  static void handleItemClick(
+  static Future<void> handleItemClick(
     BuildContext context,
     MediaItem item,
     int index,
@@ -35,34 +34,18 @@ class MainScreenActions {
       final navigation =
           Provider.of<SessionNavigationController>(context, listen: false);
       final spaceId = navigation.activeSpaceId;
-      if (spaceId != null) {
-        unawaited(navigation.openDetailTab(
-          spaceId: spaceId,
-          mediaId: item.imageUrl,
-          canonicalUrl: item.href ?? item.imageUrl,
-          title: item.title ?? 'GIF detail',
-          thumbnailUrl: item.imageUrl,
-        ));
-      }
+      if (spaceId == null) return;
+      await navigation.openDetailTab(
+        spaceId: spaceId,
+        mediaId: item.imageUrl,
+        canonicalUrl: item.href ?? item.imageUrl,
+        title: item.title ?? 'GIF detail',
+        thumbnailUrl: item.imageUrl,
+      );
 
-      // Check if the item has the porngifmag.com domain
-      if (item.href != null && item.href!.contains('porngifmag.com')) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MoodVibeScreen(
-              gifLink: item.href ?? '',
-              imgLink: item.imageUrl,
-              homeItems: filteredItems,  // Pass the filtered items list
-              currentIndex: index,        // Pass the current index
-            ),
-          ),
-        );
-      } else {
-        // Keep the selected Detail Tab as the primary surface. GIF actions are
-        // available from its explicit "GIF options" control, avoiding a dialog
-        // that immediately covers the tab the user just opened.
-      }
+      // Keep every GIF detail inside the MainScreen's persistent tab surface.
+      // Pushing a legacy full-screen detail route here hid the Space and child
+      // tab controls, so all domains now use the same browser-style navigation.
     }
   }
 
