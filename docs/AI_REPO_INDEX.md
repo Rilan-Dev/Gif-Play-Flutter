@@ -614,8 +614,9 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 - `test/local_media_repository_test.dart` includes a repository assertion that closing the final Detail Tab clears the persisted Space pointer.
 
 
-### Phase 3 async restoration update — 2026-10-10
-- `lib/screens/main_screen/main_screen.dart` now tracks a Space-restore generation and checks active Space identity before applying asynchronous restore/fetch results.
+### Phase 3 async restoration and Detail Tab UX update — 2026-10-10
+- `lib/screens/main_screen/main_screen.dart` tracks a Space-restore generation and checks active Space identity before applying asynchronous restore/fetch results and before applying delayed scroll restoration.
 - Feed fetches operate on snapshots of current items, query, and visited-page state. A fetch needed for the latest Space is queued if another request is active and started after it completes.
 - The feed scroll listener is guarded when its ScrollController is detached.
-- Next edge cases: stale post-frame scroll restoration and overlapping legacy dialog/route actions with selected Detail Tab content. Runtime verification has not been run.
+- Regular feed-item opens now make the saved Detail Tab primary rather than immediately overlaying it with the legacy details dialog. `DetailTabContent` exposes a deliberate GIF options action; the special Mood & Vibe route remains.
+- Regression sources cover independent per-Space feed snapshots, unsafe source URL rejection, and the explicit GIF options action. Remaining: empty-feed restoration and focused tab-open interaction coverage. Runtime verification has not been run.
