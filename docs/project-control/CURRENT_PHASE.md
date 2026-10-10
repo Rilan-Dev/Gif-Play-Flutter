@@ -85,3 +85,6 @@ The visual Space/Detail Tab strips, restored GIF detail/suggestions surface, thu
 - Phase 3 remains IN PROGRESS. Persistent tab/navigation source coverage now includes rapid concurrent Space activation, Home feed and child-tab switching, overview closing, and suggestion-to-child-tab creation.
 - Background lifecycle events flush feed snapshots and queued Share Queue persistence. Per-Space saved search is restored visibly and matches title/source/image URL.
 - Next: focused home/search UX and collection/tab persistence contract review. Flutter tests/analyzer/build/device retest have not been run here.
+
+
+- Follow-up edge case fixed: closing the active Space preserves the destination Space's own saved child tab/Home-feed state rather than selecting its last tab unconditionally.
