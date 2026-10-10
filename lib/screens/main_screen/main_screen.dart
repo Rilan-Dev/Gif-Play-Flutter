@@ -266,6 +266,8 @@ class _MainScreenState extends State<MainScreen> {
         
         _isLoading = false;
       });
+      // Persist newly fetched media even when the feed has not been scrolled yet.
+      _scheduleSpaceStateSave();
     } catch (e) {
       if (mounted &&
           requestGeneration == _spaceRestoreGeneration &&
