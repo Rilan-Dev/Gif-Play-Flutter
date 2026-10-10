@@ -6,21 +6,21 @@ Workflow: `.github/workflows/android-apk.yml`
 
 The workflow runs **only when you manually dispatch it** from GitHub Actions. It does not run on pushes, branch updates, or pull requests, so normal development commits will not start an APK build.
 
-The job checks out the selected branch, installs Java 17 and the stable Flutter SDK, resolves packages, and runs:
+When you click **Run workflow**, select the branch and choose **Build type**:
+- `release` (default): creates `app-release.apk`.
+- `debug`: creates `app-debug.apk`.
 
-```sh
-flutter build apk --release
-```
-
-The resulting APK is uploaded as a GitHub Actions artifact named `gif-play-android-apk-<run number>` and retained for 30 days. The workflow does not create a GitHub Release or publish to an app store.
+The job checks out the selected branch, installs Java 17 and the stable Flutter SDK, resolves packages, and runs the matching Flutter APK build command. The Drift packages must have compatible versions; `drift_flutter` is set to `^0.3.1` to resolve the dependency conflict with `drift ^2.32.1` seen in the October 10, 2026 Actions run.
 
 ## Build and download the APK
 
 1. Open the repository's [Actions tab](https://github.com/Rilan-Dev/Gif-Play-Flutter/actions).
 2. Select **Build Android APK** from the left sidebar.
-3. Click **Run workflow**, choose the branch you want to build, and click **Run workflow** again.
-4. When that run finishes, open it and find **Artifacts** near the bottom of the run summary.
-5. Download `gif-play-android-apk-<run number>` and extract the ZIP. It contains `app-release.apk`.
+3. Click **Run workflow**, choose the branch and **Build type** (`release` or `debug`), then click **Run workflow** again.
+4. When that run finishes successfully, open it and find **Artifacts** near the bottom of the run summary.
+5. Download the artifact named `gif-play-<build type>-android-apk-<run number>` and extract the ZIP. It contains `app-release.apk` or `app-debug.apk`, matching the selected type.
+
+Artifacts are retained for 30 days. The workflow does not create a GitHub Release or publish to an app store.
 
 GitHub requires the workflow file with `workflow_dispatch` to be present on the default branch for the manual **Run workflow** button to appear.
 
@@ -30,4 +30,4 @@ The current `android/app/build.gradle` config signs the release build with the A
 
 ## Verification behavior
 
-Each manual click starts one build for the selected branch. No automatic build is started by ordinary code pushes. If a build fails, you can inspect or rerun it when convenient; unrelated development work does not need to wait.
+Each manual click starts one build for the selected branch and APK type. No automatic build is started by ordinary code pushes. If a build fails, inspect the first failing step and fix that cause; unrelated feature development does not need to wait.
