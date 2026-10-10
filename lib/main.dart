@@ -66,13 +66,16 @@ void main() async {
   final moodVibeViewModeProvider = MoodVibeViewModeProvider();
   moodVibeViewModeProvider.loadViewMode();
 
+  final shareQueueProvider = ShareQueueProvider();
+  await shareQueueProvider.loadQueuedGifs();
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => themeProvider),
         ChangeNotifierProvider(create: (_) => likedGifsProvider),
         ChangeNotifierProvider(create: (_) => viewedGifsProvider),
-        ChangeNotifierProvider(create: (_) => ShareQueueProvider()),
+        ChangeNotifierProvider<ShareQueueProvider>.value(value: shareQueueProvider),
         ChangeNotifierProvider(create: (_) => viewModeProvider),
         ChangeNotifierProvider(create: (_) => moodVibeViewModeProvider),
         Provider<LocalMediaRepository>.value(value: localMediaRepository),
