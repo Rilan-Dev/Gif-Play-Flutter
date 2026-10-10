@@ -56,6 +56,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   bool _initialSpaceRestoreStarted = false;
   int _spaceRestoreGeneration = 0;
   int _fetchRequestGeneration = 0;
+  String? _activeFetchSpaceId;
   String? _pendingFetchSpaceId;
   Timer? _spaceStateSaveTimer;
 
@@ -221,12 +222,22 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   Future<void> _fetchData({String? expectedSpaceId}) async {
     if (_isLoading) {
-      if (expectedSpaceId != null) _pendingFetchSpaceId = expectedSpaceId;
+      final requestedSpaceId = expectedSpaceId ??
+          _navigationController?.activeSpaceId ??
+          _lastSpaceId;
+      // A pagination request for a newly selected Space must not be dropped
+      // just because the previous Space still owns an in-flight request.
+      // Ignore duplicate requests for the same Space to avoid fetch storms.
+      if (requestedSpaceId != null &&
+          requestedSpaceId != _activeFetchSpaceId) {
+        _pendingFetchSpaceId = requestedSpaceId;
+      }
       return;
     }
     final requestSpaceId = expectedSpaceId ?? _lastSpaceId;
     final requestGeneration = _spaceRestoreGeneration;
     final fetchRequestId = ++_fetchRequestGeneration;
+    _activeFetchSpaceId = requestSpaceId;
     final requestQuery = _searchController.text;
     final requestSearchController = TextEditingController(text: requestQuery);
 
@@ -295,6 +306,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     } finally {
       requestSearchController.dispose();
       if (mounted && fetchRequestId == _fetchRequestGeneration) {
+        _activeFetchSpaceId = null;
         setState(() => _isLoading = false);
         final pendingSpaceId = _pendingFetchSpaceId;
         _pendingFetchSpaceId = null;
