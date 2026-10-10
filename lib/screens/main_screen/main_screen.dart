@@ -52,6 +52,7 @@ class _MainScreenState extends State<MainScreen> {
   String? _lastSpaceId;
   bool _initialSpaceRestoreStarted = false;
   int _spaceRestoreGeneration = 0;
+  int _fetchRequestGeneration = 0;
   String? _pendingFetchSpaceId;
   Timer? _spaceStateSaveTimer;
 
@@ -210,6 +211,7 @@ class _MainScreenState extends State<MainScreen> {
     }
     final requestSpaceId = expectedSpaceId ?? _lastSpaceId;
     final requestGeneration = _spaceRestoreGeneration;
+    final fetchRequestId = ++_fetchRequestGeneration;
     final requestQuery = _searchController.text;
     final requestSearchController = TextEditingController(text: requestQuery);
 
@@ -264,7 +266,6 @@ class _MainScreenState extends State<MainScreen> {
           }
         }
         
-        _isLoading = false;
       });
       // Persist newly fetched media even when the feed has not been scrolled yet.
       _scheduleSpaceStateSave();
@@ -280,7 +281,7 @@ class _MainScreenState extends State<MainScreen> {
       }
     } finally {
       requestSearchController.dispose();
-      if (mounted) {
+      if (mounted && fetchRequestId == _fetchRequestGeneration) {
         setState(() => _isLoading = false);
         final pendingSpaceId = _pendingFetchSpaceId;
         _pendingFetchSpaceId = null;
