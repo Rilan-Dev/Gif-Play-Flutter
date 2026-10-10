@@ -92,3 +92,10 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 - Added `SessionNavigationStrip` to the main feed and records feed-item opens as lightweight Detail Tabs in the active Space.
 - Next authorized implementation action: connect Space selection to independent feed/search/scroll state and Detail Tab selection to the visible detail content. Existing SQLite contracts should remain stable unless a separately authorized schema change is necessary.
 - Flutter/Dart test execution was not performed in this session; runtime verification remains pending and must not block independent implementation.
+
+
+## Latest continuation point — Phase 3 content restoration
+- Added `lib/common/widgets/detail_tab_content.dart`; selected Detail Tabs render their saved title, thumbnail, and canonical URL, and the original source opens only after explicit user action.
+- `MainScreen` now restores and persists a bounded per-Space feed snapshot (`feed_state_json`), page/visited-page metadata, search query, and scroll offset. Feed-state writes are debounced.
+- Next action from `NEXT_ACTION.md`: add focused tests for feed snapshot persistence/restoration and harden Space-switching, empty-feed recovery, and tab-open UX. Keep existing schema contracts; no CI/Vercel wait is required.
+- Flutter/Dart tests remain unexecuted in this session; record verification as pending.
