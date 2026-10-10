@@ -97,51 +97,67 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _restoreSpaceState(String? spaceId) async {
     final navigation = _navigationController;
     if (spaceId == null || navigation == null) return;
+
     final generation = ++_spaceRestoreGeneration;
     final space = await navigation.repository.getSpace(spaceId);
-      if (!mounted || generation != _spaceRestoreGeneration ||
-          navigation.activeSpaceId != spaceId) return;
-      final snapshot = SpaceFeedSnapshot.restore(
-        feedStateJson: space?.feedStateJson,
-        persistedSearchQuery: space?.searchQuery,
-        persistedScrollOffset: space?.scrollOffset,
-        persistedPage: space?.feedPage,
-      );
-      final savedItems = snapshot.mediaItems;
-      if (!mounted || generation != _spaceRestoreGeneration ||
-          navigation.activeSpaceId != spaceId) return;
-      setState(() {
-        _mediaItems
-          ..clear()
-          ..addAll(savedItems);
-        _currentPage = snapshot.currentPage;
-        _totalPages = snapshot.totalPages;
-        _visitedPages = snapshot.visitedPages;
-        final query = snapshot.searchQuery;
-        _searchController.text = query;
-        _filteredItems
-          ..clear()
-          ..addAll(query.isEmpty
-              ? _mediaItems
-              : _mediaItems.where((item) =>
-                  item.title?.toLowerCase().contains(query.toLowerCase()) ?? false));
-      });
+    if (!mounted ||
+        generation != _spaceRestoreGeneration ||
+        navigation.activeSpaceId != spaceId) {
+      return;
+    }
 
-      final offset = snapshot.scrollOffset;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted ||
-            generation != _spaceRestoreGeneration ||
-            navigation.activeSpaceId != spaceId ||
-            !_scrollController.hasClients) {
-          return;
-        }
-        final maxOffset = _scrollController.position.maxScrollExtent;
-        _scrollController.jumpTo(offset.clamp(0, maxOffset).toDouble());
-      });
-      if (snapshot.requiresFetch && generation == _spaceRestoreGeneration &&
-          navigation.activeSpaceId == spaceId) {
-        await _fetchData(expectedSpaceId: spaceId);
+    final snapshot = SpaceFeedSnapshot.restore(
+      feedStateJson: space?.feedStateJson,
+      persistedSearchQuery: space?.searchQuery,
+      persistedScrollOffset: space?.scrollOffset,
+      persistedPage: space?.feedPage,
+    );
+    if (!mounted ||
+        generation != _spaceRestoreGeneration ||
+        navigation.activeSpaceId != spaceId) {
+      return;
+    }
+
+    setState(() {
+      _mediaItems
+        ..clear()
+        ..addAll(snapshot.mediaItems);
+      _currentPage = snapshot.currentPage;
+      _totalPages = snapshot.totalPages;
+      _visitedPages = snapshot.visitedPages;
+      final query = snapshot.searchQuery;
+      _searchController.text = query;
+      _filteredItems
+        ..clear()
+        ..addAll(
+          query.isEmpty
+              ? _mediaItems
+              : _mediaItems.where(
+                  (item) =>
+                      item.title?.toLowerCase().contains(query.toLowerCase()) ??
+                      false,
+                ),
+        );
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          generation != _spaceRestoreGeneration ||
+          navigation.activeSpaceId != spaceId ||
+          !_scrollController.hasClients) {
+        return;
       }
+      final maxOffset = _scrollController.position.maxScrollExtent;
+      _scrollController.jumpTo(
+        snapshot.scrollOffset.clamp(0, maxOffset).toDouble(),
+      );
+    });
+
+    if (snapshot.requiresFetch &&
+        generation == _spaceRestoreGeneration &&
+        navigation.activeSpaceId == spaceId) {
+      await _fetchData(expectedSpaceId: spaceId);
+    }
   }
 
   Future<void> _persistSpaceState(String? spaceId) async {
