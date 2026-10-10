@@ -42,4 +42,4 @@
 - UI must avoid loading hundreds of full GIF binaries into memory simultaneously.
 
 ## Next
-Phase 3 persistence infrastructure is active: startup now repairs missing active-space state and creates a durable Home Space; next is invalid/closed-tab restoration and migration/reopen coverage before visual Space/Detail Tab UI. Do not wait for CI/Vercel/runtime gates; record verification status honestly. Do not wait for CI/Vercel/runtime gates; record verification status honestly.
+Phase 3 persistence infrastructure remains active. Startup creates a durable Home Space and now repairs invalid, closed, stale, or cross-Space active-tab references. Controller transition and database close/reopen regression sources have been added. The next implementation slice is the visual Space/Detail Tab UI layer, integrated through SessionNavigationController without changing persistence contracts. Flutter/Dart runtime verification remains pending; do not wait for CI/Vercel/runtime gates, and record verification status honestly.
