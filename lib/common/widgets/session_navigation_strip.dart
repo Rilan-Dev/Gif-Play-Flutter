@@ -86,6 +86,80 @@ class SessionNavigationStrip extends StatelessWidget {
   }
 }
 
+/// Bottom browser-style tab control for quick access to the current Space
+/// and a large overview of all saved child tabs.
+class SessionTabBottomBar extends StatelessWidget {
+  const SessionTabBottomBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SessionNavigationController>(
+      builder: (context, navigation, _) {
+        if (!navigation.isLoaded) return const SizedBox.shrink();
+        final activeTab = navigation.activeDetailTab;
+        final title = activeTab?.title?.trim().isNotEmpty == true
+            ? activeTab!.title!.trim()
+            : 'Home feed';
+        final tabs = navigation.activeSpaceId == null
+            ? const <DetailTab>[]
+            : navigation.tabsForSpace(navigation.activeSpaceId!);
+        return Material(
+          elevation: 10,
+          color: Theme.of(context).colorScheme.surface,
+          child: SafeArea(
+            top: false,
+            child: SizedBox(
+              height: 58,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Row(
+                  children: [
+                    const Icon(Icons.grid_view_rounded, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            navigation.activeSpace?.name ?? 'Home',
+                            style: Theme.of(context).textTheme.labelSmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            title,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text('${tabs.length}', style: Theme.of(context).textTheme.labelLarge),
+                    const SizedBox(width: 4),
+                    IconButton.filledTonal(
+                      tooltip: 'Browse all GIF tabs',
+                      onPressed: tabs.isEmpty
+                          ? null
+                          : () => _showDetailTabOverview(
+                                context,
+                                navigation,
+                                navigation.activeSpaceId!,
+                              ),
+                      icon: const Icon(Icons.tab),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 Future<void> _showDetailTabOverview(
   BuildContext context,
   SessionNavigationController navigation,
