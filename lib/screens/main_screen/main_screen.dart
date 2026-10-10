@@ -51,6 +51,8 @@ class _MainScreenState extends State<MainScreen> {
   String? _lastSpaceId;
   bool _initialSpaceRestoreStarted = false;
   bool _spaceRestoreInProgress = false;
+  int _spaceRestoreGeneration = 0;
+  String? _pendingFetchSpaceId;
   Timer? _spaceStateSaveTimer;
 
   @override
@@ -82,7 +84,7 @@ class _MainScreenState extends State<MainScreen> {
     final navigation = _navigationController;
     if (navigation == null || !navigation.isLoaded) return;
     final nextSpaceId = navigation.activeSpaceId;
-    if (nextSpaceId == _lastSpaceId || _spaceRestoreInProgress) return;
+    if (nextSpaceId == _lastSpaceId) return;
 
     final previousSpaceId = _lastSpaceId;
     _lastSpaceId = nextSpaceId;
@@ -95,9 +97,12 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _restoreSpaceState(String? spaceId) async {
     final navigation = _navigationController;
     if (spaceId == null || navigation == null) return;
+    final generation = ++_spaceRestoreGeneration;
     _spaceRestoreInProgress = true;
     try {
       final space = await navigation.repository.getSpace(spaceId);
+      if (!mounted || generation != _spaceRestoreGeneration ||
+          navigation.activeSpaceId != spaceId) return;
       Map<String, dynamic>? saved;
       if (space?.feedStateJson != null && space!.feedStateJson!.isNotEmpty) {
         try {
@@ -114,7 +119,8 @@ class _MainScreenState extends State<MainScreen> {
           .where((item) => item.imageUrl.isNotEmpty)
           .take(120)
           .toList();
-      if (!mounted) return;
+      if (!mounted || generation != _spaceRestoreGeneration ||
+          navigation.activeSpaceId != spaceId) return;
       setState(() {
         _mediaItems
           ..clear()
@@ -142,9 +148,14 @@ class _MainScreenState extends State<MainScreen> {
           _scrollController.jumpTo(offset.clamp(0, maxOffset).toDouble());
         }
       });
-      if (savedItems.isEmpty) await _fetchData();
+      if (savedItems.isEmpty && generation == _spaceRestoreGeneration &&
+          navigation.activeSpaceId == spaceId) {
+        await _fetchData(expectedSpaceId: spaceId);
+      }
     } finally {
-      _spaceRestoreInProgress = false;
+      if (generation == _spaceRestoreGeneration) {
+        _spaceRestoreInProgress = false;
+      }
     }
   }
 
@@ -190,8 +201,14 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  Future<void> _fetchData() async {
-    if (_isLoading) return;
+  Future<void> _fetchData({String? expectedSpaceId}) async {
+    if (_isLoading) {
+      if (expectedSpaceId != null) _pendingFetchSpaceId = expectedSpaceId;
+      return;
+    }
+    final requestSpaceId = expectedSpaceId ?? _lastSpaceId;
+    final requestQuery = _searchController.text;
+    final requestSearchController = TextEditingController(text: requestQuery);
 
     setState(() {
       _isLoading = true;
@@ -202,12 +219,14 @@ class _MainScreenState extends State<MainScreen> {
     try {
       final result = await MainScreenDataService.fetchData(
         currentPage: _currentPage,
-        mediaItems: _mediaItems,
-        filteredItems: _filteredItems,
-        searchController: _searchController,
-        visitedPages: _visitedPages,
+        mediaItems: List<MediaItem>.from(_mediaItems),
+        filteredItems: List<MediaItem>.from(_filteredItems),
+        searchController: requestSearchController,
+        visitedPages: _visitedPages == null ? null : Set<int>.from(_visitedPages!),
         totalPages: _totalPages,
       );
+      if (!mounted || (requestSpaceId != null &&
+          _navigationController?.activeSpaceId != requestSpaceId)) return;
       
       setState(() {
         _mediaItems.clear();
@@ -234,11 +253,24 @@ class _MainScreenState extends State<MainScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _hasError = true;
-        _errorMessage = 'Error fetching data: $e';
-        _isLoading = false;
-      });
+      if (mounted && (requestSpaceId == null ||
+          _navigationController?.activeSpaceId == requestSpaceId)) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = 'Error fetching data: $e';
+        });
+      }
+    } finally {
+      requestSearchController.dispose();
+      if (mounted) {
+        setState(() => _isLoading = false);
+        final pendingSpaceId = _pendingFetchSpaceId;
+        _pendingFetchSpaceId = null;
+        if (pendingSpaceId != null &&
+            pendingSpaceId == _navigationController?.activeSpaceId) {
+          unawaited(_fetchData(expectedSpaceId: pendingSpaceId));
+        }
+      }
     }
   }
 
