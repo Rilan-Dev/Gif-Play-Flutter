@@ -83,6 +83,10 @@ class MediaCacheManager {
     MediaRecord media, {
     String? collectionId,
   }) async {
+    // Queue-originated GIFs may not yet exist in media_records. Cache entries
+    // reference that table with a foreign key, so persist the canonical media
+    // record before reading or creating its cache entry.
+    await repository.upsertMedia(media);
     final now = DateTime.now();
     final existing = await repository.getCacheEntry(media.id);
 
