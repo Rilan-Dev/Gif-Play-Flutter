@@ -536,6 +536,25 @@ void main() {
     expect(restored?.scrollOffset, 246.5);
   });
 
+
+  test('legacy clear request preserves collection and saved GIF membership', () async {
+    final collection = await repository.createCollection('Reusable bulk list');
+    await repository.addToCollection(
+      collectionId: collection.id,
+      media: media(13),
+    );
+    await repository.markCollectionItemsShared(collection.id, [media(13).id]);
+
+    await repository.clearCollectionItems(collection.id);
+
+    expect(await repository.getCollection(collection.id), isNotNull);
+    expect(await repository.countCollectionItems(collection.id), 1);
+    expect(await repository.countCollectionItems(
+      collection.id,
+      pendingOnly: true,
+    ), 1);
+  });
+
 }
 
 class _RetryClient extends http.BaseClient {
