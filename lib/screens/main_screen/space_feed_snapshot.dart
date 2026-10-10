@@ -41,31 +41,34 @@ class SpaceFeedSnapshot {
       }
     }
 
-    final items = (decoded?['mediaItems'] as List<dynamic>? ?? const [])
+    final rawItems = decoded?['mediaItems'];
+    final items = (rawItems is List ? rawItems : const <dynamic>[])
         .whereType<Map>()
         .map((item) => MediaItem.fromMap(Map<String, dynamic>.from(item)))
         .where((item) => item.imageUrl.isNotEmpty)
         .take(120)
         .toList(growable: false);
+    final rawQuery = decoded?['searchQuery'];
     final query = persistedSearchQuery ??
-        (decoded?['searchQuery'] as String? ?? '');
-    final visited = (decoded?['visitedPages'] as List<dynamic>?)
-            ?.whereType<num>()
-            .map((value) => value.toInt())
-            .toSet() ??
-        <int>{};
+        (rawQuery is String ? rawQuery : '');
+    final rawVisited = decoded?['visitedPages'];
+    final visited = rawVisited is List
+        ? rawVisited.whereType<num>().map((value) => value.toInt()).toSet()
+        : <int>{};
+    final rawCurrentPage = decoded?['currentPage'];
+    final rawTotalPages = decoded?['totalPages'];
+    final rawScrollOffset = decoded?['scrollOffset'];
 
     return SpaceFeedSnapshot(
       mediaItems: items,
-      currentPage: (decoded?['currentPage'] as num?)?.toInt() ??
-          persistedPage ??
-          1,
-      totalPages: (decoded?['totalPages'] as num?)?.toInt() ?? 0,
+      currentPage: rawCurrentPage is num
+          ? rawCurrentPage.toInt()
+          : (persistedPage ?? 1),
+      totalPages: rawTotalPages is num ? rawTotalPages.toInt() : 0,
       visitedPages: visited,
       searchQuery: query,
       scrollOffset: persistedScrollOffset ??
-          (decoded?['scrollOffset'] as num?)?.toDouble() ??
-          0,
+          (rawScrollOffset is num ? rawScrollOffset.toDouble() : 0),
     );
   }
 }
