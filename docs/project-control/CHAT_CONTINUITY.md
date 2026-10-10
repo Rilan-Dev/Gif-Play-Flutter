@@ -130,3 +130,12 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 - Native share files explicitly declare `image/gif`, duplicate file paths are removed, missing files are skipped, and iPad share-position origin is supplied. Share queue callers now only show success when the sharing utility reports success.
 - Collection multi-share readiness accepts selected collections with no pending items while sharing the remaining prepared GIFs.
 - Added `test/media_cache_manager_test.dart`. Tests/analyzer/build remain unrun; next tasks continue with Space-switch and child-tab regression coverage, plus device-specific share reproduction if any error persists.
+
+
+## Latest continuation point — 2026-10-11 build 28 feedback
+- User reports persistent subtabs are inaccessible while viewing GIF details, opening a GIF does not consistently create a new subtab, Share All still throws a Flutter error, and tabs/collections disappear after restart.
+- New root causes found in source: Share Queue GIFs were not inserted into media_records before cache entries with a foreign key were created; child-tab callers passed image URLs into detail_tabs.media_id, also a foreign key to media_records.id. Both paths are now normalized/persisted before writes.
+- openDetailTab always creates a new child tab. Home and suggestion selections stay within MainScreen instead of pushing the legacy special-domain detail route. The navigation strip always includes Home feed, child tabs, and tab overview/close controls. Intentional Home-feed state is persisted and restored.
+- Share Queue state now persists to SharedPreferences and restores before UI startup. User-created collections remain backed by SQLite; file-backed database-reopen regression coverage is present.
+- Added tests for queue-only media cache preparation, URL-ID child-tab creation, repeated same-GIF opens, per-Space active tabs, Home-feed restoration, and Share Queue persistence. These tests, analyzer, build, and device behavior have not been executed here.
+- Next: source-check the latest commits and project-control docs; continue independent implementation without waiting for CI/Vercel. User must install a newer build than 28 to receive these changes, then retest Share All and force-close/relaunch persistence.
