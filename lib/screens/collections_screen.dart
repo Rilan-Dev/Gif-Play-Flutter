@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../common/utils/download_and_share.dart';
 import '../data/cache/collection_share_controller.dart';
 import '../data/local/models/collection.dart';
+import '../data/local/models/collection_item.dart';
 
 class CollectionsScreen extends StatefulWidget {
   const CollectionsScreen({Key? key}) : super(key: key);
@@ -90,7 +91,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                 : Icons.gif_box_outlined,
           ),
           title: Text(
-            media?.title.isNotEmpty == true ? media!.title : item.mediaId,
+            media?.title?.isNotEmpty == true ? media!.title! : item.mediaId,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
