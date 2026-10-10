@@ -626,3 +626,10 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 - The feed scroll listener is guarded when its ScrollController is detached.
 - Regular feed-item opens now make the saved Detail Tab primary rather than immediately overlaying it with the legacy details dialog. `DetailTabContent` exposes a deliberate GIF options action; the special Mood & Vibe route remains.
 - Regression sources cover independent per-Space feed snapshots, empty/missing/malformed/corrupt feed snapshot recovery, unsafe source URL rejection, explicit GIF options, and regular item-to-tab activation. Successful fetches schedule snapshot persistence; latest-query filtering is applied to fetched results. Runtime verification has not been run.
+
+
+## 2026-10-11 — Latest navigation, persistence, and bulk-share changes
+- Share path: lib/common/providers/share_queue_provider.dart persists the queue under share_queue_gifs_v1; lib/main.dart restores it before runApp. lib/data/cache/media_cache_manager.dart upserts media before cache-entry creation and supports an injectable cache directory for deterministic tests.
+- Navigation path: lib/data/local/session_navigation_controller.dart normalizes URL-based media IDs before creating foreign-key-backed tabs, creates a new tab for every open, restores per-Space active tabs, and persists intentional Home-feed selection. lib/common/widgets/session_navigation_strip.dart exposes Home feed, subtabs, overview and close actions.
+- Home selection path: lib/screens/main_screen/main_screen_actions.dart awaits tab creation and keeps home GIF details inside the main navigation shell.
+- Regression sources: test/media_cache_manager_test.dart, test/local_media_repository_test.dart, and test/share_queue_provider_test.dart. Test/analyzer/build/device verification remains pending.
