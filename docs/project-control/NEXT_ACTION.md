@@ -21,8 +21,9 @@ Phase 2 — Temporary Download / Ready-to-Share Engine is **IN PROGRESS**. Phase
 1. [x] Add controller-level activation/close transition coverage and assert snapshot persistence.
 2. [x] Repair startup restoration for invalid, closed, stale, and cross-Space detail-tab references; persist the corrected snapshot.
 3. [x] Add database close/reopen coverage for Spaces, Detail Tabs, and SessionSnapshot; retain the existing v1-to-v2 migration test.
-4. [NEXT] Introduce the visual Space/Detail Tab UI layer without changing the established persistence contracts. Inspect the current main-screen composition and integrate compact, horizontally scrollable Space and nested Detail Tab strips through the existing Provider/controller boundary.
-5. Update the research index and project-control records when the UI integration changes the topology.
+4. [x] Add the initial visual Space/Detail Tab UI layer through the existing Provider/controller boundary: compact horizontally scrollable Space chips, create/close/select actions, nested Detail Tab chips, and feed-open tab metadata persistence.
+5. [NEXT] Bind active Space/Detail Tab selection to the actual visible feed/detail content. Persist and restore per-Space feed/search/scroll state and restore a selected detail page from its canonical URL/local metadata without blocking startup or mass-downloading historical media.
+6. Update the research index and project-control records as the content-restoration integration evolves.
 
 Runtime Flutter/Dart verification remains pending in the available environment; continue implementation without waiting for CI/Vercel/runtime gates.
 
@@ -43,3 +44,7 @@ Do not wait for GitHub Actions, Vercel deployments, or continuous verification t
 - Do not redesign the entire home screen.
 - Do not implement full Search 2.0 UI.
 - Do not implement persistent Spaces/Detail Tabs UI.
+
+
+## Current UI implementation note
+The initial strip and feed-open tab recording are implemented. Detail-tab selection currently updates persisted navigation state but does not yet swap the visible page content; per-Space feed state is also not yet wired into MainScreen. These are explicit next actions, not completed behavior.
