@@ -539,6 +539,7 @@ class _MainScreenState extends State<MainScreen> {
               ],
       ),
       floatingActionButton: const GlobalShareFab(),
+      bottomNavigationBar: const SessionTabBottomBar(),
       body: Column(
         children: [
           const SessionNavigationStrip(),
