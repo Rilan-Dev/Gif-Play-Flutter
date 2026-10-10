@@ -53,6 +53,13 @@ Current owner requirements may change earlier requirements. Material changes req
 
 Use the copy/paste commands in `ADAPTIVE_PROJECT_CONTROL.md` for Continue, Execute Next, New Requirement, Change Requirement, Modify Implementation, Stopped Boundary, and Route Blocker.
 
+## Latest continuation point — Phase 3 stale restoration and Detail Tab UX (2026-10-10)
+- Added restore-generation and active-Space checks to delayed scroll restoration and feed-fetch success/error paths, preventing old work from mutating or scrolling the newly selected Space.
+- Regular feed-item opens now select the persistent Detail Tab as the primary surface; a deliberate GIF options action preserves access to existing like/save/share actions without covering the tab immediately.
+- Added test source for independent per-Space feed snapshots and widget test sources for unsafe source URL rejection and the explicit GIF options action.
+- `NEXT_ACTION.md` marks stale scroll restoration and regular item-open UX consolidation complete. Remaining next slice: empty-feed restoration and a focused tab-open interaction regression source.
+- Runtime tests/analyzer remain unexecuted; do not wait for CI/Vercel/runtime gates.
+
 ## APCP agent invocation layer
 
 Fresh sessions may be started for a specific APCP role without depending on another agent's chat history.
