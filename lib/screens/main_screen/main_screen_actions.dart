@@ -51,7 +51,11 @@ class MainScreenActions {
   }
 
   /// Shows a dialog with GIF details
-  static void showGifDetailsDialog(BuildContext context, MediaItem item) {
+  static void showGifDetailsDialog(
+    BuildContext context,
+    MediaItem item, {
+    Future<List<GifItem>> Function(String url)? suggestionLoader,
+  }) {
     final likedProvider = Provider.of<LikedGifsProvider>(context, listen: false);
     final downloadAndShare = DownloadAndShare();
     final shareQueueProvider = Provider.of<ShareQueueProvider>(context, listen: false);
@@ -77,7 +81,9 @@ class MainScreenActions {
     );
     
     // Fetch GIFs from the URL
-    MainScreenDataService.fetchGifsFromUrl(item.href ?? '').then((gifs) {
+    (suggestionLoader ?? MainScreenDataService.fetchGifsFromUrl)(
+      item.href ?? '',
+    ).then((gifs) {
       // Close loading dialog
       Navigator.pop(context);
 
