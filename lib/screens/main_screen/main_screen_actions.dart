@@ -9,6 +9,9 @@ import '../../common/providers/share_queue_provider.dart';
 import '../../common/utils/download_and_share.dart';
 import '../../common/widgets/shimmer_loading.dart';
 import '../../data/local/session_navigation_controller.dart';
+import '../../data/local/media_identity.dart';
+import '../../data/local/models/media_record.dart';
+import '../../data/cache/collection_share_controller.dart';
 import '../gif_viewer/gif_viewer_screen.dart';
 import 'main_screen_data_service.dart';
 
@@ -313,7 +316,7 @@ class MainScreenActions {
                   Expanded(
                     child: TextButton.icon(
                       icon: const Icon(Icons.playlist_add),
-                      label: const Text('Collect'),
+                      label: const Text('Share list'),
                       onPressed: () {
                         List<GifItem> gifsToCollect;
                         if (isSelecting && selectedIndices.isEmpty) {
@@ -403,6 +406,41 @@ class MainScreenActions {
                     ),
                   ],
                 ),
+                const SizedBox(height: 4),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.collections_bookmark_outlined),
+                    label: const Text('Save to collection'),
+                    onPressed: () async {
+                      List<GifItem> gifsToSave;
+                      if (isSelecting && selectedIndices.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Select GIFs to save')),
+                        );
+                        return;
+                      }
+                      if (selectedIndices.isNotEmpty) {
+                        gifsToSave = selectedIndices
+                            .where((index) => index < gifs.length)
+                            .map((index) => gifs[index])
+                            .toList();
+                      } else if (gifs.isNotEmpty) {
+                        gifsToSave = [gifs.first];
+                      } else {
+                        gifsToSave = [shareFallbackGif];
+                      }
+
+                      final saved = await _saveGifsToCollection(
+                        context,
+                        gifsToSave,
+                      );
+                      if (saved && context.mounted) {
+                        Navigator.pop(context);
+                      }
+                    },
+                  ),
+                ),
                 const SizedBox(height: 8),
               ],
             ),
@@ -410,6 +448,161 @@ class MainScreenActions {
         ),
       );
     });
+  }
+
+  static Future<bool> _saveGifsToCollection(
+    BuildContext context,
+    List<GifItem> gifs,
+  ) async {
+    final controller = context.read<CollectionShareController>();
+    await controller.loadCollections();
+    if (!context.mounted) return false;
+
+    final collectionId = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Save to collection'),
+        content: SizedBox(
+          width: 420,
+          height: 320,
+          child: Consumer<CollectionShareController>(
+            builder: (context, state, _) {
+              if (state.collections.isEmpty) {
+                return const Center(
+                  child: Text('Create a collection to save GIFs here.'),
+                );
+              }
+              return ListView(
+                children: [
+                  for (final collection in state.collections)
+                    ListTile(
+                      leading: const Icon(Icons.collections_bookmark_outlined),
+                      title: Text(collection.name),
+                      subtitle: Text(
+                        '${state.itemsForCollection(collection.id).length} saved GIFs',
+                      ),
+                      onTap: () => Navigator.pop(dialogContext, collection.id),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton.icon(
+            icon: const Icon(Icons.create_new_folder_outlined),
+            label: const Text('New collection'),
+            onPressed: () async {
+              final nameController = TextEditingController();
+              try {
+                final name = await showDialog<String>(
+                  context: dialogContext,
+                  builder: (nameContext) => AlertDialog(
+                    title: const Text('Create collection'),
+                    content: TextField(
+                      controller: nameController,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Collection name',
+                      ),
+                      onSubmitted: (value) => Navigator.pop(nameContext, value),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(nameContext),
+                        child: const Text('Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(
+                          nameContext,
+                          nameController.text,
+                        ),
+                        child: const Text('Create'),
+                      ),
+                    ],
+                  ),
+                );
+                final normalized = name?.trim() ?? '';
+                if (normalized.isEmpty || !dialogContext.mounted) return;
+                final collection = await controller.createCollection(normalized);
+                if (dialogContext.mounted) {
+                  Navigator.pop(dialogContext, collection.id);
+                }
+              } catch (error) {
+                if (dialogContext.mounted) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    SnackBar(content: Text('Could not create collection: $error')),
+                  );
+                }
+              } finally {
+                nameController.dispose();
+              }
+            },
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+    if (collectionId == null || !context.mounted) return false;
+
+    var savedCount = 0;
+    for (final gif in gifs) {
+      final imageUrl = gif.imageUrl?.trim().isNotEmpty == true
+          ? gif.imageUrl!.trim()
+          : (gif.url ?? '').trim();
+      final uri = Uri.tryParse(imageUrl);
+      if (uri == null ||
+          (uri.scheme != 'http' && uri.scheme != 'https') ||
+          uri.host.isEmpty) {
+        continue;
+      }
+      final sourceUrl = (gif.url?.trim().isNotEmpty == true
+              ? gif.url!.trim()
+              : imageUrl);
+      final id = MediaIdentity.fromUrls(
+        mediaUrl: imageUrl,
+        sourceUrl: sourceUrl,
+      );
+      final now = DateTime.now();
+      await controller.addMediaToCollection(
+        collectionId: collectionId,
+        media: MediaRecord(
+          id: id,
+          sourceUrl: sourceUrl,
+          mediaUrl: imageUrl,
+          thumbnailUrl: gif.previewUrl ?? imageUrl,
+          title: gif.title,
+          width: gif.width,
+          height: gif.height,
+          mimeType: 'image/gif',
+          searchText: [
+            gif.title,
+            gif.altText,
+            sourceUrl,
+            imageUrl,
+          ].whereType<String>().join(' ').toLowerCase(),
+          createdAt: gif.timestamp,
+          updatedAt: now,
+          lastSeenAt: now,
+        ),
+      );
+      savedCount++;
+    }
+
+    if (!context.mounted) return false;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          savedCount == 0
+              ? 'No valid GIF URLs could be saved'
+              : 'Saved $savedCount GIF${savedCount == 1 ? '' : 's'} to collection',
+        ),
+      ),
+    );
+    return savedCount > 0;
   }
 
   /// Shares selected items
