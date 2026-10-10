@@ -95,3 +95,6 @@ The main screen now restores per-Space feed/search/scroll state from the persist
 - [x] Make feed loading, empty-search, and fetch-error states mutually exclusive and actionable.
 - [x] Expose user-created named collections in the UI and allow selected GIFs to be saved into durable SQLite collection memberships without replacing Share Queue functionality.
 - [x] Add controller regression source for creating a named collection and saving/restoring its GIF membership.
+
+
+- [x] Add UI regression source for saving a GIF to a newly created collection from GIF Details, including persisted membership assertion.
