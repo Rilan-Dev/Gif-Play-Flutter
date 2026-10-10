@@ -119,6 +119,39 @@ void main() {
         isNot(contains(first.id)));
   });
 
+  test('each Space retains an independent feed snapshot', () async {
+    final firstSpace = await repository.createSpace(name: 'First feed');
+    final secondSpace = await repository.createSpace(name: 'Second feed');
+
+    await repository.updateSpace(
+      id: firstSpace.id,
+      feedPage: 3,
+      feedStateJson: '{"mediaItems":[{"imageUrl":"https://example.com/first.gif"}],"currentPage":3}',
+      searchQuery: 'cats',
+      scrollOffset: 85.0,
+    );
+    await repository.updateSpace(
+      id: secondSpace.id,
+      feedPage: 7,
+      feedStateJson: '{"mediaItems":[{"imageUrl":"https://example.com/second.gif"}],"currentPage":7}',
+      searchQuery: 'dogs',
+      scrollOffset: 240.0,
+    );
+
+    final restoredFirst = await repository.getSpace(firstSpace.id);
+    final restoredSecond = await repository.getSpace(secondSpace.id);
+    expect(restoredFirst?.feedPage, 3);
+    expect(restoredFirst?.searchQuery, 'cats');
+    expect(restoredFirst?.scrollOffset, 85.0);
+    expect(restoredFirst?.feedStateJson, contains('first.gif'));
+    expect(restoredSecond?.feedPage, 7);
+    expect(restoredSecond?.searchQuery, 'dogs');
+    expect(restoredSecond?.scrollOffset, 240.0);
+    expect(restoredSecond?.feedStateJson, contains('second.gif'));
+    expect(restoredFirst?.feedStateJson, isNot(contains('second.gif')));
+    expect(restoredSecond?.feedStateJson, isNot(contains('first.gif')));
+  });
+
   test('Spaces, Detail Tabs, and session snapshot survive database reopen',
       () async {
     final directory =
