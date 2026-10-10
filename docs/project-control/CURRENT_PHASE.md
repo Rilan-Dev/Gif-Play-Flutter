@@ -47,7 +47,9 @@ The visual Space/Detail Tab strips and initial content restoration are now imple
 - Added a local-first `DetailTabContent` view for the selected persistent tab, including preview/title/source metadata and an explicit safe external-link action.
 - MainScreen now persists per-Space feed snapshots containing at most 120 lightweight `MediaItem` records plus page/visited-page/search metadata; scroll/search writes are debounced.
 - Switching Spaces restores the selected Space's saved feed items, search query, pagination metadata, and scroll offset; empty/unavailable snapshots fall back to fetching the feed.
-- Remaining: focused tests for feed snapshot persistence/restoration and edge cases around fast Space switching and tab-open behavior. Runtime verification remains pending.
+- Added `SpaceFeedSnapshot` parsing to make missing, malformed, and empty saved feeds recover by fetching fresh content; restored snapshots are filtered and bounded to 120 items.
+- Source tests cover empty/missing/malformed snapshots, valid state restoration, and the item bound. Runtime verification remains pending.
+- Next: harden loading-state cleanup for stale fetch completions and query changes during an in-flight request.
 
 
 ### Phase 3 continuation update — 2026-10-10
