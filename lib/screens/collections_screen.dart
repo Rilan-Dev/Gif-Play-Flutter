@@ -15,6 +15,22 @@ class CollectionsScreen extends StatefulWidget {
 
 class _CollectionsScreenState extends State<CollectionsScreen> {
   final _share = DownloadAndShare();
+  bool _startedInitialRefresh = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_startedInitialRefresh) return;
+    _startedInitialRefresh = true;
+    Future.microtask(() async {
+      if (!mounted) return;
+      final controller = context.read<CollectionShareController>();
+      await controller.loadCollections();
+      for (final collection in controller.collections) {
+        await controller.loadCollectionItems(collection.id);
+      }
+    });
+  }
 
   Future<void> _prepareAndShare() async {
     final controller = context.read<CollectionShareController>();
@@ -31,12 +47,15 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
     CollectionShareController controller,
     GifCollection collection,
   ) {
+    final savedCount = controller.itemsForCollection(collection.id).length;
     final readiness = controller.readiness[collection.id];
     if (readiness == null) {
-      return const Text('Not prepared');
+      return Text('$savedCount saved GIFs · not prepared');
     }
 
-    if (readiness.pending == 0) return const Text('Empty · 0 pending');
+    if (readiness.pending == 0) {
+      return Text('$savedCount saved GIFs · 0 pending');
+    }
 
     final parts = <String>[
       'pending ${readiness.pending}',
@@ -46,7 +65,7 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
     ];
     if (readiness.expired > 0) parts.add('expired ${readiness.expired}');
     if (readiness.failed > 0) parts.add('failed ${readiness.failed}');
-    return Text(parts.join(' · '));
+    return Text('$savedCount saved · ${parts.join(' · ')}');
   }
 
   String _itemStatus(CollectionCacheState state) {
