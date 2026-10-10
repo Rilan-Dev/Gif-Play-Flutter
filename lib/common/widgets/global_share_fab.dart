@@ -311,8 +311,12 @@ class _GlobalShareSheetState extends State<_GlobalShareSheet> {
 
     try {
       final downloadAndShare = DownloadAndShare();
-      await downloadAndShare.downloadAndShareGifs(context, gifsToShare, true);
-      if (!mounted) return;
+      final shared = await downloadAndShare.downloadAndShareGifs(
+        context,
+        gifsToShare,
+        true,
+      );
+      if (!mounted || !shared) return;
 
       // Keep the queue intact until the user explicitly removes or clears it.
       // DownloadAndShare currently reports failures through the UI rather than
