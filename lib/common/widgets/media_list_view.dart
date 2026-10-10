@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 
 import '../models/media_item.dart';
 import '../providers/liked_gifs_provider.dart';
-import 'shimmer_loading.dart';
+import 'media_image.dart';
 
 /// A widget for displaying media items in a list layout.
 ///
@@ -75,17 +74,7 @@ class MediaListView extends StatelessWidget {
                             child: SizedBox(
                               width: 150, // Larger image width
                               height: 150, // Larger image height
-                              child: CachedNetworkImage(
-                                imageUrl: item.imageUrl,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => const ShimmerLoading(height: 150),
-                                errorWidget: (context, url, error) => Center(
-                                  child: Icon(
-                                    Icons.error,
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
-                                ),
-                              ),
+                              child: MediaImage(imageUrl: item.imageUrl, width: 150, height: 150, fit: BoxFit.cover, placeholderHeight: 150),
                             ),
                           ),
 

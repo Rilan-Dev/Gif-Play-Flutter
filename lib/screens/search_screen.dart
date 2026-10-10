@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../common/models/gif_item.dart';
+import '../common/providers/share_queue_provider.dart';
 import '../common/providers/viewed_gifs_provider.dart';
+import '../common/widgets/global_share_fab.dart';
 import '../services/gif_service.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -110,6 +112,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
       body: _buildBody(),
+      floatingActionButton: const GlobalShareFab(),
     );
   }
 
@@ -156,6 +159,29 @@ class _SearchScreenState extends State<SearchScreen> {
                       const Icon(Icons.error),
                 )
               : const Icon(Icons.image),
+          trailing: Consumer<ShareQueueProvider>(
+            builder: (context, shareQueue, child) {
+              final isCollected = shareQueue.contains(gif);
+              return IconButton(
+                icon: Icon(
+                  isCollected ? Icons.playlist_add_check : Icons.playlist_add,
+                ),
+                onPressed: () {
+                  if (isCollected) {
+                    shareQueue.removeGif(gif);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Removed from share list')),
+                    );
+                  } else {
+                    shareQueue.addGif(gif);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Added to share list')),
+                    );
+                  }
+                },
+              );
+            },
+          ),
           onTap: () {
             // Mark gif as viewed
             Provider.of<ViewedGifsProvider>(context, listen: false).addViewedGif(gif);
@@ -174,4 +200,3 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 }
-

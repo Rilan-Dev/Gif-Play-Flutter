@@ -18,6 +18,8 @@ class MoodVibeMediaMasonryView extends StatelessWidget {
   final Set<int> selectedItems;
   final bool isSelectionMode;
   final ScrollController? scrollController;
+  final ScrollPhysics? physics;
+  final bool scrollable;
 
   const MoodVibeMediaMasonryView({
     Key? key,
@@ -28,6 +30,8 @@ class MoodVibeMediaMasonryView extends StatelessWidget {
     this.selectedItems = const {},
     this.isSelectionMode = false,
     this.scrollController,
+    this.physics,
+    this.scrollable = true,
   }) : super(key: key);
 
   @override
@@ -48,23 +52,33 @@ class MoodVibeMediaMasonryView extends StatelessWidget {
       }
     }
 
+    final content = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left column
+        Expanded(
+          child: _buildColumn(context, leftItems, leftIndices),
+        ),
+        const SizedBox(width: 8),
+        // Right column
+        Expanded(
+          child: _buildColumn(context, rightItems, rightIndices),
+        ),
+      ],
+    );
+
+    if (!scrollable) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: content,
+      );
+    }
+
     return SingleChildScrollView(
       controller: scrollController,
+      physics: physics,
       padding: const EdgeInsets.all(8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Left column
-          Expanded(
-            child: _buildColumn(context, leftItems, leftIndices),
-          ),
-          const SizedBox(width: 8),
-          // Right column
-          Expanded(
-            child: _buildColumn(context, rightItems, rightIndices),
-          ),
-        ],
-      ),
+      child: content,
     );
   }
 
@@ -155,4 +169,3 @@ class MoodVibeMediaMasonryView extends StatelessWidget {
     );
   }
 }
-
