@@ -176,11 +176,22 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                 ),
                 title: Text(collection.name),
                 subtitle: _statusFor(controller, collection),
-                trailing: IconButton(
-                  tooltip: 'Retry failed or expired items',
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () =>
-                      controller.retryFailedOrExpired(collection.id),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'Make saved GIFs shareable again',
+                      icon: const Icon(Icons.replay),
+                      onPressed: () =>
+                          controller.resetCollectionForSharing(collection.id),
+                    ),
+                    IconButton(
+                      tooltip: 'Retry failed or expired items',
+                      icon: const Icon(Icons.refresh),
+                      onPressed: () =>
+                          controller.retryFailedOrExpired(collection.id),
+                    ),
+                  ],
                 ),
                 children: [
                   _itemList(context, controller, collection.id),
