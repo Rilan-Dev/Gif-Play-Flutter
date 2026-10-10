@@ -29,7 +29,8 @@ Phase 3 — Persistent Browsing Spaces & Detail Tabs is **IN PROGRESS**. Phase 1
 9. [x] Finish edge-case behavior: ignore stale post-frame scroll restoration, guard scroll callbacks when the feed is detached, and make feed-item opening consistent with selected Detail Tab content instead of layering competing navigation/dialog surfaces.
 10. [x] Extract resilient `SpaceFeedSnapshot` restoration and add source coverage for empty, missing, malformed, valid, and bounded snapshots; empty/unavailable saved content is marked for a fresh feed fetch.
 11. [x] Harden fetch lifecycle ownership: each active fetch has a request generation, and only that request may clear loading state or drain the queued Space fetch. Successful fetches schedule a debounced snapshot save, and results are filtered using the latest query.
-12. [NEXT] Add focused source coverage for rapid Space switching with an in-flight fetch and confirm previous-Space snapshot writes remain isolated, then cover suggestion-to-child-tab and browser-style tab overview interactions. Continue the broader home/search UX roadmap. Bulk GIF sharing now uses safe hashed cache filenames, explicit GIF MIME types, and accurate success/failure feedback; add any device-specific regression coverage from the next reproduction. Collections remain durable and bulk-shareable. Keep runtime verification pending rather than waiting for CI/Vercel.
+12. [x] Add regression source for queue-only cache preparation/foreign-key safety, repeated same-GIF child tabs, URL media-ID normalization, per-Space active tabs, Home-feed restoration, and Share Queue persistence.
+13. [NEXT] Continue focused interaction coverage for rapid Space switching during an in-flight fetch and suggestion-to-child-tab/overview interactions; improve bulk-share diagnostics and partial-failure handling based on the newly identified queue media-record foreign-key issue. Then continue broader home/search UX. Device retest is still needed because build 28 predates these latest commits.
 
 Runtime Flutter/Dart verification remains pending in the available environment; continue implementation without waiting for CI/Vercel/runtime gates.
 
@@ -59,3 +60,11 @@ The navigation strip, restored GIF detail/suggestions view, child-tab thumbnail 
 
 ## Phase 3 implementation status — 2026-10-10
 The main screen now restores per-Space feed/search/scroll state from the persisted `feed_state_json` snapshot, bounded to 120 lightweight `MediaItem` records, and writes updates with a short debounce. Selecting a Detail Tab renders the saved GIF preview/title, reloads source-page suggestions, and offers an explicit safe source action. Choosing a suggestion opens a persistent child tab; the tab strip and bottom bar open a thumbnail/title overview. The next slice is focused rapid-Space-switch and child-tab interaction regression coverage. Runtime tests remain pending.
+
+
+## 2026-10-11 user-reported regression priority
+- [x] Fix queue cache preparation by ensuring media rows exist before cache-entry foreign keys are written.
+- [x] Fix tab creation by normalizing URL-shaped IDs to a persisted media record before writing detail_tabs.
+- [x] Always create a new child tab for each explicit GIF selection; add persistent Home-feed selection and tab overview close controls.
+- [x] Persist and restore the Share Queue across app launches.
+- [NEXT] Continue focused interaction coverage and improve visible/share-stage diagnostics. Flutter runtime verification is pending; do not block development on CI/Vercel. Build 28 does not contain these commits.
