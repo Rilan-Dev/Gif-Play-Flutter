@@ -78,10 +78,18 @@ class SessionNavigationController extends ChangeNotifier {
       (space) => space.id == _activeSpaceId,
     );
     final tabs = _tabsBySpace[_activeSpaceId] ?? const <DetailTab>[];
-    _activeDetailTabId =
-        _validTabId(snapshot?.activeDetailTabId, _activeSpaceId) ??
-        _validTabId(activeSpace.activeDetailTabId, _activeSpaceId) ??
-        (tabs.isEmpty ? null : tabs.last.id);
+    final snapshotMatchesActiveSpace =
+        snapshot?.activeSpaceId == _activeSpaceId;
+    if (snapshotMatchesActiveSpace && snapshot?.activeDetailTabId == null) {
+      // A null tab in a matching session snapshot is an intentional Home-feed
+      // selection, not a missing value to replace with the last child tab.
+      _activeDetailTabId = null;
+    } else {
+      _activeDetailTabId =
+          _validTabId(snapshot?.activeDetailTabId, _activeSpaceId) ??
+          _validTabId(activeSpace.activeDetailTabId, _activeSpaceId) ??
+          (tabs.isEmpty ? null : tabs.last.id);
+    }
 
     if (snapshot?.activeSpaceId != _activeSpaceId ||
         snapshot?.activeDetailTabId != _activeDetailTabId ||
@@ -194,6 +202,19 @@ class SessionNavigationController extends ChangeNotifier {
     return tab;
   }
 
+  /// Returns to the feed without closing any child tabs.
+  Future<void> activateHomeFeed(String spaceId) async {
+    if (_validSpaceId(spaceId) == null) return;
+    _activeSpaceId = spaceId;
+    _activeDetailTabId = null;
+    await repository.updateSpace(
+      id: spaceId,
+      clearActiveDetailTabId: true,
+    );
+    await _persistSession();
+    notifyListeners();
+  }
+
   Future<void> activateDetailTab(String tabId) async {
     final tab = await repository.getDetailTab(tabId);
     if (tab == null || tab.isClosed) return;
@@ -295,7 +316,9 @@ class SessionNavigationController extends ChangeNotifier {
       targetSpace.activeDetailTabId,
       spaceId,
     );
-    if (_activeDetailTabId == null) {
+    // A null persisted pointer means this Space was left on its Home feed.
+    // Only repair a non-null but stale pointer by selecting the last live tab.
+    if (targetSpace.activeDetailTabId != null && _activeDetailTabId == null) {
       final tabs = tabsForSpace(spaceId);
       _activeDetailTabId = tabs.isEmpty ? null : tabs.last.id;
     }
