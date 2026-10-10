@@ -1,3 +1,8 @@
+## 2026-10-10 — Bottom browser-style tab control
+- Added a bottom bar that shows the active Space, selected child-tab title, and open child-tab count.
+- The bottom bar opens the same large thumbnail/title overview dialog as the child-tab strip, providing a familiar browser-style tab switch entry point.
+- Updated continuation and next-action records; interaction/runtime verification remains pending.
+
 ## 2026-10-10 — Persistent collections and full Detail Tab restoration
 - Rechecked current main, recent feature-port merges, collection repository/controller, and the Detail Tab rendering path. Confirmed collections and membership are stored in SQLite; the selected tab was only rendering saved thumbnail/title metadata.
 - Changed DetailTabContent to rebuild the selected GIF detail surface and load the existing source-page GIF suggestions. Selecting a suggestion opens/activates a persistent child tab in the same Space; source opening remains explicit and restricted to HTTP(S).
