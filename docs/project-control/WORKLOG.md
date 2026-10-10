@@ -187,3 +187,10 @@
 - Added app lifecycle persistence flush in MainScreen. When the app becomes inactive, paused, or detached, it cancels the feed snapshot debounce and writes the current Space's feed/search/pagination/scroll snapshot; it also flushes the Share Queue's serialized persistence queue asynchronously.
 - Confirmed application bootstrap uses the stable Drift database name gif_play_library, initializes it before UI startup, runs the legacy preferences migration, and restores the Share Queue before runApp. Named collections/memberships and Spaces/tabs/session state are SQLite-backed; the queue is SharedPreferences-backed.
 - Verification remains source-only: tests/analyzer/APK/device restart and share sheet were not executed in this environment. Continue development without waiting for CI/Vercel. Build 28 predates these changes.
+
+
+## 2026-10-11 — Suggestion navigation coverage and focused search UX
+- Made DetailTabContent's suggestion loader injectable without changing its default production behavior. Added widget regression source that supplies a deterministic suggestion and asserts tapping it creates a second persisted child tab and makes that child active.
+- Restored the search field's visibility when a Space restores a non-empty saved query; previously the feed could be filtered by a saved query while the search field remained hidden.
+- Added shared mediaItemMatchesQuery logic and updated restored feeds, fresh fetch results, and live search filtering to match GIF title, source-page URL, and image URL case-insensitively. Added unit test source for title/URL matching, whitespace queries, and misses.
+- The Phase 3 regression set now includes controller concurrent-switch coverage, Home/tab/overview widget coverage, suggestion-to-child-tab coverage, and URL-aware search helper tests. Runtime execution remains pending; continue implementation without waiting for CI/Vercel.
