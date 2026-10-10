@@ -344,6 +344,30 @@ void main() {
     }
   });
 
+  test('collection controller creates named collections and persists GIF membership',
+      () async {
+    final controller = CollectionShareController(repository);
+    await controller.loadCollections();
+
+    final collection = await controller.createCollection('My reactions');
+    await controller.addMediaToCollection(
+      collectionId: collection.id,
+      media: media(98),
+    );
+
+    expect(controller.collections.map((item) => item.name),
+        contains('My reactions'));
+    expect(controller.itemsForCollection(collection.id), hasLength(1));
+    expect(controller.itemsForCollection(collection.id).single.mediaId,
+        media(98).id);
+
+    final restored = CollectionShareController(repository);
+    await restored.loadCollections();
+    await restored.loadCollectionItems(collection.id);
+    expect(restored.collections.map((item) => item.id), contains(collection.id));
+    expect(restored.itemsForCollection(collection.id), hasLength(1));
+  });
+
   test('legacy migration is idempotent and preserves reusable collections', () async {
     SharedPreferences.setMockInitialValues({
       'liked_gifs': '[{"id":"legacy-1","url":"https://example.com/post/1","title":"Legacy","imageUrl":"https://example.com/gifs/1.gif","timestamp":1767225600000}]',
