@@ -232,12 +232,13 @@ class LocalMediaRepository {
     return rows.map(_mediaFromRow).toList(growable: false);
   }
 
+  /// Compatibility entry point for older callers.
+  ///
+  /// Collections are durable reusable libraries, not disposable share queues.
+  /// A clear request therefore resets their items to pending instead of
+  /// deleting collection membership or the collection definition.
   Future<void> clearCollectionItems(String collectionId) async {
-    await database.customUpdate(
-      'DELETE FROM collection_items WHERE collection_id = ?',
-      variables: [Variable.withString(collectionId)],
-      updateKind: UpdateKind.delete,
-    );
+    await resetCollectionItemsToPending(collectionId);
     await database.customUpdate(
       'UPDATE collections SET updated_at = ? WHERE id = ?',
       variables: [
