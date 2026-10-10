@@ -38,6 +38,7 @@ class MainScreenActions {
       if (spaceId != null) {
         unawaited(navigation.openDetailTab(
           spaceId: spaceId,
+          mediaId: item.imageUrl,
           canonicalUrl: item.href ?? item.imageUrl,
           title: item.title ?? 'GIF detail',
           thumbnailUrl: item.imageUrl,
