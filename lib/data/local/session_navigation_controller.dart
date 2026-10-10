@@ -262,6 +262,7 @@ class SessionNavigationController extends ChangeNotifier {
         activeDetailTabId: _activeDetailTabId,
         clearActiveDetailTabId: _activeDetailTabId == null,
       );
+      _spaces = await repository.listSpaces();
       await _persistSession();
     }
     notifyListeners();
