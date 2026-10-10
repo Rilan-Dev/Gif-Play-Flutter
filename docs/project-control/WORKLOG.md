@@ -88,3 +88,13 @@
 - Updated the research index, research protocol, NEXT_ACTION, PROJECT_STATE, and CHAT_CONTINUITY to capture the new UI and accurately describe remaining content-switching work.
 - Verification status: no Flutter/Dart runtime execution was performed. Development continued without waiting for CI/Vercel or repeated verification.
 - Known follow-up: Space selection currently updates persistent navigation state but does not yet restore independent feed/search/scroll content; Detail Tab selection does not yet switch the visible page content.
+
+
+## 2026-10-10 — Phase 3 content restoration continued
+- Added `lib/common/widgets/detail_tab_content.dart`, a local-first selected-tab view using persisted title/thumbnail/canonical URL metadata and an explicit external-source action with HTTP/HTTPS scheme validation.
+- Updated `MainScreen` to display selected Detail Tab content and restore each Space's feed state from its existing `feed_state_json`, `search_query`, `feed_page`, and `scroll_offset` fields.
+- Feed snapshots retain up to 120 lightweight `MediaItem` records, current/total page metadata, visited pages, query, and scroll offset. Scroll/search changes are debounced before writing to SQLite.
+- Space switching saves the previous Space state and restores the next Space's snapshot; empty snapshots fall back to a feed fetch. No schema migration was needed.
+- Updated NEXT_ACTION, PROJECT_STATE, CURRENT_PHASE, CHAT_CONTINUITY, AI_REPO_INDEX, and AI_RESEARCH_PROTOCOL to reflect current implementation and next steps.
+- Verification status: Flutter/Dart tests and analyzer were not run; verification remains pending and did not block implementation.
+- Next: add focused feed-state persistence/restoration tests and harden switching/empty-feed/tab-open UX cases.
