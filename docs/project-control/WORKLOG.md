@@ -1,3 +1,13 @@
+## 2026-10-10 — Bulk GIF sharing crash hardening
+- Traced the global Share Queue bulk path through `DownloadAndShare`, `ShareQueueProvider`, `MediaIdentity`, and `MediaCacheManager`.
+- Root cause found: when a queued GIF has no provider ID, the queue assigns a fallback key such as `url:https://...`. `_toMediaRecord` previously accepted that fallback as a media ID, and the cache manager interpolated arbitrary media IDs directly into a filesystem path. URL slashes can therefore create invalid nested paths and make bulk preparation fail.
+- Queue-generated `url:`, `img:`, and `title:` keys are now converted to stable `MediaIdentity` hashes before becoming media IDs. The cache manager independently hashes every media ID into a safe deterministic filename, protecting legacy/imported IDs too.
+- Native share payloads now explicitly set `image/gif` MIME type for cache files stored with a `.bin` extension, skip files that disappeared before sharing, and deduplicate repeated local paths.
+- Added a share-position origin for native iPad share popovers.
+- Fixed collection bulk-share readiness so already-shared/empty selected collections do not block other selected collections with pending GIFs.
+- `downloadAndShareGifs` now returns a success flag; the compact and full Share Queue screens no longer display a success confirmation after the utility reports a failure.
+- Added `test/media_cache_manager_test.dart` for safe, deterministic cache filenames with URL-shaped IDs. Tests/analyzer/build were not run; verification remains pending.
+
 ## 2026-10-10 — Bottom browser-style tab control
 - Added a bottom bar that shows the active Space, selected child-tab title, and open child-tab count.
 - The bottom bar opens the same large thumbnail/title overview dialog as the child-tab strip, providing a familiar browser-style tab switch entry point.
