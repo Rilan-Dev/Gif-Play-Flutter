@@ -7,7 +7,8 @@ version: 1.0.0+1
 environment:
   sdk: ^3.6.0
 
-# APK CI compatibility: pin Drift to the custom SQL API used by LocalDatabase.
+# APK CI compatibility: use Drift 2.31.x with drift_flutter 0.2.x for the
+# custom SQL DatabaseConnectionUser implementation in LocalDatabase.
 # Android build tooling: Gradle 8.14.3 + AGP 8.11.1 + Kotlin 2.2.20.
 
 dependencies:
@@ -16,8 +17,8 @@ dependencies:
   flutter_riverpod: ^2.3.6
   http: ^1.1.0
   crypto: ^3.0.6
-  drift: 2.32.1
-  drift_flutter: ^0.3.1
+  drift: 2.31.0
+  drift_flutter: 0.2.3
   html: ^0.15.4
   dartz: ^0.10.1
   cached_network_image: ^3.2.3
