@@ -106,3 +106,12 @@
 - Updated SessionNavigationController repair, close, and Space activation paths to explicitly clear stale pointers when no valid tab is active.
 - Extended the repository regression test to assert that closing the final Detail Tab leaves `activeDetailTabId` null.
 - Verification status: test source updated but Flutter/Dart tests were not executed. Development continues without waiting for CI/Vercel/runtime gates.
+
+
+## 2026-10-10 — Phase 3 asynchronous Space restoration hardening
+- Removed the Space-restore-in-progress early return from the navigation listener so every active-Space change starts a newer restore generation.
+- Added a generation token and active-Space identity checks around asynchronous Space reads and feed-state application. Outdated restores no longer replace the latest selected Space's in-memory feed state.
+- Changed feed fetching to operate on snapshots of the existing item lists, search query, and visited-page set; stale results are discarded when their Space is no longer active.
+- If a Space needs a fetch while another request is in flight, its ID is queued and fetched after the current request completes, rather than silently skipping the required load.
+- Added a detached-scroll-controller guard to avoid accessing scroll position after the feed scrollable has detached.
+- Runtime verification was not run; implementation continued without waiting for tests, CI, or Vercel.
