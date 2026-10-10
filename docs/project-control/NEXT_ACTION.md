@@ -58,4 +58,4 @@ The navigation strip, restored GIF detail/suggestions view, child-tab thumbnail 
 
 
 ## Phase 3 implementation status — 2026-10-10
-The main screen now restores per-Space feed/search/scroll state from the persisted `feed_state_json` snapshot, bounded to 120 lightweight `MediaItem` records, and writes updates with a short debounce. Selecting a Detail Tab renders a local-first content view using stored title/thumbnail/URL metadata; opening the original URL is an explicit user action. The next slice is focused regression coverage and UX edge-case cleanup. Runtime tests remain pending.
+The main screen now restores per-Space feed/search/scroll state from the persisted `feed_state_json` snapshot, bounded to 120 lightweight `MediaItem` records, and writes updates with a short debounce. Selecting a Detail Tab renders the saved GIF preview/title, reloads source-page suggestions, and offers an explicit safe source action. Choosing a suggestion opens a persistent child tab; the tab strip and bottom bar open a thumbnail/title overview. The next slice is focused rapid-Space-switch and child-tab interaction regression coverage. Runtime tests remain pending.
