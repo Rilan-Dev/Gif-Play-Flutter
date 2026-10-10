@@ -573,11 +573,12 @@ For collection/cache/share work, read:
 When adding or moving a repository, controller, provider, feature screen, or shared widget, update this index and `docs/AI_RESEARCH_PROTOCOL.md`. Do not use the historical baseline inventory above as a complete current-tree listing; use the current GitHub tree and this active-module map together.
 
 
-### Phase 3 UI slice — 2026-10-10
+### Phase 3 UI and content restoration — 2026-10-10
 - `lib/common/widgets/session_navigation_strip.dart` — compact horizontal Space strip with create/close/select controls and a nested Detail Tab strip with select/close controls.
-- `lib/screens/main_screen/main_screen.dart` — mounts the navigation strips above the existing feed without replacing the established media layout.
-- `lib/screens/main_screen/main_screen_actions.dart` — records a lightweight Detail Tab when a feed item is opened, using the active Space and local metadata.
-- Current UI limitation: selecting a Space changes the durable active-space pointer, but per-Space feed/search/scroll restoration and rendering the selected Detail Tab's actual page content are still the next integration slice. Do not treat the visual strip alone as full browser-like content switching.
+- `lib/screens/main_screen/main_screen.dart` — mounts the navigation strips, restores/saves per-Space feed/search/pagination/scroll state, and renders selected Detail Tab content.
+- `lib/screens/main_screen/main_screen_actions.dart` — records a lightweight Detail Tab when a feed item is opened, using the active Space and local metadata; legacy detail-dialog actions remain available.
+- `lib/common/widgets/detail_tab_content.dart` — local-first selected-tab view with saved title/thumbnail/source URL and an explicit external-source action.
+- Feed snapshots are bounded to 120 lightweight `MediaItem` records. Runtime tests remain pending; inspect overlapping async Space restores and stale feed fetches next.
 
 
 ## 18. Android APK CI/CD research path (2026-10-10)
@@ -595,3 +596,9 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 - `lib/common/widgets/detail_tab_content.dart` — local-first content for a selected Detail Tab, showing saved title/thumbnail/source URL and opening the original URL only via an explicit safe external action.
 - `lib/screens/main_screen/main_screen.dart` — bounded per-Space feed snapshot restore/save (`feed_state_json`), query/pagination/visited-page/scroll persistence, debounced state writes, and selected Detail Tab content rendering.
 - Existing `BrowsingSpace` persistence fields are reused; this slice does not require a schema change. Feed snapshots are capped at 120 lightweight `MediaItem` records to avoid persisting large binary payloads.
+
+
+### Phase 3 persistence contract note — 2026-10-10
+- `LocalMediaRepository.updateSpace` now exposes `clearActiveDetailTabId` so callers can explicitly clear a nullable active-tab pointer without accidentally preserving the previous value.
+- `SessionNavigationController` uses that option during session repair, last-tab close, and Space activation when no valid Detail Tab remains.
+- `test/local_media_repository_test.dart` includes a repository assertion that closing the final Detail Tab clears the persisted Space pointer.
