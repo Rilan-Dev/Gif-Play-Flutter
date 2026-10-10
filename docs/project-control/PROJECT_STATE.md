@@ -55,3 +55,11 @@ Phase 3 persistence infrastructure remains active. Startup creates a durable Hom
 - Home feed is now an explicit selectable navigation surface beside child tabs. Selecting it persists a null active-tab pointer; the tab overview has direct close controls. Legacy special-domain home clicks no longer push a separate detail route that hides the navigation shell.
 - Share Queue is now persisted locally and restored before the app UI is shown. Collection persistence is SQLite-backed; file-backed reopen coverage already exists. Test source added for share queue restoration and navigation/cache regressions.
 - Current verification remains pending: Flutter tests/analyzer/build/device retest were not executed by this assistant. The user reports build 28 still has the issue; the next APK must include these newer commits.
+
+
+## 2026-10-11 continued work — Navigation, lifecycle, and search
+- Added controller regression source for concurrent Space switches and widget coverage for Home feed, child-tab reactivation, tab overview, and close-from-overview.
+- Added deterministic suggestion-loader injection and a widget test source confirming a selected suggestion opens a new child tab.
+- MainScreen now flushes debounced feed/search/pagination/scroll state when the app backgrounds and flushes serialized Share Queue writes.
+- Search field visibility follows a restored non-empty query; local matching now checks title, source URL and image URL using a shared helper.
+- Runtime test/analyzer/APK/device verification remains pending; development continues without waiting for CI/Vercel.
