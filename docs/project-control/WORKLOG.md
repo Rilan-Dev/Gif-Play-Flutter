@@ -98,3 +98,11 @@
 - Updated NEXT_ACTION, PROJECT_STATE, CURRENT_PHASE, CHAT_CONTINUITY, AI_REPO_INDEX, and AI_RESEARCH_PROTOCOL to reflect current implementation and next steps.
 - Verification status: Flutter/Dart tests and analyzer were not run; verification remains pending and did not block implementation.
 - Next: add focused feed-state persistence/restoration tests and harden switching/empty-feed/tab-open UX cases.
+
+
+## 2026-10-10 — Phase 3 active-tab pointer cleanup
+- Fixed a persistence contract bug where nullable `activeDetailTabId` updates could not clear a previously stored value because repository updates used null-coalescing to preserve the current value.
+- Added an explicit `clearActiveDetailTabId` option to `LocalMediaRepository.updateSpace`; closing the final Detail Tab now clears the Space pointer in the same repository transaction.
+- Updated SessionNavigationController repair, close, and Space activation paths to explicitly clear stale pointers when no valid tab is active.
+- Extended the repository regression test to assert that closing the final Detail Tab leaves `activeDetailTabId` null.
+- Verification status: test source updated but Flutter/Dart tests were not executed. Development continues without waiting for CI/Vercel/runtime gates.
