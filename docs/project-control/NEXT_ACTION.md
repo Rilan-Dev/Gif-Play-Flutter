@@ -75,3 +75,10 @@ The main screen now restores per-Space feed/search/scroll state from the persist
 - [x] Add widget regression source for Home feed ↔ child-tab navigation, tab overview visibility, and closing a tab from the overview.
 - [x] Flush the debounced Space feed/search/pagination/scroll snapshot when the app backgrounds, and flush queued Share Queue writes through its serialized persistence chain.
 - [NEXT] Continue Phase 3 with explicit suggestion-to-child-tab interaction coverage and review the full lifecycle of tabs and collections after process recreation. Then proceed with focused home/search UX improvements without a broad redesign. Tests/analyzer/build/device verification are still pending and are not a development blocker.
+
+
+## 2026-10-11 follow-up — suggestions and focused search behavior
+- [x] Add deterministic suggestion-to-child-tab widget coverage via an injectable loader.
+- [x] Restore the search input visibility when restoring a non-empty Space query.
+- [x] Make local search match title, source URL, and image URL, and add focused unit-test source.
+- [NEXT] Continue home/search UX without a broad redesign: inspect feed item actions and empty/error/loading states, preserve current navigation contracts, and add focused tests around search restoration and collection persistence. Keep runtime verification pending and do not wait for CI/Vercel.
