@@ -8,7 +8,7 @@ This file defines how future AI-assisted development should research this reposi
 
 - Repository: `Rilan-Dev/Gif-Play-Flutter`
 - Default branch: `main`
-- Current index baseline: `9a0c17c973a60b0e74aac4d6efc6f047f592f217`
+- Index status: maintained against current main; see docs/AI_REPO_INDEX.md for the refreshed module map.
 - Primary index: `docs/AI_REPO_INDEX.md`
 
 ## Before implementation
@@ -59,6 +59,12 @@ When replacing or improving the backend:
 - make failures explicit;
 - avoid coupling widgets to HTTP;
 - retain compatibility with existing providers and views where practical.
+
+## Current implementation additions
+
+The current repository includes Drift/SQLite persistence, cache/share orchestration, and persistent Spaces/Detail Tabs. For those areas, follow the active-module research paths in docs/AI_REPO_INDEX.md; do not rely only on the original source inventory.
+
+Before changing navigation restoration, inspect SessionNavigationController, LocalMediaRepository, the session/space/tab models, and test/session_navigation_recovery_test.dart. Keep restoration local-first and repair stale or cross-Space tab references.
 
 ## Testing policy
 
