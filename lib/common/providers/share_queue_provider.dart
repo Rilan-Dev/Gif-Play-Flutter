@@ -50,6 +50,10 @@ class ShareQueueProvider with ChangeNotifier {
     }
   }
 
+  /// Waits for the current queue snapshot to be written to local storage.
+  /// Useful before an intentional app-level navigation or lifecycle handoff.
+  Future<void> flushPersistence() => _persistQueue();
+
   Future<void> _persistQueue() async {
     try {
       await SharedPreferencesUtil.setString(
