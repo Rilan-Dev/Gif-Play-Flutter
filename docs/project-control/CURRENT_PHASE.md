@@ -71,3 +71,5 @@ The visual Space/Detail Tab strips and initial content restoration are now imple
 - Collections screen reloads SQLite-backed collection membership when opened and reports saved-item counts, including already-shared items.
 - Collection clear compatibility calls now reset share status rather than deleting membership. Empty collections do not block sharing other selected collections; an explicit reset action makes saved items eligible for sharing again.
 - Runtime tests/analyzer remain pending; no CI/deployment gate was awaited.
+
+- Added a bottom browser-style tab control showing the active Space, selected GIF title, and child-tab count, with a shortcut to the same thumbnail/title overview dialog.
