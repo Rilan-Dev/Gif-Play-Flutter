@@ -2,6 +2,15 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: "Choose which APK to build"
+        required: true
+        type: choice
+        options:
+          - release
+          - debug
+        default: release
 
 permissions:
   contents: read
@@ -12,16 +21,16 @@ concurrency:
 
 jobs:
   build-apk:
-    name: Build release APK
+    name: Build ${{ inputs.build_type }} APK
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -35,13 +44,19 @@ jobs:
       - name: Resolve Flutter dependencies
         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --release
+      - name: Build selected APK
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+        run: |
+          case "$BUILD_TYPE" in
+            debug|release) flutter build apk "--$BUILD_TYPE" ;;
+            *) echo "Unsupported build type: $BUILD_TYPE" >&2; exit 1 ;;
+          esac
 
       - name: Publish APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: gif-play-android-apk-${{ github.run_number }}
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: gif-play-${{ inputs.build_type }}-android-apk-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-${{ inputs.build_type }}.apk
           if-no-files-found: error
           retention-days: 30
