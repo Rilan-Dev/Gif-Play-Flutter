@@ -39,7 +39,7 @@ Status: **IN PROGRESS — persistence infrastructure slice**
 - Source-level migration, persistence, and restoration tests.
 
 ### Next
-The visual Space/Detail Tab strips and initial content restoration are now implemented. The final-tab pointer clearing contract is fixed and has repository regression coverage. Continue with async Space-switch/feed-fetch race handling, then empty-feed and tab-open interaction regression sources. Keep Flutter/Dart runtime verification pending if unavailable; do not wait for CI/Vercel.
+The visual Space/Detail Tab strips and initial content restoration are now implemented. The final-tab pointer clearing contract is fixed and has repository regression coverage. Async Space-switch/feed-fetch race handling is implemented: stale restore/fetch results are discarded and the latest Space's fetch is queued when necessary. Next, guard delayed scroll restoration and consolidate feed-item opening with selected Detail Tab UX, then add empty-feed, stale-URL, and independent-snapshot regression sources. Keep Flutter/Dart runtime verification pending if unavailable; do not wait for CI/Vercel.
 
 
 ### Phase 3 — latest implementation update (2026-10-10)
@@ -54,3 +54,9 @@ The visual Space/Detail Tab strips and initial content restoration are now imple
 - Repository updates can now explicitly clear `active_detail_tab_id`; the last Detail Tab close path clears the persisted Space pointer instead of retaining a stale ID.
 - Added a repository test assertion for the cleared pointer.
 - Next implementation focus: avoid stale feed fetch results crossing Space boundaries and ensure the latest selected Space gets its fetch when another request is in flight.
+
+
+### Async restoration update — 2026-10-10
+- MainScreen now uses a restore generation and active-Space identity checks for async restore/fetch results.
+- Feed fetches use snapshots rather than live mutable feed collections; pending requests for the latest Space are queued.
+- Detached scroll callbacks are ignored. Runtime verification remains pending and is not a blocker.
