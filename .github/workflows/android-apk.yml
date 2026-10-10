@@ -11,6 +11,12 @@ on:
           - release
           - debug
         default: release
+  # Temporary troubleshooting trigger: remove after a successful APK is produced.
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - ".github/workflows/android-apk.yml"
 
 permissions:
   contents: read
@@ -21,7 +27,7 @@ concurrency:
 
 jobs:
   build-apk:
-    name: Build ${{ inputs.build_type }} APK
+    name: Build ${{ inputs.build_type || 'release' }} APK
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
@@ -46,7 +52,7 @@ jobs:
 
       - name: Build selected APK
         env:
-          BUILD_TYPE: ${{ inputs.build_type }}
+          BUILD_TYPE: ${{ inputs.build_type || 'release' }}
         run: |
           case "$BUILD_TYPE" in
             debug|release) flutter build apk "--$BUILD_TYPE" ;;
@@ -56,7 +62,7 @@ jobs:
       - name: Publish APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: gif-play-${{ inputs.build_type }}-android-apk-${{ github.run_number }}
-          path: build/app/outputs/flutter-apk/app-${{ inputs.build_type }}.apk
+          name: gif-play-${{ inputs.build_type || 'release' }}-android-apk-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-${{ inputs.build_type || 'release' }}.apk
           if-no-files-found: error
           retention-days: 30
