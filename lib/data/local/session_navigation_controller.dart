@@ -147,10 +147,11 @@ class SessionNavigationController extends ChangeNotifier {
     // first, then store its canonical ID in the tab.
     var storedMediaId = mediaId;
     if (mediaId != null && await repository.getMedia(mediaId) == null) {
+      // A canonical/source page URL is not necessarily a GIF asset URL;
+      // only use the thumbnail or media URL to satisfy the media-record FK.
       final candidateUrl = _firstHttpUrl([
         thumbnailUrl,
         mediaId,
-        canonicalUrl,
       ]);
       if (candidateUrl != null) {
         final sourceUrl = _firstHttpUrl([canonicalUrl, candidateUrl])!;
