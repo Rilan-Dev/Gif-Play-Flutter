@@ -83,3 +83,7 @@ The main screen now restores per-Space feed/search/scroll state from the persist
 - [x] Restore the search input visibility when restoring a non-empty Space query.
 - [x] Make local search match title, source URL, and image URL, and add focused unit-test source.
 - [NEXT] Continue home/search UX without a broad redesign: inspect feed item actions and empty/error/loading states, preserve current navigation contracts, and add focused tests around search restoration and collection persistence. Keep runtime verification pending and do not wait for CI/Vercel.
+
+
+- [x] Preserve destination Space tab/Home-feed selection when closing the currently active Space; refresh in-memory active-tab pointers after closing the current child tab.
+- [x] Add suggestion-to-child-tab widget test source, shared title/source/image URL search matching, and query visibility restoration.
