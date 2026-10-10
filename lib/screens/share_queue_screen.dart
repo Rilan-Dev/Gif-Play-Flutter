@@ -63,7 +63,7 @@ class _ShareQueueScreenState extends State<ShareQueueScreen> {
         final items = queue.queuedGifs;
         return Scaffold(
           appBar: AppBar(
-            title: Text(_selectionMode ? '${_selectedKeys.length} selected' : 'Share Queue'),
+            title: Text(_selectionMode ? '${selectedIndices.length} selected' : 'Share Queue'),
             leading: _selectionMode
                 ? IconButton(
                     tooltip: 'Cancel selection',
