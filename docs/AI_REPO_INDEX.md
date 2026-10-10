@@ -2,8 +2,8 @@
 
 > Persistent repository map for fast feature research and implementation.
 > Source of truth: GitHub repository `Rilan-Dev/Gif-Play-Flutter`, branch `main`.
-> Indexed commit: `9a0c17c973a60b0e74aac4d6efc6f047f592f217`.
-> Inventory: 148 files / 49 directories.
+> Index status: refreshed against current `main` on 2026-10-10; this map is maintained as code and architecture evolve.
+> Inventory: original source inventory plus the Phase 1 persistence, Phase 2 cache/share, and Phase 3 navigation modules listed below.
 
 ## 1. Research rules
 
@@ -526,3 +526,48 @@ Avoid introducing a parallel architecture merely to implement a single feature.
 - `DownloadAndShare` now reuses the shared cache when the app-level cache service is available.
 
 - `MediaCacheManager` now exposes collection readiness aggregation for share-list preparation.
+
+
+## 17. Current persistence, cache/share, and navigation map (2026-10-10)
+
+The original inventory above documents the pre-persistence application baseline. The following modules are now part of the current implementation and should be consulted first for collection, cache, share, and session work.
+
+### Local data layer
+- `lib/data/local/local_database.dart` — Drift SQLite connection, explicit schema, `PRAGMA user_version`, v1→v2 migration for navigation tables.
+- `lib/data/local/local_media_repository.dart` — media/collection CRUD, collection membership/share state, cache manifest operations, Spaces/Detail Tabs/SessionSnapshot persistence.
+- `lib/data/local/media_identity.dart` — deterministic canonical media identity.
+- `lib/data/local/legacy_preferences_migration.dart` — one-time migration of legacy liked/viewed preferences.
+- `lib/data/local/session_navigation_controller.dart` — restores and mutates persistent Spaces and nested Detail Tabs; repairs invalid snapshot references at startup.
+- `lib/data/local/models/` — `media_record.dart`, `collection.dart`, `collection_item.dart`, `media_cache_entry.dart`, `space.dart`, `detail_tab.dart`, `session_snapshot.dart`.
+
+### Cache and collection sharing
+- `lib/data/cache/media_cache_manager.dart` — canonical file cache, retry/backoff, expiry recovery, bounded concurrency, checksum/TTL metadata, LRU byte-budget eviction and readiness.
+- `lib/data/cache/collection_share_service.dart` — single/multi-collection preparation and post-success share transitions.
+- `lib/data/cache/collection_share_controller.dart` — collection loading, multi-select, readiness, preparation progress and item/collection retry.
+- `lib/common/utils/download_and_share.dart` — remote media follows the canonical cache path; already-local files may be shared directly.
+- `lib/main.dart` — initializes SQLite/migration and registers repository/cache/share/navigation services with Provider.
+
+### Current test map
+- `test/local_media_repository_test.dart` — media identity, 500-record storage, collection isolation/reuse, cache behavior, legacy migration, navigation persistence, and v1 schema migration.
+- `test/session_navigation_recovery_test.dart` — closed/stale/cross-Space tab recovery, navigation transitions, and database close/reopen persistence.
+- `test/widget_test.dart` — legacy generated smoke test; not sufficient as application-level regression coverage.
+
+### Current phase research path
+For Space/Detail Tab behavior, read:
+1. `docs/project-control/SESSION_AND_NAVIGATION.md`
+2. `lib/data/local/session_navigation_controller.dart`
+3. `lib/data/local/local_media_repository.dart` (Space/tab/session methods)
+4. `lib/data/local/models/space.dart`, `detail_tab.dart`, and `session_snapshot.dart`
+5. `test/session_navigation_recovery_test.dart` and navigation tests in `test/local_media_repository_test.dart`
+6. `lib/screens/main_screen/main_screen.dart` and the actual home/navigation widgets before UI integration.
+
+For collection/cache/share work, read:
+1. `lib/data/cache/collection_share_controller.dart`
+2. `lib/data/cache/collection_share_service.dart`
+3. `lib/data/cache/media_cache_manager.dart`
+4. `lib/data/local/local_media_repository.dart`
+5. `lib/common/utils/download_and_share.dart`
+6. `test/local_media_repository_test.dart`
+
+### Research-index maintenance
+When adding or moving a repository, controller, provider, feature screen, or shared widget, update this index and `docs/AI_RESEARCH_PROTOCOL.md`. Do not use the historical baseline inventory above as a complete current-tree listing; use the current GitHub tree and this active-module map together.
