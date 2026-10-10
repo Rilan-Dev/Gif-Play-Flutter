@@ -13,6 +13,7 @@ import '../../common/widgets/shimmer_loading.dart';
 import '../../common/widgets/empty_state.dart';
 import '../../common/widgets/error_state.dart';
 import '../../common/widgets/media_view_switcher.dart';
+import '../../common/widgets/session_navigation_strip.dart';
 
 import '../viewed_gifs_screen.dart';
 import '../share_gif_screen.dart';
@@ -357,6 +358,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: Column(
         children: [
+          const SessionNavigationStrip(),
           if (_isSearchVisible)
             Padding(
               padding: const EdgeInsets.all(16.0),
