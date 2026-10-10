@@ -1,6 +1,7 @@
+import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:async';
 import 'dart:math';
 
 import '../../common/models/media_item.dart';
@@ -46,15 +47,140 @@ class _MainScreenState extends State<MainScreen> {
   final Set<int> _selectedItems = {};
   bool _isSelectionMode = false;
   Set<int>? _visitedPages;
+  SessionNavigationController? _navigationController;
+  String? _lastSpaceId;
+  bool _initialSpaceRestoreStarted = false;
+  bool _spaceRestoreInProgress = false;
+  Timer? _spaceStateSaveTimer;
 
   @override
   void initState() {
     super.initState();
-    _fetchData();
     _scrollController.addListener(_onScroll);
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final navigation = Provider.of<SessionNavigationController>(
+      context,
+      listen: false,
+    );
+    if (_navigationController != navigation) {
+      _navigationController?.removeListener(_onNavigationChanged);
+      _navigationController = navigation;
+      navigation.addListener(_onNavigationChanged);
+    }
+    if (!_initialSpaceRestoreStarted && navigation.isLoaded) {
+      _initialSpaceRestoreStarted = true;
+      _lastSpaceId = navigation.activeSpaceId;
+      unawaited(_restoreSpaceState(_lastSpaceId));
+    }
+  }
+
+  void _onNavigationChanged() {
+    final navigation = _navigationController;
+    if (navigation == null || !navigation.isLoaded) return;
+    final nextSpaceId = navigation.activeSpaceId;
+    if (nextSpaceId == _lastSpaceId || _spaceRestoreInProgress) return;
+
+    final previousSpaceId = _lastSpaceId;
+    _lastSpaceId = nextSpaceId;
+    _spaceStateSaveTimer?.cancel();
+    unawaited(_persistSpaceState(previousSpaceId));
+    unawaited(_restoreSpaceState(nextSpaceId));
+  }
+
+  Future<void> _restoreSpaceState(String? spaceId) async {
+    final navigation = _navigationController;
+    if (spaceId == null || navigation == null) return;
+    _spaceRestoreInProgress = true;
+    try {
+      final space = await navigation.repository.getSpace(spaceId);
+      Map<String, dynamic>? saved;
+      if (space?.feedStateJson != null && space!.feedStateJson!.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(space.feedStateJson!);
+          if (decoded is Map<String, dynamic>) saved = decoded;
+        } catch (_) {
+          // Ignore malformed optional feed state and start with a fresh feed.
+        }
+      }
+
+      final savedItems = (saved?['mediaItems'] as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map((item) => MediaItem.fromMap(Map<String, dynamic>.from(item)))
+          .where((item) => item.imageUrl.isNotEmpty)
+          .take(120)
+          .toList();
+      if (!mounted) return;
+      setState(() {
+        _mediaItems
+          ..clear()
+          ..addAll(savedItems);
+        _currentPage = (saved?['currentPage'] as num?)?.toInt() ?? 1;
+        _totalPages = (saved?['totalPages'] as num?)?.toInt() ?? 0;
+        _visitedPages = (saved?['visitedPages'] as List<dynamic>?)
+            ?.whereType<num>()
+            .map((value) => value.toInt())
+            .toSet();
+        final query = space?.searchQuery ?? (saved?['searchQuery'] as String? ?? '');
+        _searchController.text = query;
+        _filteredItems
+          ..clear()
+          ..addAll(query.isEmpty
+              ? _mediaItems
+              : _mediaItems.where((item) =>
+                  item.title?.toLowerCase().contains(query.toLowerCase()) ?? false));
+      });
+
+      final offset = space?.scrollOffset ?? (saved?['scrollOffset'] as num?)?.toDouble() ?? 0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) {
+          final maxOffset = _scrollController.position.maxScrollExtent;
+          _scrollController.jumpTo(offset.clamp(0, maxOffset).toDouble());
+        }
+      });
+      if (savedItems.isEmpty) await _fetchData();
+    } finally {
+      _spaceRestoreInProgress = false;
+    }
+  }
+
+  Future<void> _persistSpaceState(String? spaceId) async {
+    final navigation = _navigationController;
+    if (spaceId == null || navigation == null) return;
+    final state = jsonEncode({
+      'mediaItems': _mediaItems.take(120).map((item) => item.toMap()).toList(),
+      'currentPage': _currentPage,
+      'totalPages': _totalPages,
+      'visitedPages': (_visitedPages ?? <int>{}).toList(),
+      'searchQuery': _searchController.text,
+      'scrollOffset': _scrollController.hasClients ? _scrollController.offset : 0,
+    });
+    try {
+      await navigation.repository.updateSpace(
+        id: spaceId,
+        feedPage: _currentPage,
+        feedStateJson: state,
+        searchQuery: _searchController.text,
+        scrollOffset: _scrollController.hasClients ? _scrollController.offset : 0,
+      );
+    } catch (error) {
+      debugPrint('Could not persist feed state for Space $spaceId: $error');
+    }
+  }
+
+  void _scheduleSpaceStateSave() {
+    _spaceStateSaveTimer?.cancel();
+    _spaceStateSaveTimer = Timer(
+      const Duration(milliseconds: 500),
+      () => unawaited(_persistSpaceState(_lastSpaceId)),
+    );
+  }
+
   void _onScroll() {
+    _scheduleSpaceStateSave();
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.8 &&
         !_isLoading &&
         !_hasError &&
@@ -156,6 +282,7 @@ class _MainScreenState extends State<MainScreen> {
         ));
       }
     });
+    _scheduleSpaceStateSave();
   }
 
   void _toggleSelectionMode() {
@@ -468,6 +595,9 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void dispose() {
+    _spaceStateSaveTimer?.cancel();
+    unawaited(_persistSpaceState(_lastSpaceId));
+    _navigationController?.removeListener(_onNavigationChanged);
     _searchController.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
