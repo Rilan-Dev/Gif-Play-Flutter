@@ -1,11 +1,65 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 import '../models/gif_item.dart';
+import '../utils/shared_preferences_util.dart';
 
 /// In-memory staging queue for GIFs the user plans to share.
 class ShareQueueProvider with ChangeNotifier {
   static const int maxQueuedGifs = 200;
+  static const String _storageKey = 'share_queue_gifs_v1';
   final List<GifItem> _queuedGifs = [];
+  bool _loaded = false;
+
+  bool get isLoaded => _loaded;
+
+  /// Restores the durable share list before the first screen is displayed.
+  Future<void> loadQueuedGifs() async {
+    try {
+      final encoded = SharedPreferencesUtil.getString(_storageKey);
+      if (encoded != null && encoded.isNotEmpty) {
+        final decoded = jsonDecode(encoded);
+        if (decoded is List) {
+          final restored = <GifItem>[];
+          final seen = <String>{};
+          for (final value in decoded) {
+            if (value is! Map) continue;
+            try {
+              final gif = _normalize(
+                GifItem.fromMap(Map<String, dynamic>.from(value)),
+              );
+              final key = keyFor(gif);
+              if (seen.add(key)) restored.add(gif);
+              if (restored.length >= maxQueuedGifs) break;
+            } catch (error) {
+              debugPrint('Skipping invalid saved share-queue item: $error');
+            }
+          }
+          _queuedGifs
+            ..clear()
+            ..addAll(restored);
+        }
+      }
+    } catch (error) {
+      debugPrint('Could not restore saved share queue: $error');
+    } finally {
+      _loaded = true;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _persistQueue() async {
+    try {
+      await SharedPreferencesUtil.setString(
+        _storageKey,
+        jsonEncode(_queuedGifs.map((gif) => gif.toMap()).toList()),
+      );
+    } catch (error) {
+      debugPrint('Could not persist share queue: $error');
+    }
+  }
 
   List<GifItem> get queuedGifs => List.unmodifiable(_queuedGifs);
   int get count => _queuedGifs.length;
@@ -45,6 +99,7 @@ class ShareQueueProvider with ChangeNotifier {
       _queuedGifs.removeRange(maxQueuedGifs, _queuedGifs.length);
     }
     notifyListeners();
+    unawaited(_persistQueue());
   }
 
   void addGifs(Iterable<GifItem> gifs) {
@@ -82,5 +137,6 @@ class ShareQueueProvider with ChangeNotifier {
     if (_queuedGifs.isEmpty) return;
     _queuedGifs.clear();
     notifyListeners();
+    unawaited(_persistQueue());
   }
 }
