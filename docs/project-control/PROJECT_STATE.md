@@ -66,3 +66,6 @@ Phase 3 persistence infrastructure remains active. Startup creates a durable Hom
 
 
 - Further edge-case hardening: closing the active Space now restores the destination Space's persisted active tab or Home feed, and closing an active child tab refreshes the in-memory Space pointer after the database update.
+
+
+- MainScreen now queues an overlapping fetch when the requested/current Space differs from the Space owning the active fetch. Same-Space duplicate requests are ignored to avoid repeated redundant fetches; the pure policy is covered by test/space_fetch_policy_test.dart.
