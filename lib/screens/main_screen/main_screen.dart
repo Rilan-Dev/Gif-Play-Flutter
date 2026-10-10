@@ -576,7 +576,19 @@ class _MainScreenState extends State<MainScreen> {
                 builder: (context, navigation, _) {
                   final activeTab = navigation.activeDetailTab;
                   if (activeTab != null) {
-                    return DetailTabContent(tab: activeTab);
+                    return DetailTabContent(
+                      tab: activeTab,
+                      onMoreOptions: activeTab.thumbnailUrl?.isNotEmpty == true
+                          ? () => MainScreenActions.showGifDetailsDialog(
+                                context,
+                                MediaItem(
+                                  imageUrl: activeTab.thumbnailUrl!,
+                                  title: activeTab.title,
+                                  href: activeTab.canonicalUrl,
+                                ),
+                              )
+                          : null,
+                    );
                   }
                   return _filteredItems.isEmpty && !_isLoading
                   ? EmptyState(
