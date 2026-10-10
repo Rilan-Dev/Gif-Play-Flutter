@@ -28,6 +28,7 @@ import '../liked_gifs_screen.dart';
 import 'main_screen_data_service.dart';
 import 'main_screen_actions.dart';
 import 'space_feed_snapshot.dart';
+import 'media_item_search.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -151,13 +152,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       _filteredItems
         ..clear()
         ..addAll(
-          query.isEmpty
-              ? _mediaItems
-              : _mediaItems.where(
-                  (item) =>
-                      item.title?.toLowerCase().contains(query.toLowerCase()) ??
-                      false,
-                ),
+          _mediaItems.where((item) => mediaItemMatchesQuery(item, query)),
         );
     });
 
@@ -263,11 +258,9 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
         _filteredItems.clear();
         final activeQuery = _searchController.text.trim().toLowerCase();
         _filteredItems.addAll(
-          activeQuery.isEmpty
-              ? _mediaItems
-              : _mediaItems.where(
-                  (item) => item.title?.toLowerCase().contains(activeQuery) ?? false,
-                ),
+          _mediaItems.where(
+            (item) => mediaItemMatchesQuery(item, activeQuery),
+          ),
         );
         _hasError = result['hasError'];
         _errorMessage = result['errorMessage'];
@@ -344,15 +337,11 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   void _filterItems(String query) {
     setState(() {
-      if (query.isEmpty) {
-        _filteredItems.clear();
-        _filteredItems.addAll(_mediaItems);
-      } else {
-        _filteredItems.clear();
-        _filteredItems.addAll(_mediaItems.where(
-          (item) => item.title?.toLowerCase().contains(query.toLowerCase()) ?? false
-        ));
-      }
+      _filteredItems
+        ..clear()
+        ..addAll(
+          _mediaItems.where((item) => mediaItemMatchesQuery(item, query)),
+        );
     });
     _scheduleSpaceStateSave();
   }
