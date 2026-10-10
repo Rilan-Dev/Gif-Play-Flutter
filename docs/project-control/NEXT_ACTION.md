@@ -25,8 +25,9 @@ Phase 3 — Persistent Browsing Spaces & Detail Tabs is **IN PROGRESS**. Phase 1
 5. [x] Render selected Detail Tab content from its saved title, thumbnail, and canonical URL, with a safe external-source action.
 6. [x] Persist and restore per-Space feed state (bounded to 120 lightweight media records), current page metadata, visited pages, search query, and scroll offset; debounce persistence during scrolling/search changes.
 7. [x] Add a repository regression assertion that closing the final Detail Tab clears the Space's persisted active-tab pointer.
-8. [NEXT] Harden MainScreen Space-switch restoration against overlapping async restores and stale feed fetch completions; preserve the latest selected Space and retry its fetch when an earlier request is still in flight.
-9. Add focused controller/UI regression sources for last-tab close, empty saved feeds, stale detail URLs, and tab-open interaction; refresh the research index and project-control records as the implementation evolves.
+8. [x] Guard overlapping Space restores with a generation token; discard stale restore results and stale feed-fetch completions, and queue a fetch for the latest active Space if an earlier request is still in flight.
+9. [NEXT] Finish edge-case behavior: ignore stale post-frame scroll restoration, guard scroll callbacks when the feed is detached, and make feed-item opening consistent with selected Detail Tab content instead of layering competing navigation/dialog surfaces.
+10. Add focused regression sources for empty saved feeds, stale detail URLs, tab-open interaction, and independent per-Space snapshots; refresh the research index and project-control records.
 
 Runtime Flutter/Dart verification remains pending in the available environment; continue implementation without waiting for CI/Vercel/runtime gates.
 
@@ -50,7 +51,7 @@ Do not wait for GitHub Actions, Vercel deployments, or continuous verification t
 
 
 ## Current UI implementation note
-The initial strip and feed-open tab recording are implemented. Detail-tab selection currently updates persisted navigation state but does not yet swap the visible page content; per-Space feed state is also not yet wired into MainScreen. These are explicit next actions, not completed behavior.
+The navigation strip, selected Detail Tab content view, and bounded per-Space feed/search/pagination/scroll snapshot restoration are implemented. MainScreen now guards overlapping restore and fetch completions with a generation token and Space identity; when a Space needs a fetch while another is running, its ID is queued and fetched after the in-flight request finishes. Runtime verification remains pending. Feed-item opening still needs UX consolidation because legacy dialog/route flows can overlap the selected Detail Tab surface.
 
 
 ## Phase 3 implementation status — 2026-10-10
