@@ -14,6 +14,8 @@ import '../../common/widgets/empty_state.dart';
 import '../../common/widgets/error_state.dart';
 import '../../common/widgets/media_view_switcher.dart';
 import '../../common/widgets/session_navigation_strip.dart';
+import '../../common/widgets/detail_tab_content.dart';
+import '../../data/local/session_navigation_controller.dart';
 
 import '../viewed_gifs_screen.dart';
 import '../share_gif_screen.dart';
@@ -398,7 +400,13 @@ class _MainScreenState extends State<MainScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refreshData,
-              child: _filteredItems.isEmpty && !_isLoading
+              child: Consumer<SessionNavigationController>(
+                builder: (context, navigation, _) {
+                  final activeTab = navigation.activeDetailTab;
+                  if (activeTab != null) {
+                    return DetailTabContent(tab: activeTab);
+                  }
+                  return _filteredItems.isEmpty && !_isLoading
                   ? EmptyState(
                       icon: Icons.image_not_supported,
                       title: 'No GIFs found',
@@ -443,7 +451,9 @@ class _MainScreenState extends State<MainScreen> {
                           },
                         );
                       },
-                    ),
+                    );
+                },
+              ),
             ),
           ),
           if (_isLoading)
