@@ -128,14 +128,8 @@ class SessionNavigationController extends ChangeNotifier {
   }) async {
     if (_validSpaceId(spaceId) == null) return null;
 
-    final existing = (await repository.listDetailTabs(spaceId)).where(
-      (tab) =>
-          mediaId != null && tab.mediaId == mediaId && !tab.isClosed,
-    );
-    if (existing.isNotEmpty) {
-      await activateDetailTab(existing.first.id);
-      return existing.first;
-    }
+    // Opening a GIF is an explicit navigation action: always create a new
+    // child tab, even when the same GIF already has another open tab.
 
     final tabs = tabsForSpace(spaceId);
     final tab = await repository.createDetailTab(
@@ -145,7 +139,8 @@ class SessionNavigationController extends ChangeNotifier {
       title: title,
       thumbnailUrl: thumbnailUrl,
       stateJson: stateJson,
-      sortOrder: tabs.length,
+      sortOrder: tabs.fold<int>(-1, (latest, tab) =>
+          tab.sortOrder > latest ? tab.sortOrder : latest) + 1,
     );
 
     _tabsBySpace[spaceId] = [...tabs, tab];
@@ -238,8 +233,11 @@ class SessionNavigationController extends ChangeNotifier {
 
   Future<void> _activateSpace(String spaceId) async {
     _activeSpaceId = spaceId;
+    final targetSpace = _spaces.firstWhere((space) => space.id == spaceId);
+    // Each Space owns its own active child tab. Never carry the previous
+    // Space's tab selection into the new Space.
     _activeDetailTabId = _validTabId(
-      _activeDetailTabId,
+      targetSpace.activeDetailTabId,
       spaceId,
     );
     if (_activeDetailTabId == null) {
