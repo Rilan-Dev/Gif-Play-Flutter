@@ -24,7 +24,7 @@ class MainScreenActions {
     bool isSelectionMode,
     Function toggleItemSelection,
     List<MediaItem> filteredItems,
-  ) {
+  ) async {
     if (isSelectionMode) {
       toggleItemSelection(index);
     } else {
