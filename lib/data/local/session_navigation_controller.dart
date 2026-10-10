@@ -82,7 +82,8 @@ class SessionNavigationController extends ChangeNotifier {
         (tabs.isEmpty ? null : tabs.last.id);
 
     if (snapshot?.activeSpaceId != _activeSpaceId ||
-        snapshot?.activeDetailTabId != _activeDetailTabId) {
+        snapshot?.activeDetailTabId != _activeDetailTabId ||
+        activeSpace.activeDetailTabId != _activeDetailTabId) {
       await repository.updateSpace(
         id: _activeSpaceId!,
         activeDetailTabId: _activeDetailTabId,
