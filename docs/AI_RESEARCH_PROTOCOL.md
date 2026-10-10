@@ -99,3 +99,8 @@ Do not update the index for every trivial styling-only edit.
 - Viewer controls -> gif viewer directory + GIF detail + GIF model + data service.
 - Sharing -> download/share utilities + file utils + share screen + platform manifests.
 - New layout -> view mode enum/provider/selector/switcher + layout implementations.
+
+
+## Phase 3 UI slice
+
+The home screen now mounts `SessionNavigationStrip`, and feed item opens create durable Detail Tab metadata in the active Space. For further work, inspect `lib/common/widgets/session_navigation_strip.dart`, `lib/screens/main_screen/main_screen.dart`, `lib/screens/main_screen/main_screen_actions.dart`, and `SessionNavigationController`. The next slice is to bind active Space/Detail Tab selection to actual feed/detail content and persist/restore per-Space feed/search/scroll state; keep the SQLite contracts unchanged unless a separately authorized schema change is needed.
