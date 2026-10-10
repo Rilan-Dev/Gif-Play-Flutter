@@ -40,3 +40,11 @@ Status: **IN PROGRESS — persistence infrastructure slice**
 
 ### Next
 Continue invalid/closed-tab restoration hardening and migration/reopen coverage before building the visual Space/Detail Tab strips.
+
+
+### Phase 3 — latest implementation update (2026-10-10)
+
+- Added a local-first `DetailTabContent` view for the selected persistent tab, including preview/title/source metadata and an explicit safe external-link action.
+- MainScreen now persists per-Space feed snapshots containing at most 120 lightweight `MediaItem` records plus page/visited-page/search metadata; scroll/search writes are debounced.
+- Switching Spaces restores the selected Space's saved feed items, search query, pagination metadata, and scroll offset; empty/unavailable snapshots fall back to fetching the feed.
+- Remaining: focused tests for feed snapshot persistence/restoration and edge cases around fast Space switching and tab-open behavior. Runtime verification remains pending.
