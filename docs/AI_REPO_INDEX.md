@@ -56,7 +56,7 @@ Other feature branches:
 
 ### Phase 3 persistent navigation (current implementation)
 - `lib/data/local/session_navigation_controller.dart` — active Space and Detail Tab state, restoration, and navigation persistence.
-- `lib/common/widgets/session_navigation_strip.dart` — existing UI for switching Spaces and Detail Tabs, plus the thumbnail/title overview dialog for all child tabs.
+- `lib/common/widgets/session_navigation_strip.dart` — existing UI for switching Spaces and Detail Tabs, plus the thumbnail/title overview dialog for all child tabs and the bottom browser-style tab control.
 - `lib/common/widgets/detail_tab_content.dart` — restored selected-GIF detail surface, source-page suggestion grid, safe explicit source opening, and child-tab activation; exposes an explicit GIF options callback.
 - `lib/screens/main_screen/main_screen.dart` — bounded per-Space feed snapshot, query/page/visited-page/scroll restoration, generation-guarded restore/fetch lifecycle, and stale post-frame scroll protection.
 - `lib/screens/main_screen/main_screen_actions.dart` — regular item open persists/activates a Detail Tab with stable media identity without immediately layering a legacy details dialog; special Mood & Vibe route remains.
