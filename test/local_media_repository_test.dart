@@ -510,6 +510,30 @@ void main() {
     expect(preparations.map((item) => item.collectionId).toSet(),
         {first.id, second.id});
   });
+
+  test('Space feed snapshot persists query, pagination, and scroll metadata',
+      () async {
+    final space = await repository.createSpace(name: 'Cats');
+    const snapshot =
+        '{"mediaItems":[{"imageUrl":"https://example.com/cat.gif","title":"Cat"}],'
+        '"currentPage":3,"totalPages":12,"visitedPages":[1,3],'
+        '"searchQuery":"cat","scrollOffset":246.5}';
+
+    await repository.updateSpace(
+      id: space.id,
+      feedPage: 3,
+      feedStateJson: snapshot,
+      searchQuery: 'cat',
+      scrollOffset: 246.5,
+    );
+
+    final restored = await repository.getSpace(space.id);
+    expect(restored?.feedPage, 3);
+    expect(restored?.feedStateJson, snapshot);
+    expect(restored?.searchQuery, 'cat');
+    expect(restored?.scrollOffset, 246.5);
+  });
+
 }
 
 class _RetryClient extends http.BaseClient {
