@@ -35,7 +35,7 @@ class MainScreen extends StatefulWidget {
   _MainScreenState createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   final List<MediaItem> _mediaItems = [];
   final List<MediaItem> _filteredItems = [];
   bool _isLoading = false;
@@ -60,7 +60,24 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      // Flush the latest feed/search/scroll snapshot before Android may suspend
+      // or terminate the process. Navigation tabs themselves are saved eagerly.
+      _spaceStateSaveTimer?.cancel();
+      unawaited(_persistSpaceState(_lastSpaceId));
+      unawaited(
+        Provider.of<ShareQueueProvider>(context, listen: false)
+            .flushPersistence(),
+      );
+    }
   }
 
   @override
@@ -662,6 +679,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _spaceStateSaveTimer?.cancel();
     unawaited(_persistSpaceState(_lastSpaceId));
     _navigationController?.removeListener(_onNavigationChanged);
