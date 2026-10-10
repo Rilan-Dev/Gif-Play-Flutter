@@ -11,7 +11,7 @@
 - Phase 0: COMPLETE
 - Phase 1: IN PROGRESS (implementation complete; runtime/dependency verification pending)
 - Phase 2: IN PROGRESS (core implementation slice complete; runtime verification pending)
-- Phase 3: IN PROGRESS (persistent navigation infrastructure slice)
+- Phase 3: IN PROGRESS (persistent navigation infrastructure and initial content restoration)
 - Product feature implementation: local persistence and cache/share infrastructure are under active development; major UI redesign remains pending.
 
 ## Current implementation
@@ -42,4 +42,4 @@
 - UI must avoid loading hundreds of full GIF binaries into memory simultaneously.
 
 ## Next
-Phase 3 persistence infrastructure remains active. Startup creates a durable Home Space and now repairs invalid, closed, stale, or cross-Space active-tab references. Controller transition and database close/reopen regression sources have been added. The initial visual Space/Detail Tab strips are now mounted on the home screen and feed opens persist lightweight Detail Tab metadata. The next slice is to bind selection to actual visible feed/detail content and restore per-Space feed/search/scroll state without changing the established persistence contracts. Flutter/Dart runtime verification remains pending; do not wait for CI/Vercel/runtime gates, and record verification status honestly.
+Phase 3 persistence infrastructure remains active. Startup creates a durable Home Space and now repairs invalid, closed, stale, or cross-Space active-tab references. Controller transition and database close/reopen regression sources have been added. The initial visual Space/Detail Tab strips are now mounted on the home screen and feed opens persist lightweight Detail Tab metadata. Per-Space feed/search/scroll restoration is now wired through the existing `feed_state_json`, `search_query`, `feed_page`, and `scroll_offset` fields; Detail Tab selection renders a local-first content view from saved metadata. Next is regression coverage and UX edge-case cleanup without changing established persistence contracts. Flutter/Dart runtime verification remains pending; do not wait for CI/Vercel/runtime gates, and record verification status honestly.
