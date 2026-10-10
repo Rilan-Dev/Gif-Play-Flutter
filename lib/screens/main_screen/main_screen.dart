@@ -86,6 +86,7 @@ class _MainScreenState extends State<MainScreen> {
 
     final previousSpaceId = _lastSpaceId;
     _lastSpaceId = nextSpaceId;
+    _initialSpaceRestoreStarted = true;
     _spaceStateSaveTimer?.cancel();
     unawaited(_persistSpaceState(previousSpaceId));
     unawaited(_restoreSpaceState(nextSpaceId));
