@@ -13,7 +13,7 @@ on:
         default: release
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-apk-${{ github.workflow }}-${{ github.ref }}-${{ inputs.build_type || 'release' }}
@@ -44,19 +44,68 @@ jobs:
       - name: Resolve Flutter dependencies
         run: flutter pub get
 
+      - name: Prepare persistent release signing key
+        if: inputs.build_type == 'release'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::error::Release signing is not configured. Add the four ANDROID_* signing secrets once; never commit a keystore or passwords to source control."
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/android-signing"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/android-signing/release.jks"
+          test -s "$RUNNER_TEMP/android-signing/release.jks"
+
       - name: Build selected APK
         env:
           BUILD_TYPE: ${{ inputs.build_type || 'release' }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/android-signing/release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           case "$BUILD_TYPE" in
-            debug|release) flutter build apk "--$BUILD_TYPE" ;;
-            *) echo "Unsupported build type: $BUILD_TYPE" >&2; exit 1 ;;
+            debug)
+              flutter build apk --debug --build-number="$GITHUB_RUN_NUMBER"
+              ;;
+            release)
+              for name in ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+                if [ -z "${!name}" ]; then
+                  echo "::error::Missing required repository Actions secret: $name"
+                  exit 1
+                fi
+              done
+              flutter build apk --release --build-number="$GITHUB_RUN_NUMBER"
+              ;;
+            *)
+              echo "Unsupported build type: $BUILD_TYPE" >&2
+              exit 1
+              ;;
           esac
 
-      - name: Publish APK artifact
-        uses: actions/upload-artifact@v4
+      - name: Prepare directly downloadable APK
+        env:
+          BUILD_TYPE: ${{ inputs.build_type || 'release' }}
+        run: |
+          mkdir -p dist
+          cp "build/app/outputs/flutter-apk/app-${BUILD_TYPE}.apk" "dist/Gif-Play-${BUILD_TYPE}-${GITHUB_RUN_NUMBER}.apk"
+          test -s "dist/Gif-Play-${BUILD_TYPE}-${GITHUB_RUN_NUMBER}.apk"
+          sha256sum "dist/Gif-Play-${BUILD_TYPE}-${GITHUB_RUN_NUMBER}.apk" | tee dist/SHA256SUMS.txt
+
+      - name: Publish direct APK download
+        uses: softprops/action-gh-release@v2
         with:
-          name: gif-play-${{ inputs.build_type || 'release' }}-android-apk-${{ github.run_number }}
-          path: build/app/outputs/flutter-apk/app-${{ inputs.build_type || 'release' }}.apk
-          if-no-files-found: error
-          retention-days: 30
+          tag_name: apk-build-${{ github.run_number }}-${{ inputs.build_type || 'release' }}
+          name: Gif Play ${{ inputs.build_type || 'release' }} APK #${{ github.run_number }}
+          body: |
+            Manually triggered Android APK build.
+
+            Download the `.apk` asset below directly. It is not wrapped in an Actions artifact ZIP.
+            Release builds use the persistent repository signing key. Keep that key unchanged for future updates.
+            Build number: ${{ github.run_number }}
+          prerelease: true
+          files: |
+            dist/Gif-Play-${{ inputs.build_type || 'release' }}-${{ github.run_number }}.apk
+            dist/SHA256SUMS.txt
+          fail_on_unmatched_files: true
