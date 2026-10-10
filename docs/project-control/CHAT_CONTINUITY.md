@@ -57,7 +57,7 @@ Use the copy/paste commands in `ADAPTIVE_PROJECT_CONTROL.md` for Continue, Execu
 - Added restore-generation and active-Space checks to delayed scroll restoration and feed-fetch success/error paths, preventing old work from mutating or scrolling the newly selected Space.
 - Regular feed-item opens now select the persistent Detail Tab as the primary surface; a deliberate GIF options action preserves access to existing like/save/share actions without covering the tab immediately.
 - Added test source for independent per-Space feed snapshots and widget test sources for unsafe source URL rejection and the explicit GIF options action.
-- `NEXT_ACTION.md` marks stale scroll restoration and regular item-open UX consolidation complete. Widget source covers regular feed-item-to-Detail-Tab activation without the overlapping dialog. `SpaceFeedSnapshot` now recovers missing, malformed, or empty saved feeds through a fresh fetch; source tests cover parsing and bounds. Next: harden fetch loading-state cleanup and query changes during in-flight requests.
+- `NEXT_ACTION.md` marks stale scroll restoration, regular item-open UX consolidation, and empty-feed snapshot recovery complete. `SpaceFeedSnapshot` safely handles malformed fields/records, restores bounded state, and triggers a fresh fetch when no usable media remains. Successful fetches schedule persistence; result filtering uses the latest query; loading cleanup is owned by the active request generation. Next: add rapid-Space-switch/in-flight-fetch regression coverage, then resume the broader home/search UX roadmap.
 - Runtime tests/analyzer remain unexecuted; do not wait for CI/Vercel/runtime gates.
 
 ## APCP agent invocation layer
