@@ -1,3 +1,13 @@
+## 2026-10-10 — Persistent collections and full Detail Tab restoration
+- Rechecked current main, recent feature-port merges, collection repository/controller, and the Detail Tab rendering path. Confirmed collections and membership are stored in SQLite; the selected tab was only rendering saved thumbnail/title metadata.
+- Changed DetailTabContent to rebuild the selected GIF detail surface and load the existing source-page GIF suggestions. Selecting a suggestion opens/activates a persistent child tab in the same Space; source opening remains explicit and restricted to HTTP(S).
+- Added a Brave-style child-tab overview dialog with thumbnail/title cards so users can pick among all open GIF tabs without closing the current one.
+- Feed-opened child tabs now save a stable media identity, enabling deduplication when the same GIF is opened again.
+- Collections screen now reloads durable collection definitions and item membership on entry and shows saved GIF counts, including already-shared items.
+- Collection clear compatibility API is now non-destructive: it resets share status to pending instead of deleting saved membership. Added source regression coverage for preserved collection and GIF membership.
+- Bulk sharing skips selected empty collections rather than letting one empty reusable list block the other selected collections. Added an explicit per-collection reset action to make saved GIFs shareable again without removing them.
+- Runtime tests/analyzer were not run; verification remains pending and did not block implementation.
+
 # Worklog
 
 ## 2026-10-10 — Phase 3 empty-feed recovery and live-query filtering
