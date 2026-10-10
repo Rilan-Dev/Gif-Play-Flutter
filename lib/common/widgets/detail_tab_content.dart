@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../common/models/gif_item.dart';
 import '../../data/local/models/detail_tab.dart';
@@ -68,6 +69,23 @@ class _DetailTabContentState extends State<DetailTabContent> {
         _suggestionError = 'Suggestions could not be loaded.';
         _loadingSuggestions = false;
       });
+    }
+  }
+
+  Future<void> _openSource() async {
+    final raw = widget.tab.canonicalUrl?.trim() ?? '';
+    final uri = Uri.tryParse(raw);
+    if (uri == null || (uri.scheme != 'http' && uri.scheme != 'https')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This source URL is invalid.')),
+      );
+      return;
+    }
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open this source.')),
+      );
     }
   }
 
@@ -141,6 +159,12 @@ class _DetailTabContentState extends State<DetailTabContent> {
                             onPressed: widget.onMoreOptions,
                             icon: const Icon(Icons.tune),
                             label: const Text('GIF options'),
+                          ),
+                        if (widget.tab.canonicalUrl?.trim().isNotEmpty == true)
+                          OutlinedButton.icon(
+                            onPressed: _openSource,
+                            icon: const Icon(Icons.open_in_new),
+                            label: const Text('Open original source'),
                           ),
                         OutlinedButton.icon(
                           onPressed: _loadingSuggestions ? null : _loadSuggestions,
