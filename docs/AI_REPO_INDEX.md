@@ -653,3 +653,6 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 
 
 - User collection UI: lib/screens/collections_screen.dart creates named collections; lib/screens/main_screen/main_screen_actions.dart lets users save selected detail GIFs to an existing/new collection through CollectionShareController. Collection metadata/memberships are SQLite-backed; the Share Queue remains SharedPreferences-backed.
+
+
+- test/collections_screen_test.dart covers creating a named collection in the Collections screen; test/save_to_collection_flow_test.dart covers creating a collection from GIF Details and saving a selected GIF into durable membership.
