@@ -121,3 +121,7 @@ For Share All, inspect the full queue-to-cache-to-share chain, including the med
 
 ## 2026-10-11 — App lifecycle continuation rule
 When investigating state loss after restart, check both eager persistence (navigation mutations and SQLite collection membership) and debounced feed state. MainScreen now flushes the current Space snapshot on inactive/paused/detached and flushes queued SharedPreferences writes. Preserve the stable Drift database name and verify state across process recreation rather than treating a widget rebuild as a restart. Runtime verification remains pending.
+
+
+## 2026-10-11 — Search state correctness
+For a restored Space with a saved non-empty query, restore both the filtered feed and the visible search input; never leave users with a hidden filter. Local search should check title, source URL and image URL consistently after restore and after a new page fetch. Use the shared mediaItemMatchesQuery helper to avoid divergent matching behavior.
