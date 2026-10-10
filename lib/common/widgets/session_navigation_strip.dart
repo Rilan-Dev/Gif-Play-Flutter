@@ -47,14 +47,23 @@ class SessionNavigationStrip extends StatelessWidget {
                 ],
               ),
             ),
-            if (navigation.activeSpaceId != null &&
-                navigation.tabsForSpace(navigation.activeSpaceId!).isNotEmpty)
+            if (navigation.activeSpaceId != null)
               SizedBox(
                 height: 48,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.fromLTRB(16, 2, 12, 6),
+                  padding: const EdgeInsets.fromLTRB(12, 2, 12, 6),
                   children: [
+                    ChoiceChip(
+                      avatar: const Icon(Icons.home_outlined, size: 16),
+                      label: const Text('Home feed'),
+                      selected: navigation.activeDetailTabId == null,
+                      onSelected: (_) => navigation.activateHomeFeed(
+                        navigation.activeSpaceId!,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    const SizedBox(width: 6),
                     for (final tab
                         in navigation.tabsForSpace(navigation.activeSpaceId!))
                       _DetailTabChip(
@@ -63,18 +72,19 @@ class SessionNavigationStrip extends StatelessWidget {
                         onTap: () => navigation.activateDetailTab(tab.id),
                         onClose: () => navigation.closeDetailTab(tab.id),
                       ),
-                    Tooltip(
-                      message: 'Show all GIF tabs',
-                      child: IconButton(
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => _showDetailTabOverview(
-                          context,
-                          navigation,
-                          navigation.activeSpaceId!,
+                    if (navigation.tabsForSpace(navigation.activeSpaceId!).isNotEmpty)
+                      Tooltip(
+                        message: 'Show all GIF tabs',
+                        child: IconButton(
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => _showDetailTabOverview(
+                            context,
+                            navigation,
+                            navigation.activeSpaceId!,
+                          ),
+                          icon: const Icon(Icons.grid_view_rounded, size: 19),
                         ),
-                        icon: const Icon(Icons.grid_view_rounded, size: 19),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -231,18 +241,43 @@ Future<void> _showDetailTabOverview(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Expanded(
-                            child: thumbnail.isEmpty
-                                ? const Center(child: Icon(Icons.image_outlined, size: 36))
-                                : CachedNetworkImage(
-                                    imageUrl: thumbnail,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => const Center(
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    ),
-                                    errorWidget: (context, url, error) => const Center(
-                                      child: Icon(Icons.broken_image_outlined),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                thumbnail.isEmpty
+                                    ? const Center(child: Icon(Icons.image_outlined, size: 36))
+                                    : CachedNetworkImage(
+                                        imageUrl: thumbnail,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) => const Center(
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        ),
+                                        errorWidget: (context, url, error) => const Center(
+                                          child: Icon(Icons.broken_image_outlined),
+                                        ),
+                                      ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: Material(
+                                    color: Colors.black54,
+                                    shape: const CircleBorder(),
+                                    child: IconButton(
+                                      tooltip: 'Close tab',
+                                      visualDensity: VisualDensity.compact,
+                                      constraints: const BoxConstraints(
+                                        minWidth: 34,
+                                        minHeight: 34,
+                                      ),
+                                      padding: const EdgeInsets.all(6),
+                                      color: Colors.white,
+                                      onPressed: () => navigation.closeDetailTab(tab.id),
+                                      icon: const Icon(Icons.close, size: 17),
                                     ),
                                   ),
+                                ),
+                              ],
+                            ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(9),
