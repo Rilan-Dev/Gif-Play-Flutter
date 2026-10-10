@@ -11,12 +11,13 @@ on:
           - release
           - debug
         default: release
-  # Temporary troubleshooting trigger: remove after a successful APK is produced.
+  # Temporary dependency-only trigger for the current APK recovery attempt.
   push:
     branches:
       - main
-    paths-ignore:
-      - ".github/workflows/android-apk.yml"
+    paths:
+      - "pubspec.yaml"
+      - "pubspec.lock"
 
 permissions:
   contents: read
