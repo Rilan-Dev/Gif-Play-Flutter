@@ -73,3 +73,9 @@ The visual Space/Detail Tab strips, restored GIF detail/suggestions surface, thu
 - Runtime tests/analyzer remain pending; no CI/deployment gate was awaited.
 
 - Added a bottom browser-style tab control showing the active Space, selected GIF title, and child-tab count, with a shortcut to the same thumbnail/title overview dialog.
+
+
+## 2026-10-11 update — Persistent browsing and Share All repair
+- The current user retest on build 28 shows prior share fixes were insufficient. Source inspection found a media-record foreign-key failure in both queue cache preparation and child-tab creation.
+- Current source now persists media before cache-entry writes, normalizes URL-based tab IDs, creates a fresh child tab for every explicit GIF selection, keeps Home feed and tabs available in one navigation shell, persists Share Queue items, and supports returning to Home feed without closing tabs.
+- New regression test source covers these paths. Runtime tests/analyzer/build and physical-device retest remain pending; development is not blocked on them.
