@@ -8,6 +8,7 @@ import '../../common/models/media_item.dart';
 import '../../common/models/gif_item.dart';
 import '../../common/providers/theme_provider.dart';
 import '../../common/providers/liked_gifs_provider.dart';
+import '../../common/providers/share_queue_provider.dart';
 import '../../common/providers/view_mode_provider.dart';
 import '../../common/widgets/view_mode_selector.dart';
 import '../../common/widgets/shimmer_loading.dart';
