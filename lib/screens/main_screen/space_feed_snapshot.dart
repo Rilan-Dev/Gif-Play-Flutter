@@ -2,6 +2,16 @@ import 'dart:convert';
 
 import '../../common/models/media_item.dart';
 
+MediaItem? _restoreMediaItem(Map rawItem) {
+  try {
+    final item = MediaItem.fromMap(Map<String, dynamic>.from(rawItem));
+    return item.imageUrl.isNotEmpty ? item : null;
+  } catch (_) {
+    // Ignore a corrupted record rather than losing the rest of the Space.
+    return null;
+  }
+}
+
 /// Parsed, bounded feed state for a single persistent browsing Space.
 class SpaceFeedSnapshot {
   const SpaceFeedSnapshot({
@@ -44,8 +54,8 @@ class SpaceFeedSnapshot {
     final rawItems = decoded?['mediaItems'];
     final items = (rawItems is List ? rawItems : const <dynamic>[])
         .whereType<Map>()
-        .map((item) => MediaItem.fromMap(Map<String, dynamic>.from(item)))
-        .where((item) => item.imageUrl.isNotEmpty)
+        .map(_restoreMediaItem)
+        .whereType<MediaItem>()
         .take(120)
         .toList(growable: false);
     final rawQuery = decoded?['searchQuery'];
