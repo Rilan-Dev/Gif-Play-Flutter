@@ -98,8 +98,7 @@ class _MainScreenState extends State<MainScreen> {
     final navigation = _navigationController;
     if (spaceId == null || navigation == null) return;
     final generation = ++_spaceRestoreGeneration;
-    try {
-      final space = await navigation.repository.getSpace(spaceId);
+    final space = await navigation.repository.getSpace(spaceId);
       if (!mounted || generation != _spaceRestoreGeneration ||
           navigation.activeSpaceId != spaceId) return;
       final snapshot = SpaceFeedSnapshot.restore(
@@ -143,10 +142,6 @@ class _MainScreenState extends State<MainScreen> {
           navigation.activeSpaceId == spaceId) {
         await _fetchData(expectedSpaceId: spaceId);
       }
-    } finally {
-      // A superseded restore is intentionally ignored; the newer generation
-      // owns the visible Space state.
-    }
   }
 
   Future<void> _persistSpaceState(String? spaceId) async {
