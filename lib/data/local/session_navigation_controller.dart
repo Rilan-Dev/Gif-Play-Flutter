@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 import '../local/local_media_repository.dart';
+import '../local/media_identity.dart';
+import '../local/models/media_record.dart';
 import '../local/models/detail_tab.dart';
 import '../local/models/space.dart';
 
@@ -130,11 +132,51 @@ class SessionNavigationController extends ChangeNotifier {
 
     // Opening a GIF is an explicit navigation action: always create a new
     // child tab, even when the same GIF already has another open tab.
+    //
+    // detail_tabs.media_id is a foreign key into media_records. Legacy UI
+    // callers used to pass the image URL itself as mediaId, which caused
+    // SQLite to reject tab creation. Normalize and persist the media record
+    // first, then store its canonical ID in the tab.
+    var storedMediaId = mediaId;
+    if (mediaId != null && await repository.getMedia(mediaId) == null) {
+      final candidateUrl = _firstHttpUrl([
+        thumbnailUrl,
+        mediaId,
+        canonicalUrl,
+      ]);
+      if (candidateUrl != null) {
+        final sourceUrl = _firstHttpUrl([canonicalUrl, candidateUrl])!;
+        final isUrlIdentity = mediaId.startsWith('http://') ||
+            mediaId.startsWith('https://');
+        final canonicalId = isUrlIdentity
+            ? MediaIdentity.fromUrls(
+                mediaUrl: candidateUrl,
+                sourceUrl: sourceUrl,
+              )
+            : mediaId;
+        await repository.upsertMedia(MediaRecord(
+          id: canonicalId,
+          sourceUrl: sourceUrl,
+          mediaUrl: candidateUrl,
+          thumbnailUrl: thumbnailUrl,
+          title: title,
+          searchText: '${title ?? ''} $sourceUrl $candidateUrl'.toLowerCase(),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          lastSeenAt: DateTime.now(),
+        ));
+        storedMediaId = canonicalId;
+      } else {
+        // A non-URL provider ID without a resolvable media URL cannot be
+        // linked safely; preserve the tab metadata without a foreign key.
+        storedMediaId = null;
+      }
+    }
 
     final tabs = tabsForSpace(spaceId);
     final tab = await repository.createDetailTab(
       spaceId: spaceId,
-      mediaId: mediaId,
+      mediaId: storedMediaId,
       canonicalUrl: canonicalUrl,
       title: title,
       thumbnailUrl: thumbnailUrl,
@@ -217,6 +259,19 @@ class SessionNavigationController extends ChangeNotifier {
       await _persistSession();
     }
     notifyListeners();
+  }
+
+  String? _firstHttpUrl(Iterable<String?> values) {
+    for (final value in values) {
+      final candidate = value?.trim() ?? '';
+      final uri = Uri.tryParse(candidate);
+      if (uri != null &&
+          (uri.scheme == 'http' || uri.scheme == 'https') &&
+          uri.host.isNotEmpty) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   String? _validSpaceId(String? id) {
