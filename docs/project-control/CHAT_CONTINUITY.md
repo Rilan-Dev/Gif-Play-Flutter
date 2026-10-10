@@ -149,3 +149,9 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 - MainScreen now observes app lifecycle changes. On inactive/paused/detached it cancels the feed-save debounce and flushes the current feed/search/page/scroll snapshot; it also flushes serialized Share Queue persistence.
 - Bootstrap confirms the stable gif_play_library Drift database, SQLite collection/navigation state, legacy migration, and Share Queue restoration before runApp.
 - Tests, analyzer, APK, physical share sheet and force-close/relaunch were not run. Continue from NEXT_ACTION.md; don't wait for CI/Vercel. Build 28 does not include these commits.
+
+
+## Latest continuation point — 2026-10-11 suggestions and search
+- DetailTabContent accepts an optional suggestion loader for deterministic tests; production still defaults to MainScreenDataService.fetchGifsFromUrl. Widget test source verifies a suggestion tap creates a new persistent child tab and activates it.
+- MainScreen now restores the search input's visibility alongside a non-empty saved query. New mediaItemMatchesQuery logic matches title, source-page URL and image URL case-insensitively across restored state, fresh fetch results and live search.
+- Added test/media_item_search_test.dart. NEXT_ACTION.md now continues with focused home/search UX and search/collection persistence regression coverage. Flutter tests/analyzer/build/device verification remain pending.
