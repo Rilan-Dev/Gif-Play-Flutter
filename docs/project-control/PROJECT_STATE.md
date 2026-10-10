@@ -25,7 +25,9 @@
 - CollectionShareService provides reusable single/multi-collection preparation and successful-share state transitions.
 - DownloadAndShare now uses the canonical cache path for remote media and direct sharing only for already-local files.
 - CollectionShareController exposes reusable multi-select collection state, readiness, preparation progress, and errors to UI consumers.
-- Regression test sources cover cache retry, cleanup preserving collection metadata, collection selection/retry, empty-share safety, and persistent navigation restoration.
+- Regression test sources cover cache retry, cleanup preserving collection metadata, collection selection/retry, empty-share safety, persistent navigation restoration, independent per-Space feed snapshots, and Detail Tab source URL/action behavior.
+- MainScreen rejects stale feed-fetch completions and delayed scroll restores using a generation token plus active-Space identity. Regular item opens now focus the selected Detail Tab; legacy GIF actions remain available through an explicit GIF options control.
+- Flutter/Dart tests and analyzer have not been run for the latest changes; verification remains pending and is not a development gate.
 
 ## Non-negotiable product invariants
 - Collection/list definitions survive app restart.
