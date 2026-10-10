@@ -32,6 +32,57 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
     });
   }
 
+  Future<void> _createCollection() async {
+    final nameController = TextEditingController();
+    try {
+      final name = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Create collection'),
+          content: TextField(
+            controller: nameController,
+            autofocus: true,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+              labelText: 'Collection name',
+              hintText: 'e.g. Favorite reactions',
+            ),
+            onSubmitted: (value) => Navigator.pop(dialogContext, value),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(
+                dialogContext,
+                nameController.text,
+              ),
+              child: const Text('Create'),
+            ),
+          ],
+        ),
+      );
+      final normalizedName = name?.trim() ?? '';
+      if (normalizedName.isEmpty || !mounted) return;
+
+      final controller = context.read<CollectionShareController>();
+      await controller.createCollection(normalizedName);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Collection "$normalizedName" saved locally')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not create collection: $error')),
+      );
+    } finally {
+      nameController.dispose();
+    }
+  }
+
   Future<void> _prepareAndShare() async {
     final controller = context.read<CollectionShareController>();
     await controller.prepareSelected();
@@ -138,6 +189,11 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       appBar: AppBar(
         title: const Text('Collections'),
         actions: [
+          IconButton(
+            tooltip: 'Create collection',
+            icon: const Icon(Icons.create_new_folder_outlined),
+            onPressed: _createCollection,
+          ),
           Consumer<CollectionShareController>(
             builder: (context, controller, _) => TextButton(
               onPressed: controller.collections.isEmpty
