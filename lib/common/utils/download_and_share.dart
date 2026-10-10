@@ -68,7 +68,8 @@ class DownloadAndShare {
           continue;
         }
 
-        final mediaUrl = (gif.imageUrl ?? gif.url ?? '').trim();
+        final imageUrl = gif.imageUrl?.trim() ?? '';
+        final mediaUrl = imageUrl.isNotEmpty ? imageUrl : (gif.url ?? '').trim();
         if (mediaUrl.isEmpty || !mediaUrl.startsWith(RegExp(r'https?://'))) {
           failures.add(gif.title);
           continue;
@@ -104,7 +105,11 @@ class DownloadAndShare {
           );
           return false;
         }
-        await Share.shareXFiles(shareFiles, text: '');
+        await Share.shareXFiles(
+          shareFiles,
+          text: '',
+          sharePositionOrigin: _sharePositionOrigin(context),
+        );
       }
 
       if (files.isEmpty) {
@@ -176,7 +181,11 @@ class DownloadAndShare {
             backgroundColor: Colors.orange);
         return;
       }
-      await Share.shareXFiles(shareFiles, text: '');
+      await Share.shareXFiles(
+        shareFiles,
+        text: '',
+        sharePositionOrigin: _sharePositionOrigin(context),
+      );
       final service = _collectionShareServiceOrNull(context);
       if (service == null) {
         throw StateError('CollectionShareService is not configured.');
@@ -263,13 +272,25 @@ class DownloadAndShare {
             backgroundColor: Colors.orange);
         return;
       }
-      await Share.shareXFiles(shareFiles, text: '');
+      await Share.shareXFiles(
+        shareFiles,
+        text: '',
+        sharePositionOrigin: _sharePositionOrigin(context),
+      );
       await service.markCollectionsShared(preparations);
       messenger.hideCurrentSnackBar();
     } catch (error) {
       messenger.hideCurrentSnackBar();
       _showMessage(context, 'Error: ${error.toString()}', backgroundColor: Colors.red);
     }
+  }
+
+  /// iPad requires a source rectangle for the native share popover.
+  /// Use the current widget bounds when available; other platforms ignore it.
+  Rect? _sharePositionOrigin(BuildContext context) {
+    final renderObject = context.findRenderObject();
+    if (renderObject is! RenderBox || !renderObject.hasSize) return null;
+    return renderObject.localToGlobal(Offset.zero) & renderObject.size;
   }
 
   MediaCacheManager? _cacheManagerOrNull(BuildContext context) {
@@ -299,7 +320,8 @@ class DownloadAndShare {
   }
 
   MediaRecord _toMediaRecord(GifItem gif) {
-    final mediaUrl = (gif.imageUrl ?? gif.url ?? '').trim();
+    final imageUrl = gif.imageUrl?.trim() ?? '';
+    final mediaUrl = imageUrl.isNotEmpty ? imageUrl : (gif.url ?? '').trim();
     final sourceUrl = (gif.url ?? mediaUrl).trim();
     final id = gif.id ??
         MediaIdentity.fromUrls(mediaUrl: mediaUrl, sourceUrl: sourceUrl);
