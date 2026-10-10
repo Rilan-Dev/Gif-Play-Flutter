@@ -80,3 +80,11 @@
 - GitHub changes committed on main: recovery fix 58e724a, recovery tests b68a8bb and 1d723ea, index refresh b29edb5 (subsequent control-doc commits follow).
 - Verification status: Flutter/Dart tests were not run in this session. No CI/Vercel wait or repeated polling was introduced.
 - Next: implement compact visual Space/Detail Tab strips against the existing controller without changing persistence contracts.
+
+## 2026-10-10 — Phase 3 initial visual navigation UI
+- Added `lib/common/widgets/session_navigation_strip.dart` with compact horizontal Space chips, create/close/select actions, and nested Detail Tab chips with close/select actions.
+- Mounted the strip above the existing main feed without replacing its layout or media-view routing.
+- Updated main-feed item click handling to asynchronously persist lightweight Detail Tab metadata in the active Space before the existing navigation/dialog flow.
+- Updated the research index, research protocol, NEXT_ACTION, PROJECT_STATE, and CHAT_CONTINUITY to capture the new UI and accurately describe remaining content-switching work.
+- Verification status: no Flutter/Dart runtime execution was performed. Development continued without waiting for CI/Vercel or repeated verification.
+- Known follow-up: Space selection currently updates persistent navigation state but does not yet restore independent feed/search/scroll content; Detail Tab selection does not yet switch the visible page content.
