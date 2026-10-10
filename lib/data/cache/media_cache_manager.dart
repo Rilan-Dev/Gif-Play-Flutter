@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -73,6 +74,10 @@ class MediaCacheManager {
   final int maxRetries;
   final Duration retryBaseDelay;
   final http.Client client;
+
+  /// Produces a filesystem-safe, deterministic cache filename.
+  static String cacheFileNameForMediaId(String mediaId) =>
+      sha256.convert(utf8.encode(mediaId)).toString();
 
   Future<CachePreparationResult?> prepareMedia(
     MediaRecord media, {
@@ -189,7 +194,10 @@ class MediaCacheManager {
       await cacheFolder.create(recursive: true);
     }
 
-    final finalFile = File('${cacheFolder.path}/${media.id}.bin');
+    // IDs can originate from older callers or imported queues and may
+    // contain URL path separators. Never interpolate them into filesystem paths.
+    final safeFileName = cacheFileNameForMediaId(media.id);
+    final finalFile = File('${cacheFolder.path}/$safeFileName.bin');
     final tempFile = File('${finalFile.path}.part');
     await tempFile.writeAsBytes(bytes, flush: true);
     if (await finalFile.exists()) {
