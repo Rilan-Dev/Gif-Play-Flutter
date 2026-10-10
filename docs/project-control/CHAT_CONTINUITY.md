@@ -165,3 +165,6 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 
 - Latest home UX fixes: loading, empty-search and error states no longer appear simultaneously; error retry is not duplicated. Local search now matches title/source/image URL and restores its field when the saved query is non-empty.
 - User-managed collections are now reachable in UI: Collections screen has Create Collection; GIF Details has Save to collection for existing or newly created collections. The existing Share list remains separate. Collection controller regression source checks creating a collection and restoring membership.
+
+
+- Added test/save_to_collection_flow_test.dart to exercise the actual GIF Details → Save to collection → New collection → select collection flow and assert the saved GIF membership in SQLite. It has not been executed in this environment.
