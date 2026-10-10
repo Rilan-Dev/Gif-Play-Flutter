@@ -39,7 +39,7 @@ Status: **IN PROGRESS — persistence infrastructure slice**
 - Source-level migration, persistence, and restoration tests.
 
 ### Next
-Continue invalid/closed-tab restoration hardening and migration/reopen coverage before building the visual Space/Detail Tab strips.
+The visual Space/Detail Tab strips and initial content restoration are now implemented. The final-tab pointer clearing contract is fixed and has repository regression coverage. Continue with async Space-switch/feed-fetch race handling, then empty-feed and tab-open interaction regression sources. Keep Flutter/Dart runtime verification pending if unavailable; do not wait for CI/Vercel.
 
 
 ### Phase 3 — latest implementation update (2026-10-10)
@@ -48,3 +48,9 @@ Continue invalid/closed-tab restoration hardening and migration/reopen coverage 
 - MainScreen now persists per-Space feed snapshots containing at most 120 lightweight `MediaItem` records plus page/visited-page/search metadata; scroll/search writes are debounced.
 - Switching Spaces restores the selected Space's saved feed items, search query, pagination metadata, and scroll offset; empty/unavailable snapshots fall back to fetching the feed.
 - Remaining: focused tests for feed snapshot persistence/restoration and edge cases around fast Space switching and tab-open behavior. Runtime verification remains pending.
+
+
+### Phase 3 continuation update — 2026-10-10
+- Repository updates can now explicitly clear `active_detail_tab_id`; the last Detail Tab close path clears the persisted Space pointer instead of retaining a stale ID.
+- Added a repository test assertion for the cleared pointer.
+- Next implementation focus: avoid stale feed fetch results crossing Space boundaries and ensure the latest selected Space gets its fetch when another request is in flight.
