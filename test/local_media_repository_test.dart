@@ -167,6 +167,42 @@ void main() {
     expect(restored.activeDetailTab!.mediaId, media(31).id);
   });
 
+  test('tab creation normalizes URL media IDs before inserting foreign keys',
+      () async {
+    final controller = SessionNavigationController(repository);
+    await controller.load();
+    final tab = await controller.openDetailTab(
+      spaceId: controller.activeSpaceId!,
+      mediaId: 'https://cdn.example.test/gifs/tab.gif',
+      canonicalUrl: 'https://example.test/post/tab',
+      title: 'URL ID GIF',
+      thumbnailUrl: 'https://cdn.example.test/gifs/tab.gif',
+    );
+
+    expect(tab, isNotNull);
+    expect(tab!.mediaId, isNot('https://cdn.example.test/gifs/tab.gif'));
+    expect(await repository.getMedia(tab.mediaId!), isNotNull);
+  });
+
+  test('intentional Home-feed selection survives controller recreation', () async {
+    final controller = SessionNavigationController(repository);
+    await controller.load();
+    final spaceId = controller.activeSpaceId!;
+    await controller.openDetailTab(
+      spaceId: spaceId,
+      mediaId: media(94).id,
+      canonicalUrl: media(94).sourceUrl,
+      title: 'Keep this tab open',
+    );
+    await controller.activateHomeFeed(spaceId);
+
+    final restored = SessionNavigationController(repository);
+    await restored.load();
+    expect(restored.activeSpaceId, spaceId);
+    expect(restored.activeDetailTabId, isNull);
+    expect(restored.tabsForSpace(spaceId), hasLength(1));
+  });
+
   test('opening the same GIF twice creates separate child tabs', () async {
     final controller = SessionNavigationController(repository);
     await controller.load();
