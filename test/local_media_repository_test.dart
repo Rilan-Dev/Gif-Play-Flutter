@@ -229,7 +229,9 @@ void main() {
 
     await repository.closeDetailTab(tab.id);
     expect((await repository.listDetailTabs(space.id)), isEmpty);
-    expect(await repository.getSpace(space.id), isNotNull);
+    final spaceAfterClose = await repository.getSpace(space.id);
+    expect(spaceAfterClose, isNotNull);
+    expect(spaceAfterClose!.activeDetailTabId, isNull);
   });
 
   test('database survives close and reopen with collection state intact', () async {
