@@ -5,9 +5,14 @@ import '../../data/local/models/detail_tab.dart';
 
 /// Lightweight, local-first content view for a selected persistent Detail Tab.
 class DetailTabContent extends StatelessWidget {
-  const DetailTabContent({super.key, required this.tab});
+  const DetailTabContent({
+    super.key,
+    required this.tab,
+    this.onMoreOptions,
+  });
 
   final DetailTab tab;
+  final VoidCallback? onMoreOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +68,12 @@ class DetailTabContent extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 16),
+              if (onMoreOptions != null)
+                OutlinedButton.icon(
+                  onPressed: onMoreOptions,
+                  icon: const Icon(Icons.tune),
+                  label: const Text('GIF options'),
+                ),
               if (url?.isNotEmpty == true)
                 FilledButton.icon(
                   onPressed: () async {
