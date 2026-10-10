@@ -650,3 +650,6 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 
 
 - lib/screens/main_screen/space_fetch_policy.dart centralizes the overlapping Space-fetch policy; test/space_fetch_policy_test.dart covers cross-Space queueing and same-Space duplicate suppression.
+
+
+- User collection UI: lib/screens/collections_screen.dart creates named collections; lib/screens/main_screen/main_screen_actions.dart lets users save selected detail GIFs to an existing/new collection through CollectionShareController. Collection metadata/memberships are SQLite-backed; the Share Queue remains SharedPreferences-backed.
