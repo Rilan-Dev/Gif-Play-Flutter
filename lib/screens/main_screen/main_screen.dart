@@ -147,6 +147,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       _visitedPages = snapshot.visitedPages;
       final query = snapshot.searchQuery;
       _searchController.text = query;
+      _isSearchVisible = query.isNotEmpty;
       _filteredItems
         ..clear()
         ..addAll(
