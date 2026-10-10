@@ -71,7 +71,7 @@ class CollectionShareController extends ChangeNotifier {
       hasSelection &&
       _status == CollectionShareStatus.ready &&
       _preparations.length == _selectedCollectionIds.length &&
-      _preparations.values.every((item) => item.isReadyToShare);
+      _preparations.values.every((item) => item.isEmpty || item.isReadyToShare);
 
   Future<void> loadCollections() async {
     _collections = await repository.listCollections();
