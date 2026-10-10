@@ -65,6 +65,7 @@ class MediaCacheManager {
     this.maxRetries = 2,
     this.retryBaseDelay = const Duration(milliseconds: 500),
     http.Client? client,
+    this.cacheDirectoryProvider,
   }) : client = client ?? http.Client();
 
   final LocalMediaRepository repository;
@@ -74,6 +75,7 @@ class MediaCacheManager {
   final int maxRetries;
   final Duration retryBaseDelay;
   final http.Client client;
+  final Future<Directory> Function()? cacheDirectoryProvider;
 
   /// Produces a filesystem-safe, deterministic cache filename.
   static String cacheFileNameForMediaId(String mediaId) =>
@@ -192,7 +194,7 @@ class MediaCacheManager {
       throw const FormatException('Downloaded media is empty');
     }
 
-    final folder = await FileUtils.getHiddenFolder();
+    final folder = await (cacheDirectoryProvider ?? FileUtils.getHiddenFolder)();
     final cacheFolder = Directory('${folder.path}/gif_cache');
     if (!await cacheFolder.exists()) {
       await cacheFolder.create(recursive: true);
