@@ -478,9 +478,6 @@ class MainScreenActions {
                     ListTile(
                       leading: const Icon(Icons.collections_bookmark_outlined),
                       title: Text(collection.name),
-                      subtitle: Text(
-                        '${state.itemsForCollection(collection.id).length} saved GIFs',
-                      ),
                       onTap: () => Navigator.pop(dialogContext, collection.id),
                     ),
                 ],
@@ -549,47 +546,56 @@ class MainScreenActions {
     if (collectionId == null || !context.mounted) return false;
 
     var savedCount = 0;
-    for (final gif in gifs) {
-      final imageUrl = gif.imageUrl?.trim().isNotEmpty == true
-          ? gif.imageUrl!.trim()
-          : (gif.url ?? '').trim();
-      final uri = Uri.tryParse(imageUrl);
-      if (uri == null ||
-          (uri.scheme != 'http' && uri.scheme != 'https') ||
-          uri.host.isEmpty) {
-        continue;
-      }
-      final sourceUrl = (gif.url?.trim().isNotEmpty == true
-              ? gif.url!.trim()
-              : imageUrl);
-      final id = MediaIdentity.fromUrls(
-        mediaUrl: imageUrl,
-        sourceUrl: sourceUrl,
-      );
-      final now = DateTime.now();
-      await controller.addMediaToCollection(
-        collectionId: collectionId,
-        media: MediaRecord(
-          id: id,
-          sourceUrl: sourceUrl,
+    try {
+      for (final gif in gifs) {
+        final imageUrl = gif.imageUrl?.trim().isNotEmpty == true
+            ? gif.imageUrl!.trim()
+            : (gif.url ?? '').trim();
+        final uri = Uri.tryParse(imageUrl);
+        if (uri == null ||
+            (uri.scheme != 'http' && uri.scheme != 'https') ||
+            uri.host.isEmpty) {
+          continue;
+        }
+        final sourceUrl = (gif.url?.trim().isNotEmpty == true
+                ? gif.url!.trim()
+                : imageUrl);
+        final id = MediaIdentity.fromUrls(
           mediaUrl: imageUrl,
-          thumbnailUrl: gif.previewUrl ?? imageUrl,
-          title: gif.title,
-          width: gif.width,
-          height: gif.height,
-          mimeType: 'image/gif',
-          searchText: [
-            gif.title,
-            gif.altText,
-            sourceUrl,
-            imageUrl,
-          ].whereType<String>().join(' ').toLowerCase(),
-          createdAt: gif.timestamp,
-          updatedAt: now,
-          lastSeenAt: now,
-        ),
-      );
-      savedCount++;
+          sourceUrl: sourceUrl,
+        );
+        final now = DateTime.now();
+        await controller.addMediaToCollection(
+          collectionId: collectionId,
+          media: MediaRecord(
+            id: id,
+            sourceUrl: sourceUrl,
+            mediaUrl: imageUrl,
+            thumbnailUrl: gif.previewUrl ?? imageUrl,
+            title: gif.title,
+            width: gif.width,
+            height: gif.height,
+            mimeType: 'image/gif',
+            searchText: [
+              gif.title,
+              gif.altText,
+              sourceUrl,
+              imageUrl,
+            ].whereType<String>().join(' ').toLowerCase(),
+            createdAt: gif.timestamp,
+            updatedAt: now,
+            lastSeenAt: now,
+          ),
+        );
+        savedCount++;
+      }
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not save GIFs to collection: $error')),
+        );
+      }
+      return false;
     }
 
     if (!context.mounted) return false;
