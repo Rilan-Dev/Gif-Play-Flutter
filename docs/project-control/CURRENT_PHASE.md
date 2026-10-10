@@ -48,8 +48,8 @@ The visual Space/Detail Tab strips and initial content restoration are now imple
 - MainScreen now persists per-Space feed snapshots containing at most 120 lightweight `MediaItem` records plus page/visited-page/search metadata; scroll/search writes are debounced.
 - Switching Spaces restores the selected Space's saved feed items, search query, pagination metadata, and scroll offset; empty/unavailable snapshots fall back to fetching the feed.
 - Added `SpaceFeedSnapshot` parsing to make missing, malformed, and empty saved feeds recover by fetching fresh content; restored snapshots are filtered and bounded to 120 items.
-- Source tests cover empty/missing/malformed snapshots, valid state restoration, and the item bound. Runtime verification remains pending.
-- Next: harden loading-state cleanup for stale fetch completions and query changes during an in-flight request.
+- Source tests cover empty/missing/malformed/wrong-typed snapshots, corrupt media records, valid state restoration, and the 120-item bound. Successful fetches schedule persistence, and result filtering uses the latest query. Runtime verification remains pending.
+- Fetch loading-state cleanup is owned by the active request generation. Next: add explicit rapid-Space-switch/in-flight-fetch regression coverage, then resume the broader home/search UX roadmap.
 
 
 ### Phase 3 continuation update — 2026-10-10
