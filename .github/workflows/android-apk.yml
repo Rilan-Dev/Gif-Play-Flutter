@@ -11,19 +11,12 @@ on:
           - release
           - debug
         default: release
-  # Temporary dependency-only trigger for the current APK recovery attempt.
-  push:
-    branches:
-      - main
-    paths:
-      - "pubspec.yaml"
-      - "pubspec.lock"
 
 permissions:
   contents: read
 
 concurrency:
-  group: android-apk-${{ github.workflow }}-${{ github.ref }}
+  group: android-apk-${{ github.workflow }}-${{ github.ref }}-${{ inputs.build_type || 'release' }}
   cancel-in-progress: false
 
 jobs:
