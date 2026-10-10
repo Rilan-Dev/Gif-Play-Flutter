@@ -633,3 +633,5 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 - Navigation path: lib/data/local/session_navigation_controller.dart normalizes URL-based media IDs before creating foreign-key-backed tabs, creates a new tab for every open, restores per-Space active tabs, and persists intentional Home-feed selection. lib/common/widgets/session_navigation_strip.dart exposes Home feed, subtabs, overview and close actions.
 - Home selection path: lib/screens/main_screen/main_screen_actions.dart awaits tab creation and keeps home GIF details inside the main navigation shell.
 - Regression sources: test/media_cache_manager_test.dart, test/local_media_repository_test.dart, and test/share_queue_provider_test.dart. Test/analyzer/build/device verification remains pending.
+
+- Additional follow-up: legacy GIF Details dialog grid selection also opens a new persistent child tab. Bulk-share failures now expose copyable per-GIF diagnostic details; share-queue writes are serialized.
