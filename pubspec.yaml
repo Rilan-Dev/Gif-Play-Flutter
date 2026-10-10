@@ -7,9 +7,8 @@ version: 1.0.0+1
 environment:
   sdk: ^3.6.0
 
-# APK CI compatibility: drift_flutter 0.3.x pairs with drift 2.32.x.
+# APK CI compatibility: pin Drift to the custom SQL API used by LocalDatabase.
 # Android build tooling: Gradle 8.14.3 + AGP 8.11.1 + Kotlin 2.2.20.
-# Consider running flutter pub outdated before upgrading dependencies.
 
 dependencies:
   flutter:
@@ -17,7 +16,7 @@ dependencies:
   flutter_riverpod: ^2.3.6
   http: ^1.1.0
   crypto: ^3.0.6
-  drift: ^2.32.1
+  drift: 2.32.1
   drift_flutter: ^0.3.1
   html: ^0.15.4
   dartz: ^0.10.1
@@ -31,7 +30,7 @@ dependencies:
   provider: ^6.1.4
   shared_preferences: ^2.5.3
   animated_splash_screen: ^1.3.0
-  page_transition: ^2.2.1
+  page_transition: ^2.2.2
   intl: ^0.20.2
   flutter_launcher_icons: ^0.14.3
   rename_app: ^1.6.2
