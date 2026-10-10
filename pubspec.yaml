@@ -8,7 +8,7 @@ environment:
   sdk: ^3.6.0
 
 # APK CI compatibility: drift_flutter 0.3.x pairs with drift 2.32.x.
-# Android build tooling: Gradle 8.14.3 + Android Gradle Plugin 8.11.1.
+# Android build tooling: Gradle 8.14.3 + AGP 8.11.1 + Kotlin 2.2.20.
 # Consider running flutter pub outdated before upgrading dependencies.
 
 dependencies:
