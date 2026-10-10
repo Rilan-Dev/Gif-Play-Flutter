@@ -70,3 +70,13 @@
 - Added Drift + SQLite, local schema/bootstrap, deterministic media identity, domain models, repository, and legacy liked/viewed migration.
 - Added focused persistence test sources for 500 records, independent collections, reusable empty collections, and deduplicated membership.
 - Product feature UI remained unchanged; binary cache/download work was deferred to Phase 2.
+
+
+## 2026-10-10 — Phase 3 stale-session recovery and repository indexing
+- Recovered the project from CHAT_CONTINUITY.md, NAVIGATION.md, PROJECT_STATE.md, CURRENT_PHASE.md, NEXT_ACTION.md, implementation plan, decisions, issues, and the AI research index.
+- Fixed SessionNavigationController.load() so a closed, missing, stale, or cross-Space detail-tab ID is repaired from the selected Space's valid active tab or latest open tab; corrected state is persisted.
+- Added test/session_navigation_recovery_test.dart covering closed-tab recovery, cross-Space snapshot repair, activate/close transitions, and Spaces/Detail Tabs/SessionSnapshot persistence across database close/reopen.
+- Refreshed docs/AI_REPO_INDEX.md with the current persistence/cache/navigation modules and focused research recipes; updated docs/AI_RESEARCH_PROTOCOL.md to route future research through the refreshed index.
+- GitHub changes committed on main: recovery fix 58e724a, recovery tests b68a8bb and 1d723ea, index refresh b29edb5 (subsequent control-doc commits follow).
+- Verification status: Flutter/Dart tests were not run in this session. No CI/Vercel wait or repeated polling was introduced.
+- Next: implement compact visual Space/Detail Tab strips against the existing controller without changing persistence contracts.
