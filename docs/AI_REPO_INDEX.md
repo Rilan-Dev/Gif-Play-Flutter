@@ -578,3 +578,14 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 - `lib/screens/main_screen/main_screen.dart` — mounts the navigation strips above the existing feed without replacing the established media layout.
 - `lib/screens/main_screen/main_screen_actions.dart` — records a lightweight Detail Tab when a feed item is opened, using the active Space and local metadata.
 - Current UI limitation: selecting a Space changes the durable active-space pointer, but per-Space feed/search/scroll restoration and rendering the selected Detail Tab's actual page content are still the next integration slice. Do not treat the visual strip alone as full browser-like content switching.
+
+
+## 18. Android APK CI/CD research path (2026-10-10)
+
+- Workflow: `.github/workflows/android-apk.yml` — builds a release APK on pushes to `main`, `feature/**`, and `feat/**`, pull requests to `main`, and manual dispatch.
+- Build output: `build/app/outputs/flutter-apk/app-release.apk`; uploaded as a 30-day GitHub Actions artifact.
+- Operator guide: `docs/CI_CD_ANDROID_APK.md`.
+- Focused CI/CD map: `docs/AI_REPO_INDEX_CI_CD.md`.
+- Android build configuration research: `pubspec.yaml`, `android/app/build.gradle`, `android/settings.gradle`, `android/build.gradle`, and `android/gradle/wrapper/gradle-wrapper.properties`.
+- Signing caveat: current Android release build uses debug signing; treat the artifact as a test/install build, not a production Play Store release.
+- CI/CD failures must not block independent feature implementation; inspect a failed run when practical without repeated polling.
