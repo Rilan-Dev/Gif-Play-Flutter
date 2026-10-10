@@ -62,3 +62,12 @@ The visual Space/Detail Tab strips and initial content restoration are now imple
 - MainScreen now uses a restore generation and active-Space identity checks for async restore/fetch results.
 - Feed fetches use snapshots rather than live mutable feed collections; pending requests for the latest Space are queued.
 - Detached scroll callbacks are ignored. Runtime verification remains pending and is not a blocker.
+
+
+### Persistent collection and Detail Tab UX update — 2026-10-10
+- DetailTabContent now renders the selected GIF preview/title, explicit source action, and source-page suggestions after startup restoration; selecting a suggestion creates/activates a persistent child tab in the same Space.
+- Added a tab-overview dialog with thumbnail/title cards for fast switching between child tabs.
+- Main feed opens now persist media identity as well as title/thumbnail/source metadata.
+- Collections screen reloads SQLite-backed collection membership when opened and reports saved-item counts, including already-shared items.
+- Collection clear compatibility calls now reset share status rather than deleting membership. Empty collections do not block sharing other selected collections; an explicit reset action makes saved items eligible for sharing again.
+- Runtime tests/analyzer remain pending; no CI/deployment gate was awaited.
