@@ -647,3 +647,6 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 - lib/screens/main_screen/media_item_search.dart provides case-insensitive matching against GIF title, source URL and image URL; MainScreen uses it for restored snapshots, fresh fetch results and live filtering.
 - DetailTabContent's optional suggestionLoader makes child-tab navigation independently testable; its production default remains the existing web-fetch service.
 - test/detail_tab_content_test.dart covers selecting a suggestion into a persistent child tab; test/media_item_search_test.dart covers query matching behavior.
+
+
+- lib/screens/main_screen/space_fetch_policy.dart centralizes the overlapping Space-fetch policy; test/space_fetch_policy_test.dart covers cross-Space queueing and same-Space duplicate suppression.
