@@ -29,7 +29,7 @@ Phase 3 — Persistent Browsing Spaces & Detail Tabs is **IN PROGRESS**. Phase 1
 9. [x] Finish edge-case behavior: ignore stale post-frame scroll restoration, guard scroll callbacks when the feed is detached, and make feed-item opening consistent with selected Detail Tab content instead of layering competing navigation/dialog surfaces.
 10. [x] Extract resilient `SpaceFeedSnapshot` restoration and add source coverage for empty, missing, malformed, valid, and bounded snapshots; empty/unavailable saved content is marked for a fresh feed fetch.
 11. [x] Harden fetch lifecycle ownership: each active fetch has a request generation, and only that request may clear loading state or drain the queued Space fetch. Successful fetches schedule a debounced snapshot save, and results are filtered using the latest query.
-12. [NEXT] Add focused source coverage for rapid Space switching with an in-flight fetch and confirm previous-Space snapshot writes remain isolated; then continue the broader home/search UX roadmap. Keep runtime verification pending rather than waiting for CI/Vercel. Stale URL handling, independent per-Space snapshots, explicit GIF options, and regular feed-item-to-Detail-Tab activation have source coverage.
+12. [NEXT] Add focused source coverage for rapid Space switching with an in-flight fetch and confirm previous-Space snapshot writes remain isolated; then continue the broader home/search UX roadmap. Keep runtime verification pending rather than waiting for CI/Vercel. New Detail Tabs now restore a full GIF detail surface with suggestions and a thumbnail/title overview; collections remain durable and bulk-shareable, including after prior shares.
 
 Runtime Flutter/Dart verification remains pending in the available environment; continue implementation without waiting for CI/Vercel/runtime gates.
 
@@ -37,6 +37,7 @@ Runtime Flutter/Dart verification remains pending in the available environment; 
 Do not wait for GitHub Actions, Vercel deployments, or continuous verification to continue implementation. Runtime verification must be recorded honestly when unavailable, but it is not a development blocker.
 
 ## Acceptance invariants
+- A collection and all its saved GIF memberships survive app restart and sharing; a reset makes previously shared GIFs pending again without deleting records.
 - A shared collection remains after its pending queue reaches zero.
 - Sharing one collection never changes another collection.
 - Duplicate media across collections reuses one canonical cache file.
@@ -53,7 +54,7 @@ Do not wait for GitHub Actions, Vercel deployments, or continuous verification t
 
 
 ## Current UI implementation note
-The navigation strip, selected Detail Tab content view, and bounded per-Space feed/search/pagination/scroll snapshot restoration are implemented. MainScreen now guards overlapping restore/fetch completions and delayed scroll restoration with a generation token and active Space identity; when a Space needs a fetch while another is running, its ID is queued and fetched after the in-flight request finishes. Regular feed-item opens now select the persistent Detail Tab without immediately layering the legacy GIF dialog; a deliberate GIF options action remains available from the tab. Runtime verification remains pending.
+The navigation strip, restored GIF detail/suggestions view, child-tab thumbnail overview, and bounded per-Space feed/search/pagination/scroll snapshot restoration are implemented. MainScreen now guards overlapping restore/fetch completions and delayed scroll restoration with a generation token and active Space identity; when a Space needs a fetch while another is running, its ID is queued and fetched after the in-flight request finishes. Regular feed-item opens now select the persistent Detail Tab without immediately layering the legacy GIF dialog; a deliberate GIF options action remains available from the tab. Runtime verification remains pending.
 
 
 ## Phase 3 implementation status — 2026-10-10
