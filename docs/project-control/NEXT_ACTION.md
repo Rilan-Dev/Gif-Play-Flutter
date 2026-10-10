@@ -18,11 +18,13 @@ Phase 2 — Temporary Download / Ready-to-Share Engine is **IN PROGRESS**. Phase
 - Focused regression source added for cache retry, cache cleanup, collection preservation, and collection-selection deduplication.
 
 ## Immediate next implementation sequence
-1. Continue Phase 3 persistence: add controller-level transition coverage and lightweight state mutation persistence.
-2. Add startup restoration handling for invalid/closed tab references and stale session snapshots.
-3. Add migration/reopen tests covering Spaces, Detail Tabs, and SessionSnapshot across process/database reopen.
-4. Then introduce the visual Space/Detail Tab UI layer without changing the established persistence contracts.
-5. Continue project-control/index updates.
+1. [x] Add controller-level activation/close transition coverage and assert snapshot persistence.
+2. [x] Repair startup restoration for invalid, closed, stale, and cross-Space detail-tab references; persist the corrected snapshot.
+3. [x] Add database close/reopen coverage for Spaces, Detail Tabs, and SessionSnapshot; retain the existing v1-to-v2 migration test.
+4. [NEXT] Introduce the visual Space/Detail Tab UI layer without changing the established persistence contracts. Inspect the current main-screen composition and integrate compact, horizontally scrollable Space and nested Detail Tab strips through the existing Provider/controller boundary.
+5. Update the research index and project-control records when the UI integration changes the topology.
+
+Runtime Flutter/Dart verification remains pending in the available environment; continue implementation without waiting for CI/Vercel/runtime gates.
 
 ## Execution rule
 Do not wait for GitHub Actions, Vercel deployments, or continuous verification to continue implementation. Runtime verification must be recorded honestly when unavailable, but it is not a development blocker.
