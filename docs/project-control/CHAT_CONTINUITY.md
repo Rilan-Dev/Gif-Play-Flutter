@@ -122,3 +122,11 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 - Restored Detail Tabs now render the saved GIF detail and reload the existing source-page suggestions. Picking a suggestion opens it as another child tab in the same Space. The child-tab strip and a Brave-style bottom control expose a large thumbnail/title overview dialog inspired by browser tab switchers.
 - Feed item opens persist media identity to reduce duplicate child tabs.
 - Next: add focused regression coverage for rapid Space switching during an in-flight fetch and verify per-Space snapshot write isolation in source tests. Runtime tests/analyzer were not run and remain pending; continue development without waiting for CI/Vercel.
+
+
+## Bulk GIF share crash fix — 2026-10-10
+- Found the concrete path hazard: ShareQueueProvider fallback IDs (`url:https://...`) could flow into `MediaCacheManager` and be interpolated into `gif_cache/{id}.bin`, where URL slashes break file creation.
+- `DownloadAndShare._toMediaRecord` now replaces queue-generated fallback keys with stable MediaIdentity hashes; `MediaCacheManager.cacheFileNameForMediaId` independently hashes arbitrary IDs into safe filenames.
+- Native share files explicitly declare `image/gif`, duplicate file paths are removed, missing files are skipped, and iPad share-position origin is supplied. Share queue callers now only show success when the sharing utility reports success.
+- Collection multi-share readiness accepts selected collections with no pending items while sharing the remaining prepared GIFs.
+- Added `test/media_cache_manager_test.dart`. Tests/analyzer/build remain unrun; next tasks continue with Space-switch and child-tab regression coverage, plus device-specific share reproduction if any error persists.
