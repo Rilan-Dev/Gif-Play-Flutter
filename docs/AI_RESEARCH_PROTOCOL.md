@@ -104,3 +104,8 @@ Do not update the index for every trivial styling-only edit.
 ## Phase 3 UI slice
 
 The home screen now mounts `SessionNavigationStrip`, and feed item opens create durable Detail Tab metadata in the active Space. For further work, inspect `lib/common/widgets/session_navigation_strip.dart`, `lib/screens/main_screen/main_screen.dart`, `lib/screens/main_screen/main_screen_actions.dart`, and `SessionNavigationController`. The next slice is to bind active Space/Detail Tab selection to actual feed/detail content and persist/restore per-Space feed/search/scroll state; keep the SQLite contracts unchanged unless a separately authorized schema change is needed.
+
+
+## Android APK CI/CD research
+
+For automated Android builds, read `docs/AI_REPO_INDEX_CI_CD.md` and `docs/CI_CD_ANDROID_APK.md`, then inspect `.github/workflows/android-apk.yml` and the Android Gradle configuration. APK artifacts are for testing while the release build uses debug signing. Continue unrelated implementation while CI is pending; do not repeatedly poll build runs.
