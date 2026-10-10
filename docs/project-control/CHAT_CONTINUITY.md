@@ -141,3 +141,11 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 - Next: source-check the latest commits and project-control docs; continue independent implementation without waiting for CI/Vercel. User must install a newer build than 28 to receive these changes, then retest Share All and force-close/relaunch persistence.
 
 - Follow-up after the initial handoff note: legacy GIF Details dialog suggestion selection was also redirected into new child tabs. Bulk Share All now presents copyable failure details, including per-GIF cache/download reasons. Queue writes are serialized to protect rapid changes.
+
+
+## Latest continuation point — 2026-10-11 continued navigation/persistence work
+- Added source regression for rapid concurrent Space switches and assertions that the final active tab/session snapshot matches the last requested Space, while each Space keeps its own active tab.
+- Added widget test source for Home feed accessibility, reactivating an existing child tab, opening the overview, and closing a child tab from the overview.
+- MainScreen now observes app lifecycle changes. On inactive/paused/detached it cancels the feed-save debounce and flushes the current feed/search/page/scroll snapshot; it also flushes serialized Share Queue persistence.
+- Bootstrap confirms the stable gif_play_library Drift database, SQLite collection/navigation state, legacy migration, and Share Queue restoration before runApp.
+- Tests, analyzer, APK, physical share sheet and force-close/relaunch were not run. Continue from NEXT_ACTION.md; don't wait for CI/Vercel. Build 28 does not include these commits.
