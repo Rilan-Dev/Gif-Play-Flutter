@@ -11,6 +11,7 @@ class ShareQueueProvider with ChangeNotifier {
   static const int maxQueuedGifs = 200;
   static const String _storageKey = 'share_queue_gifs_v1';
   final List<GifItem> _queuedGifs = [];
+  Future<void> _pendingPersistence = Future<void>.value();
   bool _loaded = false;
 
   bool get isLoaded => _loaded;
@@ -54,15 +55,19 @@ class ShareQueueProvider with ChangeNotifier {
   /// Useful before an intentional app-level navigation or lifecycle handoff.
   Future<void> flushPersistence() => _persistQueue();
 
-  Future<void> _persistQueue() async {
-    try {
-      await SharedPreferencesUtil.setString(
-        _storageKey,
-        jsonEncode(_queuedGifs.map((gif) => gif.toMap()).toList()),
-      );
-    } catch (error) {
-      debugPrint('Could not persist share queue: $error');
-    }
+  Future<void> _persistQueue() {
+    // Capture a snapshot and serialize writes so a slow earlier platform write
+    // cannot overwrite a newer add/remove/clear operation.
+    final snapshot =
+        jsonEncode(_queuedGifs.map((gif) => gif.toMap()).toList());
+    _pendingPersistence = _pendingPersistence.then((_) async {
+      try {
+        await SharedPreferencesUtil.setString(_storageKey, snapshot);
+      } catch (error) {
+        debugPrint('Could not persist share queue: $error');
+      }
+    });
+    return _pendingPersistence;
   }
 
   List<GifItem> get queuedGifs => List.unmodifiable(_queuedGifs);
