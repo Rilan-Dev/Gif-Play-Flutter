@@ -1,5 +1,14 @@
 # Worklog
 
+## 2026-10-10 — Phase 3 stale restoration and Detail Tab UX
+- Added generation and active-Space checks to delayed post-frame scroll restoration so an old Space cannot jump the newly selected feed.
+- Applied the captured restore generation to both successful and failed feed-fetch completion paths, preventing a stale request from mutating the current Space after rapid switching.
+- Changed regular feed-item opening so the saved Detail Tab is the primary surface instead of immediately showing an overlapping GIF details dialog. The tab provides an explicit GIF options action to retain like/save/share access.
+- Added regression source for independent per-Space feed snapshots and widget coverage rejecting unsafe source URL schemes and exposing the explicit GIF options action.
+- Updated NEXT_ACTION and CURRENT_PHASE to reflect completed work and the remaining empty-feed/tab-open coverage.
+- Verification status: tests and Flutter/Dart analyzer were not run; implementation continues without waiting for runtime or CI gates.
+
+
 ## 2026-10-08 — Phase 3 cold-start restoration hardening
 - SessionNavigationController now creates a durable Home Space when the database has no browsing spaces.
 - Invalid or missing active-space references fall back to the first persisted Space and rewrite the SessionSnapshot.
