@@ -152,6 +152,42 @@ void main() {
     expect(restoredSecond?.feedStateJson, isNot(contains('first.gif')));
   });
 
+  test('rapid concurrent Space switches leave the final Space and tab active',
+      () async {
+    final controller = SessionNavigationController(repository);
+    await controller.load();
+    final firstSpace = controller.activeSpace!;
+    final firstTab = await controller.openDetailTab(
+      spaceId: firstSpace.id,
+      canonicalUrl: 'https://example.com/first',
+      title: 'First tab',
+    );
+    final secondSpace = await controller.createSpace(name: 'Second Space');
+    final secondTab = await controller.openDetailTab(
+      spaceId: secondSpace.id,
+      canonicalUrl: 'https://example.com/second',
+      title: 'Second tab',
+    );
+
+    // Start several transitions before any caller awaits the previous one.
+    await Future.wait([
+      controller.activateSpace(firstSpace.id),
+      controller.activateSpace(secondSpace.id),
+      controller.activateSpace(firstSpace.id),
+    ]);
+
+    expect(controller.activeSpaceId, firstSpace.id);
+    expect(controller.activeDetailTabId, firstTab!.id);
+    expect(controller.activeDetailTab?.spaceId, firstSpace.id);
+    final snapshot = await repository.getSessionSnapshot();
+    expect(snapshot?.activeSpaceId, firstSpace.id);
+    expect(snapshot?.activeDetailTabId, firstTab.id);
+    expect((await repository.getSpace(firstSpace.id))?.activeDetailTabId,
+        firstTab.id);
+    expect((await repository.getSpace(secondSpace.id))?.activeDetailTabId,
+        secondTab!.id);
+  });
+
   test('Spaces, Detail Tabs, and session snapshot survive database reopen',
       () async {
     final directory =
