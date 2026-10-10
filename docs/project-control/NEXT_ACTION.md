@@ -68,3 +68,10 @@ The main screen now restores per-Space feed/search/scroll state from the persist
 - [x] Always create a new child tab for each explicit GIF selection; add persistent Home-feed selection and tab overview close controls.
 - [x] Persist and restore the Share Queue across app launches.
 - [NEXT] Continue focused interaction coverage and improve visible/share-stage diagnostics. Flutter runtime verification is pending; do not block development on CI/Vercel. Build 28 does not contain these commits.
+
+
+## 2026-10-11 follow-up — navigation regressions and lifecycle flush
+- [x] Add rapid concurrent Space-switch regression source that checks final session snapshot and independent per-Space active tab pointers.
+- [x] Add widget regression source for Home feed ↔ child-tab navigation, tab overview visibility, and closing a tab from the overview.
+- [x] Flush the debounced Space feed/search/pagination/scroll snapshot when the app backgrounds, and flush queued Share Queue writes through its serialized persistence chain.
+- [NEXT] Continue Phase 3 with explicit suggestion-to-child-tab interaction coverage and review the full lifecycle of tabs and collections after process recreation. Then proceed with focused home/search UX improvements without a broad redesign. Tests/analyzer/build/device verification are still pending and are not a development blocker.
