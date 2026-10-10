@@ -63,8 +63,12 @@ class _ShareQueueScreenState extends State<ShareQueueScreen> {
 
     setState(() => _sharing = true);
     try {
-      await DownloadAndShare().downloadAndShareGifs(context, selected, true);
-      if (!mounted) return;
+      final shared = await DownloadAndShare().downloadAndShareGifs(
+        context,
+        selected,
+        true,
+      );
+      if (!mounted || !shared) return;
       // Keep the queue intact: dismissing the native share sheet does not
       // prove the share succeeded, so automatic removal could lose GIFs.
       ScaffoldMessenger.of(context).showSnackBar(
