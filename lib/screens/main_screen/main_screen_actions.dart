@@ -189,7 +189,7 @@ class MainScreenActions {
                         itemBuilder: (context, index) {
                           final isSelected = selectedIndices.contains(index);
                           return GestureDetector(
-                            onTap: () {
+                            onTap: () async {
                               if (isSelecting) {
                                 setState(() {
                                   if (isSelected) {
@@ -199,16 +199,28 @@ class MainScreenActions {
                                   }
                                 });
                               } else {
-                                Navigator.pop(context); // Close dialog
-                                Navigator.push(
+                                final navigation =
+                                    Provider.of<SessionNavigationController>(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) => GifViewerScreen(
-                                      gifItems: gifs,
-                                      initialIndex: index,
-                                    ),
-                                  ),
+                                  listen: false,
                                 );
+                                final spaceId = navigation.activeSpaceId;
+                                final selectedGif = gifs[index];
+                                final imageUrl =
+                                    (selectedGif.imageUrl ?? selectedGif.url ?? '')
+                                        .trim();
+                                Navigator.pop(context);
+                                if (spaceId != null && imageUrl.isNotEmpty) {
+                                  await navigation.openDetailTab(
+                                    spaceId: spaceId,
+                                    mediaId: imageUrl,
+                                    canonicalUrl: item.href ?? item.imageUrl,
+                                    title: selectedGif.title.trim().isNotEmpty
+                                        ? selectedGif.title
+                                        : 'GIF detail',
+                                    thumbnailUrl: imageUrl,
+                                  );
+                                }
                               }
                             },
                             onLongPress: () {
