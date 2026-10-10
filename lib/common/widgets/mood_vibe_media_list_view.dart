@@ -18,6 +18,8 @@ class MoodVibeMediaListView extends StatelessWidget {
   final Set<int> selectedItems;
   final bool isSelectionMode;
   final ScrollController? scrollController;
+  final bool shrinkWrap;
+  final ScrollPhysics? physics;
 
   const MoodVibeMediaListView({
     Key? key,
@@ -28,106 +30,107 @@ class MoodVibeMediaListView extends StatelessWidget {
     this.selectedItems = const {},
     this.isSelectionMode = false,
     this.scrollController,
+    this.shrinkWrap = false,
+    this.physics,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Wrap ListView in a SizedBox with a defined height
-    return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      child: ListView.builder(
-        controller: scrollController,
-        padding: const EdgeInsets.all(8.0),
-        itemCount: mediaItems.length,
-        itemBuilder: (context, index) {
-          final item = mediaItems[index];
-          final isSelected = selectedItems.contains(index);
+    return ListView.builder(
+      controller: scrollController,
+      primary: scrollController == null && !shrinkWrap,
+      shrinkWrap: shrinkWrap,
+      physics: physics,
+      padding: const EdgeInsets.all(8.0),
+      itemCount: mediaItems.length,
+      itemBuilder: (context, index) {
+        final item = mediaItems[index];
+        final isSelected = selectedItems.contains(index);
 
-          return Consumer<LikedGifsProvider>(
-            builder: (context, likedProvider, child) {
-              final isLiked = likedProvider.isGifLiked(item.imageUrl.hashCode.toString());
+        return Consumer<LikedGifsProvider>(
+          builder: (context, likedProvider, child) {
+            final isLiked = likedProvider.isGifLiked(item.imageUrl.hashCode.toString());
 
-              return Card(
-                elevation: isSelected ? 8.0 : 2.0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  side: isSelected
-                      ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2.0)
-                      : BorderSide.none,
-                ),
-                clipBehavior: Clip.antiAlias,
-                margin: const EdgeInsets.symmetric(vertical: 4.0),
-                child: InkWell(
-                  onTap: () => onItemClick(item, index),
-                  onLongPress: onItemLongPress != null ? () => onItemLongPress!(item, index) : null,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Image
-                      SizedBox(
-                        width: 120,
-                        height: 80,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            CachedNetworkImage(
-                              imageUrl: item.imageUrl,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => const ShimmerLoading(height: 80),
-                              errorWidget: (context, url, error) => const Icon(Icons.error),
+            return Card(
+              elevation: isSelected ? 8.0 : 2.0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                side: isSelected
+                    ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2.0)
+                    : BorderSide.none,
+              ),
+              clipBehavior: Clip.antiAlias,
+              margin: const EdgeInsets.symmetric(vertical: 4.0),
+              child: InkWell(
+                onTap: () => onItemClick(item, index),
+                onLongPress: onItemLongPress != null ? () => onItemLongPress!(item, index) : null,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Image
+                    SizedBox(
+                      width: 120,
+                      height: 80,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: item.imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => const ShimmerLoading(height: 80),
+                            errorWidget: (context, url, error) => const Icon(Icons.error),
+                          ),
+
+                          // Selection overlay
+                          if (isSelected)
+                            Container(
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                              child: Center(
+                                child: Icon(
+                                  Icons.check_circle,
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  size: 30.0,
+                                ),
+                              ),
                             ),
+                        ],
+                      ),
+                    ),
 
-                            // Selection overlay
-                            if (isSelected)
-                              Container(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.check_circle,
-                                    color: Theme.of(context).colorScheme.onPrimary,
-                                    size: 30.0,
-                                  ),
+                    // Content
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Display timestamp instead of title
+                            if (item.timestamp != null)
+                              Text(
+                                _formatTimestamp(item.timestamp!),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+
+                            if (onLikeTap != null)
+                              InkWell(
+                                onTap: () => onLikeTap!(item),
+                                child: Icon(
+                                  isLiked ? Icons.favorite : Icons.favorite_border,
+                                  color: isLiked ? Colors.red : null,
+                                  size: 20,
                                 ),
                               ),
                           ],
                         ),
                       ),
-
-                      // Content
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              // Display timestamp instead of title
-                              if (item.timestamp != null)
-                                Text(
-                                  _formatTimestamp(item.timestamp!),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-
-                              if (onLikeTap != null)
-                                InkWell(
-                                  onTap: () => onLikeTap!(item),
-                                  child: Icon(
-                                    isLiked ? Icons.favorite : Icons.favorite_border,
-                                    color: isLiked ? Colors.red : null,
-                                    size: 20,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              );
-            },
-          );
-        },
-      ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -146,4 +149,3 @@ class MoodVibeMediaListView extends StatelessWidget {
     }
   }
 }
-
