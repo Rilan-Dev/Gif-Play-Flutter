@@ -51,7 +51,6 @@ class _MainScreenState extends State<MainScreen> {
   SessionNavigationController? _navigationController;
   String? _lastSpaceId;
   bool _initialSpaceRestoreStarted = false;
-  bool _spaceRestoreInProgress = false;
   int _spaceRestoreGeneration = 0;
   String? _pendingFetchSpaceId;
   Timer? _spaceStateSaveTimer;
@@ -99,7 +98,6 @@ class _MainScreenState extends State<MainScreen> {
     final navigation = _navigationController;
     if (spaceId == null || navigation == null) return;
     final generation = ++_spaceRestoreGeneration;
-    _spaceRestoreInProgress = true;
     try {
       final space = await navigation.repository.getSpace(spaceId);
       if (!mounted || generation != _spaceRestoreGeneration ||
@@ -146,9 +144,8 @@ class _MainScreenState extends State<MainScreen> {
         await _fetchData(expectedSpaceId: spaceId);
       }
     } finally {
-      if (generation == _spaceRestoreGeneration) {
-        _spaceRestoreInProgress = false;
-      }
+      // A superseded restore is intentionally ignored; the newer generation
+      // owns the visible Space state.
     }
   }
 
