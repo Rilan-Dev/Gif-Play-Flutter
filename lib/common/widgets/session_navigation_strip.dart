@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../data/local/models/detail_tab.dart';
 import '../../data/local/models/space.dart';
@@ -62,6 +63,18 @@ class SessionNavigationStrip extends StatelessWidget {
                         onTap: () => navigation.activateDetailTab(tab.id),
                         onClose: () => navigation.closeDetailTab(tab.id),
                       ),
+                    Tooltip(
+                      message: 'Show all GIF tabs',
+                      child: IconButton(
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => _showDetailTabOverview(
+                          context,
+                          navigation,
+                          navigation.activeSpaceId!,
+                        ),
+                        icon: const Icon(Icons.grid_view_rounded, size: 19),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -71,6 +84,113 @@ class SessionNavigationStrip extends StatelessWidget {
       },
     );
   }
+}
+
+Future<void> _showDetailTabOverview(
+  BuildContext context,
+  SessionNavigationController navigation,
+  String spaceId,
+) async {
+  final tabs = navigation.tabsForSpace(spaceId);
+  if (tabs.isEmpty) return;
+
+  await showDialog<void>(
+    context: context,
+    builder: (dialogContext) => Dialog(
+      insetPadding: const EdgeInsets.all(18),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 760,
+          maxHeight: MediaQuery.of(dialogContext).size.height * 0.82,
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 14, 10, 10),
+              child: Row(
+                children: [
+                  const Icon(Icons.tab),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'GIF tabs · ${tabs.length}',
+                      style: Theme.of(dialogContext).textTheme.titleLarge,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Close overview',
+                    onPressed: () => Navigator.pop(dialogContext),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.all(14),
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 220,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 0.82,
+                ),
+                itemCount: tabs.length,
+                itemBuilder: (context, index) {
+                  final tab = tabs[index];
+                  final selected = tab.id == navigation.activeDetailTabId;
+                  final title = tab.title?.trim().isNotEmpty == true
+                      ? tab.title!.trim()
+                      : 'GIF detail';
+                  final thumbnail = tab.thumbnailUrl?.trim() ?? '';
+                  return Card(
+                    clipBehavior: Clip.antiAlias,
+                    color: selected
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : null,
+                    child: InkWell(
+                      onTap: () async {
+                        Navigator.pop(dialogContext);
+                        await navigation.activateDetailTab(tab.id);
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: thumbnail.isEmpty
+                                ? const Center(child: Icon(Icons.image_outlined, size: 36))
+                                : CachedNetworkImage(
+                                    imageUrl: thumbnail,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => const Center(
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    ),
+                                    errorWidget: (context, url, error) => const Center(
+                                      child: Icon(Icons.broken_image_outlined),
+                                    ),
+                                  ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(9),
+                            child: Text(
+                              title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _SpaceChip extends StatelessWidget {
