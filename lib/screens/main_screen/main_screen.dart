@@ -29,6 +29,7 @@ import 'main_screen_data_service.dart';
 import 'main_screen_actions.dart';
 import 'space_feed_snapshot.dart';
 import 'media_item_search.dart';
+import 'space_fetch_policy.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -222,16 +223,15 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   Future<void> _fetchData({String? expectedSpaceId}) async {
     if (_isLoading) {
-      final requestedSpaceId = expectedSpaceId ??
-          _navigationController?.activeSpaceId ??
-          _lastSpaceId;
       // A pagination request for a newly selected Space must not be dropped
       // just because the previous Space still owns an in-flight request.
       // Ignore duplicate requests for the same Space to avoid fetch storms.
-      if (requestedSpaceId != null &&
-          requestedSpaceId != _activeFetchSpaceId) {
-        _pendingFetchSpaceId = requestedSpaceId;
-      }
+      _pendingFetchSpaceId = pendingSpaceForOverlappingFetch(
+        expectedSpaceId: expectedSpaceId,
+        activeSpaceId: _navigationController?.activeSpaceId,
+        lastSpaceId: _lastSpaceId,
+        activeFetchSpaceId: _activeFetchSpaceId,
+      ) ?? _pendingFetchSpaceId;
       return;
     }
     final requestSpaceId = expectedSpaceId ?? _lastSpaceId;
