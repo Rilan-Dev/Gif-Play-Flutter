@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -59,6 +60,7 @@ class DownloadAndShare {
 
       final files = <File>[];
       final failures = <String>[];
+      final failureDetails = <String>[];
 
       for (final gif in gifs) {
         final localFile = await _existingLocalFile(gif);
@@ -75,9 +77,17 @@ class DownloadAndShare {
           continue;
         }
 
-        final cached = await cacheManager.prepareMedia(_toMediaRecord(gif));
+        final mediaRecord = _toMediaRecord(gif);
+        final cached = await cacheManager.prepareMedia(mediaRecord);
         if (cached == null) {
           failures.add(gif.title);
+          final cacheEntry =
+              await cacheManager.repository.getCacheEntry(mediaRecord.id);
+          final reason = cacheEntry?.lastError?.trim() ?? '';
+          failureDetails.add(
+            '${gif.title.isNotEmpty ? gif.title : mediaUrl}: '
+            '${reason.isNotEmpty ? reason : 'Download/cache preparation failed'}',
+          );
           continue;
         }
 
@@ -113,13 +123,19 @@ class DownloadAndShare {
       }
 
       if (files.isEmpty) {
-        _showMessage(
-          context,
-          failures.isEmpty
-              ? 'No GIFs were processed'
-              : 'Could not prepare the selected GIFs',
-          backgroundColor: Colors.orange,
-        );
+        if (failureDetails.isNotEmpty) {
+          await _showShareFailureDetails(
+            context,
+            'Could not prepare the selected GIFs',
+            failureDetails.join('\n\n'),
+          );
+        } else {
+          _showMessage(
+            context,
+            'No GIFs were processed',
+            backgroundColor: Colors.orange,
+          );
+        }
         return false;
       }
 
@@ -136,11 +152,55 @@ class DownloadAndShare {
         );
       }
       return true;
-    } catch (error) {
+    } catch (error, stackTrace) {
       messenger.hideCurrentSnackBar();
-      _showMessage(context, 'Error: ${error.toString()}', backgroundColor: Colors.red);
+      debugPrint('GIF bulk-share failed: $error\n$stackTrace');
+      if (context.mounted) {
+        await _showShareFailureDetails(
+          context,
+          'GIF sharing failed',
+          '${error.toString()}\n\n$stackTrace',
+        );
+      }
       return false;
     }
+  }
+
+  Future<void> _showShareFailureDetails(
+    BuildContext context,
+    String title,
+    String details,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: SizedBox(
+          width: 520,
+          child: SingleChildScrollView(
+            child: SelectableText(details),
+          ),
+        ),
+        actions: [
+          TextButton.icon(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: details));
+              if (dialogContext.mounted) {
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  const SnackBar(content: Text('Error details copied')),
+                );
+              }
+            },
+            icon: const Icon(Icons.copy),
+            label: const Text('Copy error details'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Shares already-prepared collection files and commits share state only
