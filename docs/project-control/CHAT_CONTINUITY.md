@@ -161,3 +161,7 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 
 
 - Feed fetch follow-up: pagination initiated in a newly active Space is now queued while a prior Space owns an in-flight fetch. Duplicate requests for the same fetching Space are ignored. Policy source is in lib/screens/main_screen/space_fetch_policy.dart and regression source is in test/space_fetch_policy_test.dart.
+
+
+- Latest home UX fixes: loading, empty-search and error states no longer appear simultaneously; error retry is not duplicated. Local search now matches title/source/image URL and restores its field when the saved query is non-empty.
+- User-managed collections are now reachable in UI: Collections screen has Create Collection; GIF Details has Save to collection for existing or newly created collections. The existing Share list remains separate. Collection controller regression source checks creating a collection and restoring membership.
