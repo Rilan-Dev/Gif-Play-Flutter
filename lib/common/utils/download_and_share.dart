@@ -128,13 +128,15 @@ class DownloadAndShare {
     BuildContext context,
     Iterable<CollectionSharePreparation> preparations,
   ) async {
-    final items = preparations.toList(growable: false);
+    // Empty collections remain valid reusable lists. Skip them for this share
+    // operation instead of failing the other selected, ready collections.
+    final items = preparations.where((preparation) => !preparation.isEmpty).toList(growable: false);
     final files = items
         .expand((preparation) => preparation.cachedFiles)
         .map((result) => result.file)
         .toList(growable: false);
 
-    if (files.isEmpty || items.any((item) => !item.isReadyToShare)) {
+    if (items.isEmpty || files.isEmpty || items.any((item) => !item.isReadyToShare)) {
       _showMessage(
         context,
         'Selected collections are not ready to share',
