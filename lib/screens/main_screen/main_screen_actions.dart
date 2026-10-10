@@ -127,6 +127,55 @@ class MainScreenActions {
                   ),
                 ),
                 
+                // Preview image
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                      ),
+                      child: CachedNetworkImage(
+                        imageUrl: item.imageUrl,
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const ShimmerLoading(height: 200),
+                        errorWidget: (context, url, error) => const Icon(Icons.error),
+                      ),
+                    ),
+                    
+                    // Like button overlay
+                    Positioned(
+                      top: 16,
+                      right: 16,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            likedProvider.toggleLikedGif(gifItem);
+                            Navigator.pop(context);
+                            showGifDetailsDialog(context, item); // Reopen to refresh like status
+                          },
+                          borderRadius: BorderRadius.circular(24),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                                isLiked ? Icons.favorite : Icons.favorite_border,
+                                color: isLiked ? Colors.red : Colors.white,
+                                size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
                 // Title
                 Padding(
                   padding: const EdgeInsets.all(16.0),
