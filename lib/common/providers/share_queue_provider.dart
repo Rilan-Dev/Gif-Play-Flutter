@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../models/gif_item.dart';
 import '../utils/shared_preferences_util.dart';
 
-/// In-memory staging queue for GIFs the user plans to share.
+/// Durable local staging queue for GIFs the user plans to share.
 class ShareQueueProvider with ChangeNotifier {
   static const int maxQueuedGifs = 200;
   static const String _storageKey = 'share_queue_gifs_v1';
