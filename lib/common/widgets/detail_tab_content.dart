@@ -9,10 +9,18 @@ import '../../data/local/session_navigation_controller.dart';
 import '../../screens/main_screen/main_screen_data_service.dart';
 
 /// Restorable GIF detail surface for a persistent child tab.
+typedef DetailTabSuggestionLoader = Future<List<GifItem>> Function(String url);
+
 class DetailTabContent extends StatefulWidget {
-  const DetailTabContent({super.key, required this.tab, this.onMoreOptions});
+  const DetailTabContent({
+    super.key,
+    required this.tab,
+    this.onMoreOptions,
+    this.suggestionLoader,
+  });
   final DetailTab tab;
   final VoidCallback? onMoreOptions;
+  final DetailTabSuggestionLoader? suggestionLoader;
 
   @override
   State<DetailTabContent> createState() => _DetailTabContentState();
@@ -57,7 +65,8 @@ class _DetailTabContentState extends State<DetailTabContent> {
       _suggestionError = null;
     });
     try {
-      final suggestions = await MainScreenDataService.fetchGifsFromUrl(source);
+      final suggestions = await (widget.suggestionLoader ??
+          MainScreenDataService.fetchGifsFromUrl)(source);
       if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _suggestions = suggestions;
