@@ -158,3 +158,6 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 
 
 - Latest edge case: closing the active Space now activates the destination Space through its own persisted pointer; closing the current child tab refreshes Space pointer models. Regression source covers closing an active Space while preserving the destination Home feed.
+
+
+- Feed fetch follow-up: pagination initiated in a newly active Space is now queued while a prior Space owns an in-flight fetch. Duplicate requests for the same fetching Space are ignored. Policy source is in lib/screens/main_screen/space_fetch_policy.dart and regression source is in test/space_fetch_policy_test.dart.
