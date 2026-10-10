@@ -139,3 +139,5 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 - Share Queue state now persists to SharedPreferences and restores before UI startup. User-created collections remain backed by SQLite; file-backed database-reopen regression coverage is present.
 - Added tests for queue-only media cache preparation, URL-ID child-tab creation, repeated same-GIF opens, per-Space active tabs, Home-feed restoration, and Share Queue persistence. These tests, analyzer, build, and device behavior have not been executed here.
 - Next: source-check the latest commits and project-control docs; continue independent implementation without waiting for CI/Vercel. User must install a newer build than 28 to receive these changes, then retest Share All and force-close/relaunch persistence.
+
+- Follow-up after the initial handoff note: legacy GIF Details dialog suggestion selection was also redirected into new child tabs. Bulk Share All now presents copyable failure details, including per-GIF cache/download reasons. Queue writes are serialized to protect rapid changes.
