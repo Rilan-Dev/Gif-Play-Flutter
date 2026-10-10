@@ -10,9 +10,15 @@ When you click **Run workflow**, select the branch and choose **Build type**:
 - `release` (default): creates `app-release.apk`.
 - `debug`: creates `app-debug.apk`.
 
-The job checks out the selected branch, installs Java 17 and the stable Flutter SDK, resolves packages, and runs the matching Flutter APK build command. The Drift packages must have compatible versions; `drift_flutter` is set to `^0.3.1` to resolve the dependency conflict with `drift ^2.32.1` seen in the October 10, 2026 Actions run.
+The job checks out the selected branch, installs Java 17 and the stable Flutter SDK, resolves packages, and runs the matching Flutter APK build command.
 
-## Build and download the APK
+The verified Android build configuration uses Gradle 8.14.3, Android Gradle Plugin 8.11.1, and Kotlin Gradle Plugin 2.2.20. The custom SQL `LocalDatabase` uses Drift's `GeneratedDatabase` base class and declares its schema/migration hooks. Keep `drift: 2.31.0` paired with `drift_flutter: 0.2.3` unless the local database implementation is deliberately migrated to a newer Drift API.
+
+## Successful build record
+
+On October 10, 2026, release build run [#22](https://github.com/Rilan-Dev/Gif-Play-Flutter/actions/runs/38013379533) completed successfully and uploaded the artifact `gif-play-release-android-apk-22`. The APK inside is `app-release.apk`; the workflow artifact is retained for 30 days.
+
+## Build and download an APK
 
 1. Open the repository's [Actions tab](https://github.com/Rilan-Dev/Gif-Play-Flutter/actions).
 2. Select **Build Android APK** from the left sidebar.
