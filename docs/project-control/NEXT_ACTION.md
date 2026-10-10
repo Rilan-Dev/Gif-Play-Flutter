@@ -51,7 +51,7 @@ Do not wait for GitHub Actions, Vercel deployments, or continuous verification t
 
 
 ## Current UI implementation note
-The navigation strip, selected Detail Tab content view, and bounded per-Space feed/search/pagination/scroll snapshot restoration are implemented. MainScreen now guards overlapping restore and fetch completions with a generation token and Space identity; when a Space needs a fetch while another is running, its ID is queued and fetched after the in-flight request finishes. Runtime verification remains pending. Feed-item opening still needs UX consolidation because legacy dialog/route flows can overlap the selected Detail Tab surface.
+The navigation strip, selected Detail Tab content view, and bounded per-Space feed/search/pagination/scroll snapshot restoration are implemented. MainScreen now guards overlapping restore/fetch completions and delayed scroll restoration with a generation token and active Space identity; when a Space needs a fetch while another is running, its ID is queued and fetched after the in-flight request finishes. Regular feed-item opens now select the persistent Detail Tab without immediately layering the legacy GIF dialog; a deliberate GIF options action remains available from the tab. Runtime verification remains pending.
 
 
 ## Phase 3 implementation status — 2026-10-10
