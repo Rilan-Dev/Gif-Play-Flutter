@@ -27,7 +27,7 @@ Phase 3 — Persistent Browsing Spaces & Detail Tabs is **IN PROGRESS**. Phase 1
 7. [x] Add a repository regression assertion that closing the final Detail Tab clears the Space's persisted active-tab pointer.
 8. [x] Guard overlapping Space restores with a generation token; discard stale restore results and stale feed-fetch completions, and queue a fetch for the latest active Space if an earlier request is still in flight.
 9. [x] Finish edge-case behavior: ignore stale post-frame scroll restoration, guard scroll callbacks when the feed is detached, and make feed-item opening consistent with selected Detail Tab content instead of layering competing navigation/dialog surfaces.
-10. [NEXT] Add remaining focused regression sources for empty saved-feed restoration and tab-open interaction; the stale-URL and independent per-Space snapshot cases now have source coverage. Refresh the research index and project-control records.
+10. [NEXT] Add a focused regression source for empty saved-feed restoration/fetch fallback. Stale-URL handling, independent per-Space snapshots, explicit GIF options, and regular feed-item-to-Detail-Tab activation now have source coverage. Refresh research and project-control records as work advances.
 
 Runtime Flutter/Dart verification remains pending in the available environment; continue implementation without waiting for CI/Vercel/runtime gates.
 
