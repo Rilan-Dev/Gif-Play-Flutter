@@ -119,6 +119,6 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 ## Latest continuation point — persistent collections and restored GIF child tabs (2026-10-10)
 - Current main was checked against the merged feature-port PRs and recent commits. PR #6 (APK persistent signing/direct download) is now merged; it is separate from this feature work.
 - Collections are SQLite-backed. The Collections screen refreshes definitions and memberships on entry, shows saved GIF counts, and keeps shared items visible. Legacy clear requests now reset membership to pending rather than deleting it; the user can reset a collection for bulk sharing again.
-- Restored Detail Tabs now render the saved GIF detail and reload the existing source-page suggestions. Picking a suggestion opens it as another child tab in the same Space. The child-tab strip has a large thumbnail/title overview dialog inspired by browser tab switchers.
+- Restored Detail Tabs now render the saved GIF detail and reload the existing source-page suggestions. Picking a suggestion opens it as another child tab in the same Space. The child-tab strip and a Brave-style bottom control expose a large thumbnail/title overview dialog inspired by browser tab switchers.
 - Feed item opens persist media identity to reduce duplicate child tabs.
 - Next: add focused regression coverage for rapid Space switching during an in-flight fetch and verify per-Space snapshot write isolation in source tests. Runtime tests/analyzer were not run and remain pending; continue development without waiting for CI/Vercel.
