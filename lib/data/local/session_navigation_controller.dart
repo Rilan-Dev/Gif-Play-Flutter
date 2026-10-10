@@ -211,6 +211,7 @@ class SessionNavigationController extends ChangeNotifier {
       id: spaceId,
       clearActiveDetailTabId: true,
     );
+    _spaces = await repository.listSpaces();
     await _persistSession();
     notifyListeners();
   }
@@ -224,6 +225,7 @@ class SessionNavigationController extends ChangeNotifier {
       id: tab.spaceId,
       activeDetailTabId: tab.id,
     );
+    _spaces = await repository.listSpaces();
     await _persistSession();
     notifyListeners();
   }
@@ -327,6 +329,7 @@ class SessionNavigationController extends ChangeNotifier {
       activeDetailTabId: _activeDetailTabId,
       clearActiveDetailTabId: _activeDetailTabId == null,
     );
+    _spaces = await repository.listSpaces();
     await _persistSession();
   }
 
