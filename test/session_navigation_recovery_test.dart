@@ -88,6 +88,37 @@ void main() {
         secondTab.id);
   });
 
+  test('activating and closing tabs persists the current navigation state',
+      () async {
+    final controller = SessionNavigationController(repository);
+    await controller.load();
+    final space = controller.activeSpace!;
+    final first = await controller.openDetailTab(
+      spaceId: space.id,
+      canonicalUrl: 'https://example.com/first',
+      title: 'First',
+    );
+    final second = await controller.openDetailTab(
+      spaceId: space.id,
+      canonicalUrl: 'https://example.com/second',
+      title: 'Second',
+    );
+
+    await controller.activateDetailTab(first!.id);
+    expect(controller.activeDetailTabId, first.id);
+    expect((await repository.getSessionSnapshot())?.activeDetailTabId,
+        first.id);
+
+    await controller.closeDetailTab(first.id);
+    expect(controller.activeDetailTabId, second!.id);
+    expect((await repository.getSessionSnapshot())?.activeDetailTabId,
+        second.id);
+    expect(controller.tabsForSpace(space.id).map((tab) => tab.id),
+        contains(second.id));
+    expect(controller.tabsForSpace(space.id).map((tab) => tab.id),
+        isNot(contains(first.id)));
+  });
+
   test('Spaces, Detail Tabs, and session snapshot survive database reopen',
       () async {
     final directory =
