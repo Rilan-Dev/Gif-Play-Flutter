@@ -274,13 +274,16 @@ class SessionNavigationController extends ChangeNotifier {
     _spaces = _spaces.where((space) => space.id != spaceId).toList();
 
     if (_activeSpaceId == spaceId) {
-      _activeSpaceId = _spaces.isEmpty ? null : _spaces.first.id;
-      _activeDetailTabId = _activeSpaceId == null
-          ? null
-          : tabsForSpace(_activeSpaceId!).isNotEmpty
-              ? tabsForSpace(_activeSpaceId!).last.id
-              : null;
-      await _persistSession();
+      final nextSpaceId = _spaces.isEmpty ? null : _spaces.first.id;
+      if (nextSpaceId == null) {
+        _activeSpaceId = null;
+        _activeDetailTabId = null;
+        await _persistSession();
+      } else {
+        // Preserve the destination Space's own active tab/Home-feed pointer
+        // rather than replacing it with its most recently ordered tab.
+        await _activateSpace(nextSpaceId);
+      }
     }
     notifyListeners();
   }
