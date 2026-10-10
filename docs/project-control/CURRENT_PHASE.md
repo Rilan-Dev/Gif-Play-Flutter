@@ -39,7 +39,7 @@ Status: **IN PROGRESS — persistence infrastructure slice**
 - Source-level migration, persistence, and restoration tests.
 
 ### Next
-The visual Space/Detail Tab strips and initial content restoration are now implemented. The final-tab pointer clearing contract is fixed and has repository regression coverage. Async Space-switch/feed-fetch race handling is implemented: stale restore/fetch results and delayed scroll restorations are discarded, and the latest Space's fetch is queued when necessary. Regular feed-item opens now use the selected Detail Tab as the primary surface, with GIF options available through an explicit action. Added source coverage for unsafe source URLs and independent per-Space snapshots. Next, cover empty-feed restoration and the tab-open interaction. Keep Flutter/Dart runtime verification pending if unavailable; do not wait for CI/Vercel.
+The visual Space/Detail Tab strips, restored GIF detail/suggestions surface, thumbnail/title overview dialog, and bottom browser-style tab control are implemented. The final-tab pointer clearing contract is fixed and has repository regression coverage. Async Space-switch/feed-fetch race handling is implemented: stale restore/fetch results and delayed scroll restorations are discarded, and the latest Space's fetch is queued when necessary. Regular feed-item opens activate persistent Detail Tabs, and suggestions open further child tabs. Next, cover rapid Space switching and suggestion-to-child-tab/overview interactions. Keep Flutter/Dart runtime verification pending if unavailable; do not wait for CI/Vercel.
 
 
 ### Phase 3 — latest implementation update (2026-10-10)
