@@ -7,8 +7,8 @@ version: 1.0.0+1
 environment:
   sdk: ^3.6.0
 
-# consider running flutter pub upgrade --major-versions. Alternatively,
-# versions available, run flutter pub outdated
+# APK CI compatibility fix: drift_flutter 0.3.x is required alongside drift 2.32.x.
+# Consider running flutter pub outdated before upgrading dependencies.
 
 dependencies:
   flutter:
