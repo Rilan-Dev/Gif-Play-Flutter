@@ -26,7 +26,7 @@
 - DownloadAndShare now uses the canonical cache path for remote media and direct sharing only for already-local files.
 - CollectionShareController exposes reusable multi-select collection state, readiness, preparation progress, and errors to UI consumers.
 - Regression test sources cover cache retry, cleanup preserving collection metadata, collection selection/retry, empty-share safety, persistent navigation restoration, independent per-Space feed snapshots, and Detail Tab source URL/action behavior.
-- MainScreen rejects stale feed-fetch completions and delayed scroll restores using a generation token plus active-Space identity. Regular item opens focus the selected Detail Tab; the tab now rebuilds its GIF detail view and source-page suggestions, and chosen suggestions open as child tabs. The tab strip includes a thumbnail/title overview dialog.
+- MainScreen rejects stale feed-fetch completions and delayed scroll restores using a generation token plus active-Space identity. Regular item opens focus the selected Detail Tab; the tab now rebuilds its GIF detail view and source-page suggestions, and chosen suggestions open as child tabs. The tab strip and Brave-style bottom bar include a thumbnail/title overview dialog.
 - Collection definitions and memberships are stored in SQLite. The Collections screen refreshes persistent records on entry and displays saved item counts, including shared items; clear compatibility calls reset items to pending instead of deleting membership. Bulk sharing tolerates selected empty collections, and each collection has an explicit non-destructive reset-to-share action.
 - Flutter/Dart tests and analyzer have not been run for the latest changes; verification remains pending and is not a development gate.
 
