@@ -271,7 +271,10 @@ Future<void> _showDetailTabOverview(
                                       ),
                                       padding: const EdgeInsets.all(6),
                                       color: Colors.white,
-                                      onPressed: () => navigation.closeDetailTab(tab.id),
+                                      onPressed: () async {
+                                        await navigation.closeDetailTab(tab.id);
+                                        Navigator.pop(dialogContext);
+                                      },
                                       icon: const Icon(Icons.close, size: 17),
                                     ),
                                   ),
