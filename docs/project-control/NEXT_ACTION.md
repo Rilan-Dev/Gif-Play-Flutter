@@ -29,7 +29,7 @@ Phase 3 — Persistent Browsing Spaces & Detail Tabs is **IN PROGRESS**. Phase 1
 9. [x] Finish edge-case behavior: ignore stale post-frame scroll restoration, guard scroll callbacks when the feed is detached, and make feed-item opening consistent with selected Detail Tab content instead of layering competing navigation/dialog surfaces.
 10. [x] Extract resilient `SpaceFeedSnapshot` restoration and add source coverage for empty, missing, malformed, valid, and bounded snapshots; empty/unavailable saved content is marked for a fresh feed fetch.
 11. [x] Harden fetch lifecycle ownership: each active fetch has a request generation, and only that request may clear loading state or drain the queued Space fetch. Successful fetches schedule a debounced snapshot save, and results are filtered using the latest query.
-12. [NEXT] Add focused source coverage for rapid Space switching with an in-flight fetch and confirm previous-Space snapshot writes remain isolated, then cover suggestion-to-child-tab and browser-style tab overview interactions. Continue the broader home/search UX roadmap. Collections are SQLite-backed, non-destructive across share/reset operations, and bulk-shareable. Keep runtime verification pending rather than waiting for CI/Vercel.
+12. [NEXT] Add focused source coverage for rapid Space switching with an in-flight fetch and confirm previous-Space snapshot writes remain isolated, then cover suggestion-to-child-tab and browser-style tab overview interactions. Continue the broader home/search UX roadmap. Bulk GIF sharing now uses safe hashed cache filenames, explicit GIF MIME types, and accurate success/failure feedback; add any device-specific regression coverage from the next reproduction. Collections remain durable and bulk-shareable. Keep runtime verification pending rather than waiting for CI/Vercel.
 
 Runtime Flutter/Dart verification remains pending in the available environment; continue implementation without waiting for CI/Vercel/runtime gates.
 
@@ -41,7 +41,7 @@ Do not wait for GitHub Actions, Vercel deployments, or continuous verification t
 - A shared collection remains after its pending queue reaches zero.
 - Sharing one collection never changes another collection.
 - Duplicate media across collections reuses one canonical cache file.
-- Failed downloads remain retryable and do not silently become shared.
+- Failed downloads remain retryable and do not silently become shared. Queue fallback IDs must never be interpolated into filesystem paths; share payloads must use a declared image/GIF MIME type.
 - Cache cleanup removes cache artifacts/manifest entries only; collection metadata survives.
 - Multi-collection preparation deduplicates selected collection IDs.
 - Remote sharing has one canonical download path; no legacy direct HTTP fallback remains in the share utility.
