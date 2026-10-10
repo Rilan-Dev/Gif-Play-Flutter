@@ -74,6 +74,10 @@ class DownloadAndShare {
         final mediaUrl = imageUrl.isNotEmpty ? imageUrl : (gif.url ?? '').trim();
         if (mediaUrl.isEmpty || !mediaUrl.startsWith(RegExp(r'https?://'))) {
           failures.add(gif.title);
+          failureDetails.add(
+            '${gif.title.isNotEmpty ? gif.title : 'Untitled GIF'}: '
+            'No valid HTTP(S) media URL was provided.',
+          );
           continue;
         }
 
@@ -145,10 +149,12 @@ class DownloadAndShare {
           '${files.length > 1 ? '${files.length} GIFs' : 'GIF'} saved successfully',
         );
       } else if (failures.isNotEmpty) {
-        _showMessage(
+        await _showShareFailureDetails(
           context,
           '${failures.length} GIF${failures.length == 1 ? '' : 's'} could not be prepared',
-          backgroundColor: Colors.orange,
+          failureDetails.isEmpty
+              ? 'Some GIFs could not be prepared. No additional error details were returned.'
+              : failureDetails.join('\n\n'),
         );
       }
       return true;
