@@ -114,6 +114,7 @@ class ShareQueueProvider with ChangeNotifier {
       _queuedGifs.removeRange(maxQueuedGifs, _queuedGifs.length);
     }
     notifyListeners();
+    unawaited(_persistQueue());
   }
 
   bool removeGif(GifItem gif) {
@@ -122,6 +123,7 @@ class ShareQueueProvider with ChangeNotifier {
     _queuedGifs.removeWhere((item) => keyFor(item) == key);
     if (_queuedGifs.length == previousLength) return false;
     notifyListeners();
+    unawaited(_persistQueue());
     return true;
   }
 
@@ -130,7 +132,10 @@ class ShareQueueProvider with ChangeNotifier {
     if (keys.isEmpty) return;
     final previousLength = _queuedGifs.length;
     _queuedGifs.removeWhere((item) => keys.contains(keyFor(item)));
-    if (_queuedGifs.length != previousLength) notifyListeners();
+    if (_queuedGifs.length != previousLength) {
+      notifyListeners();
+      unawaited(_persistQueue());
+    }
   }
 
   void clear() {
