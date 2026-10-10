@@ -90,3 +90,8 @@ The main screen now restores per-Space feed/search/scroll state from the persist
 
 
 - [x] Preserve pagination requests for a newly active Space while a previous Space fetch is still in flight, without queueing duplicate same-Space requests; add focused policy tests.
+
+
+- [x] Make feed loading, empty-search, and fetch-error states mutually exclusive and actionable.
+- [x] Expose user-created named collections in the UI and allow selected GIFs to be saved into durable SQLite collection memberships without replacing Share Queue functionality.
+- [x] Add controller regression source for creating a named collection and saving/restoring its GIF membership.
