@@ -194,3 +194,6 @@
 - Restored the search field's visibility when a Space restores a non-empty saved query; previously the feed could be filtered by a saved query while the search field remained hidden.
 - Added shared mediaItemMatchesQuery logic and updated restored feeds, fresh fetch results, and live search filtering to match GIF title, source-page URL, and image URL case-insensitively. Added unit test source for title/URL matching, whitespace queries, and misses.
 - The Phase 3 regression set now includes controller concurrent-switch coverage, Home/tab/overview widget coverage, suggestion-to-child-tab coverage, and URL-aware search helper tests. Runtime execution remains pending; continue implementation without waiting for CI/Vercel.
+
+
+- Additional 2026-10-11 edge-case fix: closing the active Space now activates the destination Space through its normal restoration path, preserving that Space's saved active child tab or intentional Home-feed selection. Closing the active child tab refreshes the in-memory Space models after persisting its new active-tab pointer. Added a regression test for closing one Space while restoring another Space's Home feed.
