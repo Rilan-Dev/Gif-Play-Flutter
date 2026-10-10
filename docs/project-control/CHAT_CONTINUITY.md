@@ -39,7 +39,7 @@ Never infer completed work from a previous chat. GitHub files, Git history, and 
 - Main bootstrap registers SessionNavigationController.
 - Focused persistence tests cover navigation state, schema-v1 forward migration, and controller restoration.
 - Startup now creates a durable Home Space when none exists and repairs invalid active-space references from stale snapshots.
-- The next implementation action is invalid/closed-tab restoration coverage and migration/reopen coverage before the visual Space/Detail Tab redesign.
+- Invalid/closed/cross-Space tab restoration and database reopen coverage are now implemented as regression sources. The initial visual Space/Detail Tab strips are mounted on the home screen, and feed opens persist lightweight tab metadata. Next: bind active Space/Detail Tab selection to actual visible content and restore per-Space feed/search/scroll state.
 
 ## APCP Adaptive Control Layer
 
@@ -84,3 +84,11 @@ WORK-01 may execute SAFE-LOCAL or already AUTHORIZED daily work, but it cannot b
 The user does not need to carry project context between chats. For a fresh session, the preferred copy/paste instructions are in `docs/project-control/HOW_TO_USE_AGENTS.md`. The invoked agent must recover the project from GitHub and durable project-control records rather than requiring the previous conversation.
 
 The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is active. The new session must work independently, avoid conflicting edits, route dependencies, and continue any independent valid work without repeated waiting/polling.
+
+
+## Latest continuation point — Phase 3 visual navigation slice
+- Fixed stale/closed/cross-Space active-tab restoration and added focused recovery/transition/reopen test sources.
+- Refreshed `docs/AI_REPO_INDEX.md` and `docs/AI_RESEARCH_PROTOCOL.md` for current persistence/cache/navigation modules.
+- Added `SessionNavigationStrip` to the main feed and records feed-item opens as lightweight Detail Tabs in the active Space.
+- Next authorized implementation action: connect Space selection to independent feed/search/scroll state and Detail Tab selection to the visible detail content. Existing SQLite contracts should remain stable unless a separately authorized schema change is necessary.
+- Flutter/Dart test execution was not performed in this session; runtime verification remains pending and must not block independent implementation.
