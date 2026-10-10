@@ -56,6 +56,15 @@ void main() {
     expect(controller.activeDetailTabId, tab!.id);
     expect(find.text('Home feed'), findsOneWidget);
 
+    await tester.tap(find.byTooltip('Show all GIF tabs'));
+    await tester.pumpAndSettle();
+    expect(find.text('GIF tabs · 1'), findsOneWidget);
+    await tester.tap(find.byTooltip('Close tab'));
+    await tester.pumpAndSettle();
+    expect(controller.tabsForSpace(spaceId), isEmpty);
+    expect(controller.activeDetailTabId, isNull);
+    expect(find.text('GIF tabs · 1'), findsNothing);
+
     await database.close();
   });
 }
