@@ -7,8 +7,7 @@ version: 1.0.0+1
 environment:
   sdk: ^3.6.0
 
-# APK CI compatibility: use Drift 2.31.x with drift_flutter 0.2.x for the
-# custom SQL GeneratedDatabase implementation in LocalDatabase; build fix iteration 2.
+# Keep Drift compatible with the custom SQL GeneratedDatabase implementation.
 # Android build tooling: Gradle 8.14.3 + AGP 8.11.1 + Kotlin 2.2.20.
 
 dependencies:
