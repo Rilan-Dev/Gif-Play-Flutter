@@ -155,3 +155,6 @@ The user may invoke DEV-01, FIX-01, OPS-01, or WORK-01 while another agent is ac
 - DetailTabContent accepts an optional suggestion loader for deterministic tests; production still defaults to MainScreenDataService.fetchGifsFromUrl. Widget test source verifies a suggestion tap creates a new persistent child tab and activates it.
 - MainScreen now restores the search input's visibility alongside a non-empty saved query. New mediaItemMatchesQuery logic matches title, source-page URL and image URL case-insensitively across restored state, fresh fetch results and live search.
 - Added test/media_item_search_test.dart. NEXT_ACTION.md now continues with focused home/search UX and search/collection persistence regression coverage. Flutter tests/analyzer/build/device verification remain pending.
+
+
+- Latest edge case: closing the active Space now activates the destination Space through its own persisted pointer; closing the current child tab refreshes Space pointer models. Regression source covers closing an active Space while preserving the destination Home feed.
