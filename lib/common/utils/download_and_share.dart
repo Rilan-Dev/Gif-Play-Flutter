@@ -323,8 +323,16 @@ class DownloadAndShare {
     final imageUrl = gif.imageUrl?.trim() ?? '';
     final mediaUrl = imageUrl.isNotEmpty ? imageUrl : (gif.url ?? '').trim();
     final sourceUrl = (gif.url ?? mediaUrl).trim();
-    final id = gif.id ??
-        MediaIdentity.fromUrls(mediaUrl: mediaUrl, sourceUrl: sourceUrl);
+    final suppliedId = gif.id?.trim() ?? '';
+    // ShareQueueProvider uses URL-prefixed keys for deduplication when a GIF
+    // has no provider ID. Those keys are not media IDs and must never be used
+    // as cache/database identities.
+    final generatedQueueKey = suppliedId.startsWith('url:') ||
+        suppliedId.startsWith('img:') ||
+        suppliedId.startsWith('title:');
+    final id = suppliedId.isNotEmpty && !generatedQueueKey
+        ? suppliedId
+        : MediaIdentity.fromUrls(mediaUrl: mediaUrl, sourceUrl: sourceUrl);
 
     return MediaRecord(
       id: id,
