@@ -62,6 +62,7 @@ Other feature branches:
 - `lib/screens/main_screen/main_screen_actions.dart` — regular item open persists/activates a Detail Tab without immediately layering a legacy details dialog; special Mood & Vibe route remains.
 - `test/session_navigation_recovery_test.dart` — startup recovery, persistence, close/activation transitions, and independent per-Space feed snapshot source coverage.
 - `test/detail_tab_content_test.dart` — unsafe source URL rejection and explicit GIF options widget test sources.
+- `test/main_screen_actions_test.dart` — regular feed-item interaction activates a saved Detail Tab without displaying the legacy GIF details dialog.
 
 
 ### Bootstrap
