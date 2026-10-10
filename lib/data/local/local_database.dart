@@ -27,6 +27,9 @@ class LocalDatabase extends GeneratedDatabase {
   Iterable<DatabaseSchemaEntity> get allSchemaEntities => const [];
 
   @override
+  Iterable<TableInfo> get allTables => const [];
+
+  @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (_) async {
           await _createSchema();
