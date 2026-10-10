@@ -24,7 +24,7 @@ class DownloadAndShare {
   ) async {
     if (gifs.isEmpty) {
       _showMessage(context, 'No GIFs selected', backgroundColor: Colors.orange);
-      return;
+      return false;
     }
 
     final messenger = ScaffoldMessenger.of(context);
@@ -87,10 +87,24 @@ class DownloadAndShare {
       messenger.hideCurrentSnackBar();
 
       if (share && files.isNotEmpty) {
-        await Share.shareXFiles(
-          files.map((file) => XFile(file.path)).toList(),
-          text: '',
-        );
+        // Cached files use a .bin extension for content-addressed storage.
+        // Declare the real media type explicitly so Android/iOS share targets
+        // recognize these files as GIF images instead of opaque binaries.
+        final shareFiles = <XFile>[];
+        final seenPaths = <String>{};
+        for (final file in files) {
+          if (!await file.exists() || !seenPaths.add(file.path)) continue;
+          shareFiles.add(XFile(file.path, mimeType: 'image/gif'));
+        }
+        if (shareFiles.isEmpty) {
+          _showMessage(
+            context,
+            'No prepared GIF files are available to share',
+            backgroundColor: Colors.orange,
+          );
+          return false;
+        }
+        await Share.shareXFiles(shareFiles, text: '');
       }
 
       if (files.isEmpty) {
@@ -101,7 +115,7 @@ class DownloadAndShare {
               : 'Could not prepare the selected GIFs',
           backgroundColor: Colors.orange,
         );
-        return;
+        return false;
       }
 
       if (!share) {
@@ -116,9 +130,11 @@ class DownloadAndShare {
           backgroundColor: Colors.orange,
         );
       }
+      return true;
     } catch (error) {
       messenger.hideCurrentSnackBar();
       _showMessage(context, 'Error: ${error.toString()}', backgroundColor: Colors.red);
+      return false;
     }
   }
 
@@ -130,11 +146,14 @@ class DownloadAndShare {
   ) async {
     // Empty collections remain valid reusable lists. Skip them for this share
     // operation instead of failing the other selected, ready collections.
-    final items = preparations.where((preparation) => !preparation.isEmpty).toList(growable: false);
-    final files = items
-        .expand((preparation) => preparation.cachedFiles)
-        .map((result) => result.file)
+    final items = preparations
+        .where((preparation) => !preparation.isEmpty)
         .toList(growable: false);
+    final filesByPath = <String, File>{};
+    for (final result in items.expand((preparation) => preparation.cachedFiles)) {
+      filesByPath[result.file.path] = result.file;
+    }
+    final files = filesByPath.values.toList(growable: false);
 
     if (items.isEmpty || files.isEmpty || items.any((item) => !item.isReadyToShare)) {
       _showMessage(
@@ -146,10 +165,18 @@ class DownloadAndShare {
     }
 
     try {
-      await Share.shareXFiles(
-        files.map((file) => XFile(file.path)).toList(),
-        text: '',
-      );
+      final shareFiles = <XFile>[];
+      for (final file in files) {
+        if (await file.exists()) {
+          shareFiles.add(XFile(file.path, mimeType: 'image/gif'));
+        }
+      }
+      if (shareFiles.isEmpty) {
+        _showMessage(context, 'No prepared GIF files are available to share',
+            backgroundColor: Colors.orange);
+        return;
+      }
+      await Share.shareXFiles(shareFiles, text: '');
       final service = _collectionShareServiceOrNull(context);
       if (service == null) {
         throw StateError('CollectionShareService is not configured.');
@@ -190,7 +217,10 @@ class DownloadAndShare {
 
       final preparations = await service.prepareCollections(ids);
       final allReady = preparations.length == ids.length &&
-          preparations.every((preparation) => preparation.isReadyToShare);
+          preparations.every(
+            (preparation) =>
+                preparation.isEmpty || preparation.isReadyToShare,
+          );
 
       if (!allReady) {
         messenger.hideCurrentSnackBar();
@@ -202,10 +232,14 @@ class DownloadAndShare {
         return;
       }
 
-      final files = preparations
-          .expand((preparation) => preparation.cachedFiles)
-          .map((result) => result.file)
-          .toList();
+      // The same GIF can belong to multiple collections. Share one copy
+      // per local file while keeping every collection's membership intact.
+      final filesByPath = <String, File>{};
+      for (final result
+          in preparations.expand((preparation) => preparation.cachedFiles)) {
+        filesByPath[result.file.path] = result.file;
+      }
+      final files = filesByPath.values.toList(growable: false);
 
       if (files.isEmpty) {
         messenger.hideCurrentSnackBar();
@@ -217,10 +251,19 @@ class DownloadAndShare {
         return;
       }
 
-      await Share.shareXFiles(
-        files.map((file) => XFile(file.path)).toList(),
-        text: '',
-      );
+      final shareFiles = <XFile>[];
+      for (final file in files) {
+        if (await file.exists()) {
+          shareFiles.add(XFile(file.path, mimeType: 'image/gif'));
+        }
+      }
+      if (shareFiles.isEmpty) {
+        messenger.hideCurrentSnackBar();
+        _showMessage(context, 'No prepared GIF files are available to share',
+            backgroundColor: Colors.orange);
+        return;
+      }
+      await Share.shareXFiles(shareFiles, text: '');
       await service.markCollectionsShared(preparations);
       messenger.hideCurrentSnackBar();
     } catch (error) {
