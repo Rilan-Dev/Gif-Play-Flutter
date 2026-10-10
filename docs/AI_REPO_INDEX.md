@@ -635,3 +635,9 @@ When adding or moving a repository, controller, provider, feature screen, or sha
 - Regression sources: test/media_cache_manager_test.dart, test/local_media_repository_test.dart, and test/share_queue_provider_test.dart. Test/analyzer/build/device verification remains pending.
 
 - Additional follow-up: legacy GIF Details dialog grid selection also opens a new persistent child tab. Bulk-share failures now expose copyable per-GIF diagnostic details; share-queue writes are serialized.
+
+
+## 2026-10-11 — Lifecycle flush and navigation regression sources
+- lib/screens/main_screen/main_screen.dart implements WidgetsBindingObserver; background lifecycle events flush debounced Space feed snapshots and the Share Queue persistence chain.
+- test/session_navigation_recovery_test.dart covers rapid concurrent Space activation and per-Space pointer/snapshot isolation.
+- test/session_navigation_strip_test.dart covers Home-feed/child-tab visibility, returning to a child tab, overview access and closing tabs from the overview.
