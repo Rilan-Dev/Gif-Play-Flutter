@@ -116,6 +116,9 @@ class CollectionShareController extends ChangeNotifier {
   Future<void> refreshReadiness() async {
     for (final id in _selectedCollectionIds) {
       _readiness[id] = await cacheManager.getCollectionReadiness(id);
+      // Reload durable membership/share state after a share attempt so the
+      // UI reflects the SQLite state instead of retaining stale in-memory rows.
+      await loadCollectionItems(id);
     }
     notifyListeners();
   }
