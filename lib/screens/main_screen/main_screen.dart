@@ -208,6 +208,7 @@ class _MainScreenState extends State<MainScreen> {
       return;
     }
     final requestSpaceId = expectedSpaceId ?? _lastSpaceId;
+    final requestGeneration = _spaceRestoreGeneration;
     final requestQuery = _searchController.text;
     final requestSearchController = TextEditingController(text: requestQuery);
 
