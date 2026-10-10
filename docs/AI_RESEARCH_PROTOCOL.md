@@ -109,3 +109,7 @@ The home screen now mounts `SessionNavigationStrip`, and feed item opens create 
 ## Android APK CI/CD research
 
 For automated Android builds, read `docs/AI_REPO_INDEX_CI_CD.md` and `docs/CI_CD_ANDROID_APK.md`, then inspect `.github/workflows/android-apk.yml` and the Android Gradle configuration. APK artifacts are for testing while the release build uses debug signing. Continue unrelated implementation while CI is pending; do not repeatedly poll build runs.
+
+
+## Phase 3 content restoration research path
+For Space switching and selected-tab content, read `lib/screens/main_screen/main_screen.dart`, `lib/common/widgets/session_navigation_strip.dart`, `lib/common/widgets/detail_tab_content.dart`, `lib/data/local/session_navigation_controller.dart`, and `lib/data/local/local_media_repository.dart` Space/tab APIs. Feed snapshots are JSON metadata bounded to 120 `MediaItem` records and reuse existing schema fields. Add focused persistence tests before changing the serialization contract. Flutter/Dart runtime verification remains pending and is not a development blocker.
