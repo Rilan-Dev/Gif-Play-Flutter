@@ -87,3 +87,6 @@ The main screen now restores per-Space feed/search/scroll state from the persist
 
 - [x] Preserve destination Space tab/Home-feed selection when closing the currently active Space; refresh in-memory active-tab pointers after closing the current child tab.
 - [x] Add suggestion-to-child-tab widget test source, shared title/source/image URL search matching, and query visibility restoration.
+
+
+- [x] Preserve pagination requests for a newly active Space while a previous Space fetch is still in flight, without queueing duplicate same-Space requests; add focused policy tests.
